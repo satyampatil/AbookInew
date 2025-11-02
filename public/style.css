@@ -19,10 +19,10 @@ body {
     width: 90%;
 }
 
-.profile-pic {
+.page-icon {
     width: 150px;
     height: 150px;
-    border-radius: 50%;
+    border-radius: 10px;
     object-fit: cover;
     margin-bottom: 1rem;
     border: 5px solid #eee;
