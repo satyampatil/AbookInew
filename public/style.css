@@ -1,54 +1,278 @@
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #f4f7f6;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+/* --- Global Reset & Root Variables --- */
+:root {
+    --primary-red: #E50914;
+    --dark-bg: #141414;
+    /* --- NEW VARIABLE ADDED --- */
+    --bg-color-rgb: 20, 20, 20; /* This is the RGB for #141414 */
+    --light-text: #FFFFFF;
+    --dark-text: #000000;
+    --grey-text: #999;
+    --card-shadow: rgba(0, 0, 0, 0.4);
+}
+
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.container {
-    background-color: #ffffff;
-    padding: 2.5rem;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 500px;
-    width: 90%;
+body {
+    background-color: var(--dark-bg);
+    color: var(--light-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
 }
 
-.page-icon {
-    width: 150px;
-    height: 150px;
-    border-radius: 10px;
-    object-fit: cover;
-    margin-bottom: 1rem;
-    border: 5px solid #eee;
-}
-
-h1 {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-p {
-    font-size: 1.1rem;
-    line-height: 1.6;
-}
-
-.links a {
-    display: inline-block;
-    background-color: #007bff;
-    color: #ffffff;
+a {
     text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    margin: 10px 5px;
-    transition: background-color 0.3s ease;
+    color: inherit;
 }
 
-.links a:hover {
-    background-color: #0056b3;
+ul {
+    list-style: none;
 }
+
+/* --- Main Header / Navigation --- */
+.main-header {
+    width: 100%;
+    /* Gradient overlay for nav */
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 10%, rgba(0, 0, 0, 0));
+    padding: 1.5rem 3rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+
+.main-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-red);
+    letter-spacing: 1px;
+}
+
+.nav-links {
+    display: flex;
+}
+
+.nav-links li {
+    margin-left: 1.5rem;
+}
+
+.nav-link {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--grey-text);
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--light-text);
+}
+
+.nav-profile {
+    color: var(--light-text);
+}
+
+/* --- Hero Section --- */
+.hero-section {
+    height: 60vh;
+    min-height: 450px;
+    
+    /* --- STATIC BACKGROUND REMOVED --- */
+    /* The 'background' and 'background-image' properties are gone */
+    
+    background-size: cover;
+    background-position: center 20%; /* Focuses a bit higher on the image */
+    
+    display: flex;
+    align-items: center;
+    padding: 0 3rem; /* Align with nav padding */
+}
+
+.hero-content {
+    max-width: 50%;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+
+.hero-buttons .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-right: 1rem;
+    
+    /* For flex alignment of icon + text */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon {
+    margin-right: 0.5rem;
+    width: 20px;
+    height: 20px;
+}
+
+.btn-primary {
+    background-color: var(--light-text);
+    color: var(--dark-text);
+}
+
+.btn-primary:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.btn-secondary {
+    background-color: rgba(109, 109, 110, 0.7);
+    color: var(--light-text);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(109, 109, 110, 0.4);
+}
+
+/* --- Book Shelves --- */
+.book-shelves {
+    padding: 2rem 0;
+}
+
+.category-shelf {
+    margin-bottom: 2rem;
+}
+
+.category-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding: 0 3rem; /* Align with nav padding */
+}
+
+.book-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 3rem; /* Align with nav padding */
+}
+
+/* Hide scrollbar for a cleaner look, but still scrollable */
+.book-scroll-container::-webkit-scrollbar {
+    display: none;
+}
+.book-scroll-container {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.book-card {
+    min-width: 160px; /* Set a min-width for the cards */
+    height: 240px;
+    margin-right: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    
+    /* Added for the hover effect */
+    position: relative; 
+}
+
+.book-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px var(--card-shadow);
+}
+
+/* --- NEW: Book Card Hover Info --- */
+.book-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* Gradient from black to transparent */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0));
+    padding: 1.5rem 0.75rem 0.75rem;
+    
+    /* Hide it by default */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.book-card-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--light-text);
+    /* Prevent title from wrapping */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Show the info on hover */
+.book-card:hover .book-card-info {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- Footer --- */
+.main-footer {
+    text-align: center;
+    padding: 2rem;
+    margin-top: 2rem;
+    color: var(--grey-text);
+    border-top: 1px solid #333;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .main-header, .hero-section, .category-title, .book-scroll-container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .nav-links {
+        display: none; /* Hide nav links on mobile for simplicity */
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-description {
+        font-size: 0.9rem;
+    }
+
+    .book-card {
+        min-width: 120px;
+        height: 180px;
+    }
+}
+
+
