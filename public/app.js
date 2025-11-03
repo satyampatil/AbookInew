@@ -1,9 +1,7 @@
-// --- DEFINE THE BOOK AS A REUSABLE OBJECT ---
-// This makes it easy to move around
+// --- DEFINE ALL BOOKS AS CONSTANTS ---
 const romeoAndJulietBook = { 
     title: "Romeo and Juliet", 
-    // --- UPDATED DESCRIPTION ---
-    description: "",//`"Romeo and Juliet" by William Shakespeare is a tragedy likely written during the late 16th century. The play centers on the intense love affair between two young lovers, Romeo Montague and Juliet Capulet, whose families are embroiled in a bitter feud. Their love, while passionate and profound, is met with adversities that ultimately lead to tragic consequences. At the start of the play, a Prologue delivered by the Chorus sets the stage for the tale of forbidden love, revealing the familial conflict that surrounds Romeo and Juliet. The opening scenes depict a public brawl ignited by the feud between the Montagues and Capulets, showcasing the hostility that envelops their lives. As we are introduced to various characters such as Benvolio, Tybalt, and Mercutio, we learn of Romeo's unrequited love for Rosaline. However, this quickly changes when Romeo encounters Juliet at the Capulet ball, where they share a famous and romantic exchange, unwittingly falling in love with each other despite their families' bitter enmity. This initial encounter foreshadows the obstacles they will face as their love story unfolds amidst chaos and conflict.`,
+    description: "", // Description removed as per our simplified hero
     coverUrl: "books/romeo-and-juliet/romeo-and-juliet.jpg",
     readUrl: "books/romeo-and-juliet/romeo-and-juliet.html"
 };
@@ -26,69 +24,80 @@ const AdventuresinWonderland = {
     readUrl: "books/Adventures-in-Wonderland/Adventures-in-Wonderland.html"
 };
 
-// This object will hold all our "database"
-const bookData = [
+// --- LIST OF "NEW" BOOKS FOR THE NEW PAGE ---
+const newReleasesList = [
+    AdventuresinWonderland,
+    PrideandPrejudice,
+    MobyDick,
+    romeoAndJulietBook
+];
+
+// --- DATA FOR NEW RELEASES PAGE ---
+const bookDataNewReleases = [
+    {
+        category: "New Releases",
+        books: newReleasesList
+    }
+];
+
+// --- DATA FOR HOME PAGE ---
+const bookDataHome = [
     {
         category: "Trending Now",
-        books: [
-            // --- IT WILL BE ADDED HERE BY THE CODE BELOW ---
-        ]
+        books: [] // Will be populated by logic below
     },
     {
-        category: "Classic Literature", // Renamed from "Classic Tragedies"
+        category: "Classic Literature", 
         books: [
-            { title: "Hamlet", coverUrl: "https://placehold.co/300x450/6c757d/FFFFFF?text=Hamlet" },
-            { title: "Macbeth", coverUrl: "https://placehold.co/300x450/6c757d/FFFFFF?text=Macbeth" },
+            { title: "Hamlet", coverUrl: "https://placehold.co/300x450/6c757d/FFFFFF?text=Hamlet", readUrl: null },
+            { title: "Macbeth", coverUrl: "https://placehold.co/300x450/6c757d/FFFFFF?text=Macbeth", readUrl: null },
         ]
     },
     {
         category: "Fantasy Worlds",
         books: [
-            { title: "Dragon's Peak", coverUrl: "https://placehold.co/300x450/5645E0/FFFFFF?text=Dragon's+Peak" },
-            { title: "The Last Wizard", coverUrl: "https://placehold.co/300x450/62E49C/000000?text=The+Last+Wizard" },
-            { title: "Shadow Gate", coverUrl: "https://placehold.co/300x450/9B27AF/FFFFFF?text=Shadow+Gate" },
-            { title: "Elven Crown", coverUrl: "https://placehold.co/300x450/E50914/FFFFFF?text=Elven+Crown" },
-            { title: "Sky Kingdom", coverUrl: "https://placehold.co/300x450/F8A00F/000000?text=Sky+Kingdom" },
-            { title: "Shadow Gate", coverUrl: "https://placehold.co/300x450/9B27AF/FFFFFF?text=Shadow+Gate" },
+            { title: "Dragon's Peak", coverUrl: "https://placehold.co/300x450/5645E0/FFFFFF?text=Dragon's+Peak", readUrl: null },
+            { title: "The Last Wizard", coverUrl: "https://placehold.co/300x450/62E49C/000000?text=The+Last+Wizard", readUrl: null },
+            { title: "Shadow Gate", coverUrl: "https://placehold.co/300x450/9B27AF/FFFFFF?text=Shadow+Gate", readUrl: null },
+            { title: "Elven Crown", coverUrl: "https://placehold.co/300x450/E50914/FFFFFF?text=Elven+Crown", readUrl: null },
+            { title: "Sky Kingdom", coverUrl: "https://placehold.co/300x450/F8A00F/000000?text=Sky+Kingdom", readUrl: null },
+            { title: "Shadow Gate", coverUrl: "https://placehold.co/300x450/9B27AF/FFFFFF?text=Shadow+Gate", readUrl: null },
         ]
     },
     {
         category: "Mystery & Thrillers",
         books: [
-            { title: "The Silent Witness", coverUrl: "https://placehold.co/300x450/333333/FFFFFF?text=The+Silent+Witness" },
-            { title: "Gone by Dawn", coverUrl: "https://placehold.co/300x450/A0A0A0/000000?text=Gone+by+Dawn" },
-            { title: "Echo Park", coverUrl: "https://placehold.co/300x450/454545/FFFFFF?text=Echo+Park" },
-            { title: "The Deep End", coverUrl: "https://placehold.co/300x450/C0C0C0/000000?text=The+Deep+End" },
+            { title: "The Silent Witness", coverUrl: "https://placehold.co/300x450/333333/FFFFFF?text=The+Silent+Witness", readUrl: null },
+            { title: "Gone by Dawn", coverUrl: "https://placehold.co/300x450/A0A0A0/000000?text=Gone+by+Dawn", readUrl: null },
+            { title: "Echo Park", coverUrl: "https://placehold.co/300x450/454545/FFFFFF?text=Echo+Park", readUrl: null },
+            { title: "The Deep End", coverUrl: "https://placehold.co/300x450/C0C0C0/000000?text=The+Deep+End", readUrl: null },
         ]
     }
 ];
 
-// --- ADD R&J TO THE START OF THE "TRENDING NOW" ARRAY ---
-// bookData[0] is "Trending Now"
-// .books is its list of books
-// .unshift() adds an item to the beginning of the list
-bookData[0].books.unshift(romeoAndJulietBook);
-//keep it in classic tragedies category too
-bookData[1].books.unshift(romeoAndJulietBook);
-//book2
-bookData[0].books.unshift(MobyDick);
-bookData[1].books.unshift(MobyDick);
-//book3
-bookData[0].books.unshift(PrideandPrejudice);
-bookData[1].books.unshift(PrideandPrejudice);
-//book4
-bookData[0].books.unshift(AdventuresinWonderland);
-bookData[2].books.unshift(AdventuresinWonderland);
+// --- Populate Home Page Data ---
+bookDataHome[0].books.unshift(romeoAndJulietBook);
+bookDataHome[1].books.unshift(romeoAndJulietBook);
+bookDataHome[0].books.unshift(MobyDick);
+bookDataHome[1].books.unshift(MobyDick);
+bookDataHome[0].books.unshift(PrideandPrejudice);
+bookDataHome[1].books.unshift(PrideandPrejudice); // Corrected typo here
+bookDataHome[0].books.unshift(AdventuresinWonderland);
+bookDataHome[2].books.unshift(AdventuresinWonderland);
 
 
-// --- NEW FUNCTION TO BUILD THE HERO SECTION ---
+// ---
+// ===============================================
+//   BOOKFLIX PAGE LOGIC (Home & New Releases)
+// ===============================================
+// ---
+
+// --- BUILD HERO FUNCTION ---
 function buildHero(book) {
     const heroSection = document.querySelector('.hero-section');
     const heroContent = document.querySelector('.hero-content');
-    if (!heroSection || !heroContent) return; // Safety check
+    if (!heroSection || !heroContent) return; 
 
-    // Set the dynamic background image with a gradient
-    // This uses the new CSS variable we'll add
     heroSection.style.backgroundImage = `
         linear-gradient(to right, 
             rgba(var(--bg-color-rgb), 0.9) 20%, 
@@ -97,37 +106,11 @@ function buildHero(book) {
         ),
         url('${book.coverUrl}')
     `;
-
-    // Create the dynamic HTML content
-    // We change the "Read Now" button to an <a> tag
     
-    // --- Split the description for "Show More" ---
-    const fullDesc = book.description;
-    // Find the end of the second sentence to split
-    const splitPoint = fullDesc.indexOf("a bitter feud.") + "a bitter feud.".length; 
-
-    let heroHtml = '';
-
-    if (splitPoint === -1 || fullDesc.length < 250) { // Safety check: if description is short, don't add "Show More"
-        heroHtml = `
-            <h1 class="hero-title">${book.title}</h1>
-            <p class="hero-description">${fullDesc}</p>
-        `;
-    } else {
-        const shortPart = fullDesc.substring(0, splitPoint);
-        const morePart = fullDesc.substring(splitPoint);
-
-        heroHtml = `
-            <h1 class="hero-title">${book.title}</h1>
-            <p class="hero-description" id="hero-desc">
-                ${shortPart}<span class="more-desc">${morePart}</span>
-            </p>
-            <button class="btn-show-more" id="btn-desc-toggle">Show More</button>
-        `;
-    }
-
-    // Add the buttons
-    heroHtml += `
+    // We only show the title and buttons, no description logic
+    const heroHtml = `
+        <h1 class="hero-title">${book.title}</h1>
+        <p class="hero-description">${book.description || ''}</p>
         <div class="hero-buttons">
             <a href="${book.readUrl}" target="_blank" class="btn btn-primary">
                 <i data-feather="play" class="btn-icon"></i> Read Now
@@ -138,49 +121,23 @@ function buildHero(book) {
         </div>
     `;
 
-    // Add the HTML to the page
     heroContent.innerHTML = heroHtml;
 
-    // --- Add event listener for "Show More" button ---
-    const descToggle = document.getElementById('btn-desc-toggle');
-    const desc = document.getElementById('hero-desc');
-    
-    if (descToggle && desc) { // Only add listener if the button exists
-        descToggle.addEventListener('click', () => {
-            if (desc.classList.contains('expanded')) {
-                desc.classList.remove('expanded');
-                descToggle.textContent = 'Show More';
-            } else {
-                desc.classList.add('expanded');
-                descToggle.textContent = 'Show Less';
-            }
-        });
-    }
-
-    // Re-run Feather icons to render the new icons in the button
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
 }
-// --- END OF NEW FUNCTION ---
 
-
-// This function runs when the page loads
-function buildShelves() {
+// --- BUILD SHELVES FUNCTION ---
+function buildShelves(data) {
     const shelvesContainer = document.getElementById('book-shelves-container');
-    if (!shelvesContainer) return; // Stop if the container isn't found
+    if (!shelvesContainer) return; 
 
     let allShelvesHtml = '';
 
-    // Loop through each category in our data
-    bookData.forEach(category => {
+    data.forEach(category => {
         let booksHtml = '';
-        
-        // Loop through each book in the category
         category.books.forEach(book => {
-            
-            // We'll add the readUrl as a 'data-read-url' attribute
-            // We'll also add a 'clickable' class if the book has a URL
             const readUrlAttr = book.readUrl ? `data-read-url="${book.readUrl}"` : '';
             const clickableClass = book.readUrl ? 'clickable' : '';
 
@@ -194,7 +151,7 @@ function buildShelves() {
             `;
         });
 
-        // Build the HTML for this entire category shelf
+        // Corrected class names to match CSS
         allShelvesHtml += `
             <div class="category-shelf">
                 <h2 class="category-title">${category.category}</h2>
@@ -205,38 +162,127 @@ function buildShelves() {
         `;
     });
 
-    // Add all the generated HTML to the page at once
     shelvesContainer.innerHTML = allShelvesHtml;
 
-    // Now that the HTML is on the page, add click listeners
     document.querySelectorAll('.book-card.clickable').forEach(card => {
         card.addEventListener('click', () => {
             const url = card.getAttribute('data-read-url');
             if (url) {
-                // Open the book's URL in a new tab
                 window.open(url, '_blank');
             }
         });
     });
 }
 
-// Wait for the HTML document to be fully loaded before running our script
-document.addEventListener('DOMContentLoaded', () => {
-    // --- UPDATED TO BUILD BOTH SECTIONS ---
-    try {
-        // Get the first book from "Trending Now" to feature
-        const featuredBook = bookData[0].books[0];
-        buildHero(featuredBook); // Build the hero section
-    } catch (e) {
-        console.error("Error building hero section:", e);
-    }
+// ---
+// ===============================================
+//   AIBOOK PAGE LOGIC
+// ===============================================
+// ---
+function initializeAIGenerator() {
+    const generatorForm = document.getElementById('generator-form');
+    const formSection = document.getElementById('generator-form-section');
+    const loadingSection = document.getElementById('loading-section');
+    const revealSection = document.getElementById('reveal-section');
+
+    if (!generatorForm) return; // Exit if we're not on the right page
+
+    // --- 1. Handle Genre Tag Selection ---
+    const genreTags = document.querySelectorAll('.genre-tags .tag');
+    const genreInput = document.getElementById('genre');
     
-    try {
-        buildShelves(); // Build the book shelves
-    } catch (e) {
-        console.error("Error building shelves:", e);
+    genreTags.forEach(tag => {
+        tag.addEventListener('click', () => {
+            genreTags.forEach(t => t.classList.remove('selected'));
+            tag.classList.add('selected');
+            genreInput.value = tag.dataset.genre;
+        });
+    });
+    
+    // --- 2. Handle Form Submission ---
+    generatorForm.addEventListener('submit', (e) => {
+        e.preventDefault(); 
+
+        const formData = {
+            genre: genreInput.value,
+            title: document.getElementById('title').value || "My AI Story",
+            idea: document.getElementById('idea').value
+        };
+
+        console.log("Generating text-only book with:", formData);
+
+        formSection.style.display = 'none';
+        loadingSection.style.display = 'block';
+        revealSection.style.display = 'none'; // Hide reveal section just in case
+
+        // --- SIMULATE AI GENERATION ---
+        setTimeout(() => {
+            loadingSection.style.display = 'none';
+            revealSection.style.display = 'block';
+
+            document.getElementById('new-book-title').textContent = formData.title;
+            
+            feather.replace(); // Rerender icons
+        }, 3500); 
+    });
+
+    // --- 3. Handle "Start a New Book" button ---
+    const createNewBtn = document.getElementById('create-new-btn');
+    if (createNewBtn) {
+        createNewBtn.addEventListener('click', () => {
+            revealSection.style.display = 'none';
+            formSection.style.display = 'block';
+            generatorForm.reset();
+            genreTags.forEach(t => t.classList.remove('selected'));
+        });
+    }
+}
+
+// ---
+// ===============================================
+//   MAIN PAGE ROUTER (Runs on Load)
+// ===============================================
+// ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Check the 'data-page' attribute on the <body> tag
+    const page = document.body.dataset.page;
+
+    if (page === 'home') {
+        // --- This is the HOME page ---
+        try {
+            const featuredBook = bookDataHome[0].books[0]; 
+            buildHero(featuredBook); 
+        } catch (e) {
+            console.error("Error building hero section:", e);
+        }
+        
+        try {
+            buildShelves(bookDataHome); 
+        } catch (e) {
+            console.error("Error building shelves:", e);
+        }
+
+    } else if (page === 'new-releases') {
+        // --- This is the NEW RELEASES page ---
+        try {
+            const featuredBook = newReleasesList[0]; 
+            buildHero(featuredBook);
+        } catch (e) {
+            console.error("Error building hero section:", e);
+        }
+        
+        try {
+            buildShelves(bookDataNewReleases); 
+        } catch (e) {
+            console.error("Error building shelves:", e);
+        }
+    } else if (page === 'aibook') {
+        // --- This is the AIBOOK page ---
+        try {
+            initializeAIGenerator();
+        } catch (e) {
+            console.error("Error initializing AI generator:", e);
+        }
     }
 });
-
-
 
