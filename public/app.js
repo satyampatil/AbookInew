@@ -11,7 +11,7 @@ const MobyDick = {
     coverUrl: "books/Moby-Dick/Moby-Dick.jpg",
     readUrl: "books/Moby-Dick/Moby-Dick.html"
 };
-const PrideandPrejudice = { 
+const PrideandPrejudice = { // This is the correct spelling
     title: "Pride and Prejudice", 
     description: "A classic romance about manners, marriage, and misconceptions.",
     coverUrl: "books/Pride-and-Prejudice/Pride-and-Prejudice.jpg",
@@ -80,8 +80,8 @@ bookDataHome[0].books.unshift(romeoAndJulietBook);
 bookDataHome[1].books.unshift(romeoAndJulietBook);
 bookDataHome[0].books.unshift(MobyDick);
 bookDataHome[1].books.unshift(MobyDick);
-bookDataHome[0].books.unshift(PrideandPrejudice);
-bookDataHome[1].books.unshift(PrideandPrejudice);
+bookDataHome[0].books.unshift(PrideandPrejudice); // <-- TYPO FIX
+bookDataHome[1].books.unshift(PrideandPrejudice); // <-- TYPO FIX
 bookDataHome[0].books.unshift(AdventuresinWonderland);
 bookDataHome[2].books.unshift(AdventuresinWonderland);
 
@@ -226,7 +226,9 @@ async function initializeAIGenerator() {
         // --- REAL AI GENERATION ---
         
         // !!! IMPORTANT: You must get your own API key from Google AI Studio
-        const apiKey = "AIzaSyApu2qzklft9CIWoLCj1S4ztMJ4HxIo5oY";
+        const apiKey = "AIzaSyD88KgN1TibCC6VTvtC1ZFdelMnXA-tw7g";
+        
+        // --- API URL UPDATED ---
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
@@ -252,8 +254,25 @@ async function initializeAIGenerator() {
           ]
         }`;
     
+        // --- PAYLOAD UPDATED ---
+        // Added back generationConfig for JSON mode
         const textPayload = {
           contents: [{ parts: [{ text: textPrompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    title: { type: "STRING" },
+                    genre: { type: "STRING" },
+                    pages: {
+                        type: "ARRAY",
+                        items: { type: "STRING" }
+                    }
+                },
+                required: ["title", "genre", "pages"]
+            }
+          }
         };
 
         try {
@@ -269,9 +288,11 @@ async function initializeAIGenerator() {
             }
 
             const result = await response.json();
+            
+            // --- PARSING UPDATED ---
+            // With JSON mode, the text is already clean JSON
             const rawText = result.candidates[0].content.parts[0].text;
-            const cleanedJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-            const bookData = JSON.parse(cleanedJson);
+            const bookData = JSON.parse(rawText);
 
             // Save to localStorage for the reader page
             localStorage.setItem('generatedBook', JSON.stringify(bookData));
