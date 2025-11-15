@@ -183,8 +183,10 @@ function initializeReader() {
     const pageIndicator = document.getElementById('page-indicator');
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
+    // --- NEW: Get the Add to List button ---
+    const addToListBtn = document.getElementById('add-to-list-btn');
 
-    if (!titleEl) return; // Exit if we're not on the reader page
+    if (!titleEl || !addToListBtn) return; // Exit if we're not on the reader page
 
     let bookData = null;
     let currentPage = 0; // 0 is the title page
@@ -197,9 +199,23 @@ function initializeReader() {
         }
         
         bookData = JSON.parse(bookJson);
-        if (!bookData || !bookData.title || !bookData.pages) {
-             throw new Error("Invalid book data in storage.");
+        // --- UPDATED: Check for new description field ---
+        if (!bookData || !bookData.title || !bookData.pages || !bookData.description) {
+             throw new Error("Invalid book data in storage. Please try generating a new book.");
         }
+
+        // --- NEW: Check if book is already in My List ---
+        const myListJson = localStorage.getItem('myBookList');
+        if (myListJson) {
+            const myList = JSON.parse(myListJson);
+            // Check by title AND description to be safer (in case of duplicate titles)
+            const isAlreadySaved = myList.some(book => book.title === bookData.title && book.description === bookData.description);
+            if (isAlreadySaved) {
+                addToListBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved!';
+                addToListBtn.disabled = true;
+            }
+        }
+        // --- END OF NEW CHECK ---
 
         // 2. Initialize Reader
         updatePage();
@@ -209,6 +225,10 @@ function initializeReader() {
         console.error("Error loading book:", error);
         titleEl.textContent = "Error";
         contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
+        // Disable all buttons on error
+        if(prevBtn) prevBtn.disabled = true;
+        if(nextBtn) nextBtn.disabled = true;
+        if(addToListBtn) addToListBtn.disabled = true;
     }
 
     // 3. Page turning logic
@@ -220,12 +240,17 @@ function initializeReader() {
         titleEl.textContent = bookData.title;
 
         if (currentPage === 0) {
-            // Title Page
+            // --- TITLE PAGE UPDATED ---
             contentEl.innerHTML = `
                 <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: #333;">${bookData.title}</h1>
                 <p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p>
-                <p style="text-align: center; color: #555; margin-top: 8rem;">Click "Next" to begin.</p>
+                
+                <p style="text-align: center; font-size: 1rem; color: #555; max-width: 600px; margin: 2rem auto 0 auto;">
+                    ${bookData.description}
+                </p>
+                <p style="text-align: center; color: #555; margin-top: 6rem;">Click "Next" to begin.</p>
             `;
+            // --- END OF TITLE PAGE UPDATE ---
         } else {
             // Story Page (currentPage is 1-based index for pages array)
             const pageText = bookData.pages[currentPage - 1];
@@ -250,6 +275,96 @@ function initializeReader() {
             currentPage++;
             updatePage();
         }
+    });
+
+    // --- 5. Add to List logic ---
+    addToListBtn.addEventListener('click', () => {
+        if (!bookData) return; // No book data to save
+
+        try {
+            // Get existing list or create new one
+            const myListJson = localStorage.getItem('myBookList');
+            let myList = [];
+            if (myListJson) {
+                myList = JSON.parse(myListJson);
+            }
+
+            // Check if book (by title AND description) is already in the list
+            const isAlreadySaved = myList.some(book => book.title === bookData.title && book.description === bookData.description);
+
+            if (!isAlreadySaved) {
+                
+                // Create a placeholder cover URL if one doesn't exist
+                if (!bookData.coverUrl) {
+                    // Use the user's requested Unsplash method
+                    const genreQuery = bookData.genre.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                    bookData.coverUrl = `https://source.unsplash.com/300x450/?${genreQuery}`;
+                }
+                
+                // Add the current bookData object to the list
+                myList.push(bookData);
+                localStorage.setItem('myBookList', JSON.stringify(myList));
+            }
+
+            // Provide feedback
+            addToListBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved!';
+            addToListBtn.disabled = true;
+            feather.replace(); // Rerender the new 'check' icon
+
+        } catch (error) {
+            console.error("Error saving book to list:", error);
+            alert("There was an error saving your book.");
+        }
+    });
+    // --- END OF NEW LOGIC ---
+}
+
+// ---
+// ===============================================
+//   NEW: MY LIST PAGE LOGIC
+// ===============================================
+// ---
+function initializeMyList() {
+    const container = document.getElementById('mylist-grid-container');
+    if (!container) return;
+
+    const myListJson = localStorage.getItem('myBookList');
+    const myList = JSON.parse(myListJson || '[]');
+
+    if (myList.length === 0) {
+        container.innerHTML = `<p class="empty-list-message">Your list is empty. Go generate some books on the 'AIBOOK' page!</p>`;
+        return;
+    }
+
+    let booksHtml = '';
+    myList.forEach((book, index) => {
+        // AI books don't have descriptions, so we'll just show the title.
+        // We gave them a coverUrl when saving.
+        booksHtml += `
+            <div class="book-card clickable" data-index="${index}">
+                <img src="${book.coverUrl}" alt="${book.title}">
+                <div class="book-card-info">
+                    <h3 class="book-card-title">${book.title}</h3>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = booksHtml;
+
+    // Add event listeners to each card
+    container.querySelectorAll('.book-card.clickable').forEach(card => {
+        card.addEventListener('click', () => {
+            const index = card.getAttribute('data-index');
+            const bookToRead = myList[index];
+
+            if (bookToRead) {
+                // Set this book as the one to read
+                localStorage.setItem('generatedBook', JSON.stringify(bookToRead));
+                // Go to the reader page
+                window.location.href = 'reader.html';
+            }
+        });
     });
 }
 
@@ -296,6 +411,143 @@ document.addEventListener('DOMContentLoaded', () => {
             initializeReader();
         } catch(e) {
             console.error("Error initializing reader:", e);
+        }
+    } else if (page === 'mylist') {
+        // --- This is the new MY LIST page ---
+        try {
+            initializeMyList();
+        } catch(e) {
+            console.error("Error initializing my list:", e);
+        }
+    }
+});
+
+// ... (Top of app.js remains the same) ...
+
+// ---
+// ===============================================
+//   NEW: MY LIST PAGE LOGIC
+// ===============================================
+// ---
+function initializeMyList() {
+    const container = document.getElementById('mylist-grid-container');
+    if (!container) return;
+
+    const myListJson = localStorage.getItem('myBookList');
+    const myList = JSON.parse(myListJson || '[]');
+
+    if (myList.length === 0) {
+        container.innerHTML = `<p class="empty-list-message">Your list is empty. Go generate some books on the 'AIBOOK' page!</p>`;
+        return;
+    }
+
+    let booksHtml = '';
+    myList.forEach((book, index) => {
+        // --- UPDATED HTML to include delete button ---
+        booksHtml += `
+            <div class="book-card clickable" data-index="${index}">
+                <img src="${book.coverUrl}" alt="${book.title}">
+                <div class="book-card-info">
+                    <h3 class="book-card-title">${book.title}</h3>
+                </div>
+                <button class="btn-icon-round delete-book-btn" data-index="${index}" title="Delete Book">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+        `;
+        // --- END OF UPDATE ---
+    });
+
+    container.innerHTML = booksHtml;
+    feather.replace(); // Render the new 'x' icons
+
+    // --- UPDATED Event Listener Logic (Event Delegation) ---
+    container.addEventListener('click', (e) => {
+        // Find the clicked element or its parent that is the button or card
+        const deleteButton = e.target.closest('.delete-book-btn');
+        const card = e.target.closest('.book-card');
+
+        if (deleteButton) {
+            // --- DELETE LOGIC ---
+            e.stopPropagation(); // Stop the card click from firing
+            const index = deleteButton.getAttribute('data-index');
+            
+            // Remove the book from the array
+            myList.splice(index, 1);
+            
+            // Update localStorage
+            localStorage.setItem('myBookList', JSON.stringify(myList));
+            
+            // Refresh the list display (simple way is to re-run the function)
+            initializeMyList();
+
+        } else if (card) {
+            // --- READ BOOK LOGIC ---
+            const index = card.getAttribute('data-index');
+            const bookToRead = myList[index];
+
+            if (bookToRead) {
+                // Set this book as the one to read
+                localStorage.setItem('generatedBook', JSON.stringify(bookToRead));
+                // Go to the reader page
+                window.location.href = 'reader.html';
+            }
+        }
+    });
+    // --- END OF UPDATED LOGIC ---
+}
+
+
+// ---
+// ===============================================
+//   MAIN PAGE ROUTER (Runs on Load)
+// ===============================================
+// ---
+// ... (The router logic remains exactly the same as before) ...
+document.addEventListener('DOMContentLoaded', () => {
+    // Check the 'data-page' attribute on the <body> tag
+    const page = document.body.dataset.page;
+
+    if (page === 'home') {
+        // --- This is the HOME page ---
+        try {
+            const featuredBook = bookDataHome[0].books[0]; 
+            buildHero(featuredBook); 
+        } catch (e) {
+            console.error("Error building hero section:", e);
+        }
+        try {
+            buildShelves(bookDataHome); 
+        } catch (e) {
+            console.error("Error building shelves:", e);
+        }
+
+    } else if (page === 'new-releases') {
+        // --- This is the NEW RELEASES page ---
+        try {
+            const featuredBook = newReleasesList[0]; 
+            buildHero(featuredBook);
+        } catch (e) {
+            console.error("Error building hero section:", e);
+        }
+        try {
+            buildShelves(bookDataNewReleases); 
+        } catch (e) {
+            console.error("Error building shelves:", e);
+        }
+    } else if (page === 'reader') {
+        // --- This is the new READER page ---
+        try {
+            initializeReader();
+        } catch(e) {
+            console.error("Error initializing reader:", e);
+        }
+    } else if (page === 'mylist') {
+        // --- This is the new MY LIST page ---
+        try {
+            initializeMyList();
+        } catch(e) {
+            console.error("Error initializing my list:", e);
         }
     }
 });

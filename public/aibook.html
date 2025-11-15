@@ -4,29 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Book Generator - abooki</title>
-    <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     
-    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
-    <!-- NEW: AI Book Page Stylesheet -->
     <link rel="stylesheet" href="aibook.css">
 </head>
-<!-- Set page identifier for our script -->
 <body data-page="aibook">
 
-    <!-- Header / Navigation -->
     <header class="main-header">
         <nav class="main-nav">
             <div class="logo">ABOOKI</div>
             <ul class="nav-links">
                 <li><a href="index.html" class="nav-link">Home</a></li>
                 
-                <!-- Animated AIBOOK Link (set as active) -->
                 <li>
                     <a href="aibook.html" class="nav-link nav-link-anim active" id="aibook-link">
                         <span class="ai-part">A</span>
@@ -36,19 +29,17 @@
                 </li>
 
                 <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
-                <li><a href="#" class="nav-link">My List</a></li>
+                <li><a href="mylist.html" class="nav-link">My List</a></li>
             </ul>
-            <div class="nav-profile">
+            <a href="login.html" class="nav-profile">
                 <i data-feather="user"></i>
-            </div>
-        </nav>
+            </a>
+            </nav>
     </header>
 
     <main>
-        <!-- Generator Section -->
         <section class="generator-container">
             
-            <!-- Step 1: The Form -->
             <div class="generator-section" id="generator-form-section">
                 <div class="generator-header">
                     <h1>Create Your 10-Page Mini-Book</h1>
@@ -57,20 +48,17 @@
 
                 <form class="generator-form" id="generator-form">
                     
-                    <!-- Step 1: The Idea -->
                     <fieldset>
                         <legend>Step 1: The Idea</legend>
                         
                         <label>What's your genre?</label>
                         <div class="genre-tags">
-                            <!-- These data-genre values are sent to the AI -->
                             <span class="tag" data-genre="Fantasy">Fantasy</span>
                             <span class="tag" data-genre="Sci-Fi">Sci-Fi</span>
                             <span class="tag" data-genre="Mystery">Mystery</span>
                             <span class="tag" data-genre="Romance">Romance</span>
                             <span class="tag" data-genre="Children's">Children's</span>
                         </div>
-                        <!-- Hidden input to store the selected genre -->
                         <input type="hidden" id="genre" name="genre">
 
                         <label for="title">Give your story a title (optional)</label>
@@ -80,7 +68,6 @@
                         <textarea id="idea" name="idea" rows="4" placeholder="e.g., 'A detective solves mysteries on the moon'"></textarea>
                     </fieldset>
 
-                    <!-- Step 2: Generate! -->
                     <fieldset>
                         <legend>Step 2: Generate!</legend>
                         <button type="submit" class="btn btn-primary btn-generate">
@@ -91,17 +78,14 @@
                 </form>
             </div>
 
-            <!-- Step 2: Loading State (Hidden by default) -->
             <div class="generator-section" id="loading-section" style="display: none;">
                 <div class="loading-animation">
-                    <!-- Simple CSS loader -->
                     <div class="loader"></div>
                 </div>
                 <h2>Writing your story...</h2>
                 <p>This may take up to 60 seconds.</p>
             </div>
 
-            <!-- Step 3: Reveal Section (Hidden by default) -->
             <div class="generator-section" id="reveal-section" style="display: none;">
                 <h2 id="new-book-title">Your new book is ready!</h2>
                 
@@ -125,16 +109,13 @@
         </section>
     </main>
 
-    <!-- Footer -->
     <footer class="main-footer">
         <p>&copy; 2025 abooki. All rights reserved.</p>
     </footer>
 
-    <!-- Run Feather Icons -->
     <script>
       feather.replace()
     </script>
-    <!-- NEW: AI Book Page Script -->
     <script src="aibook.js"></script>
 </body>
 </html>

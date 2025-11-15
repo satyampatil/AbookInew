@@ -4,22 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Reader - abooki</title>
-    <!-- Google Font: Inter & Lora (for reading) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
-    <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     
-    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
-    <!-- Reader-specific Stylesheet -->
     <link rel="stylesheet" href="reader.css">
 </head>
-<!-- Set page identifier for our script -->
 <body data-page="reader">
 
-    <!-- Header / Navigation -->
     <header class="main-header">
         <nav class="main-nav">
             <div class="logo">ABOOKI</div>
@@ -33,7 +27,7 @@
                     </a>
                 </li>
                 <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
-                <li><a href="#" class="nav-link">My List</a></li>
+                <li><a href="mylist.html" class="nav-link">My List</a></li>
             </ul>
             <a href="login.html" class="nav-profile">
                 <i data-feather="user"></i>
@@ -42,7 +36,6 @@
     </header>
 
     <main class="reader-main">
-        <!-- JS will populate this -->
         <h1 id="reader-title">Loading book...</h1>
         
         <div class="reader-container">
@@ -56,24 +49,28 @@
                 <i data-feather="arrow-left"></i>
                 Previous
             </button>
-            <span id="page-indicator">Page 0 of 0</span>
+            
+            <div class="pagination-center">
+                <span id="page-indicator">Page 0 of 0</span>
+                <button class="btn btn-secondary" id="add-to-list-btn">
+                    <i data-feather="plus" class="btn-icon"></i> Add to List
+                </button>
+            </div>
+            
             <button class="btn btn-primary" id="next-page" disabled>
                 Next
                 <i data-feather="arrow-right"></i>
             </button>
         </div>
-    </main>
+        </main>
 
-    <!-- Footer -->
     <footer class="main-footer">
         <p>&copy; 2025 abooki. All rights reserved.</p>
     </footer>
 
-    <!-- Run Feather Icons -->
     <script>
       feather.replace()
     </script>
-    <!-- Main App Script -->
     <script src="app.js"></script>
 </body>
 </html>

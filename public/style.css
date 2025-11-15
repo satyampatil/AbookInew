@@ -230,6 +230,31 @@ main {
     background-color: rgba(109, 109, 110, 0.4);
 }
 
+/* NEW: Helper class for round icon buttons */
+.btn-icon-round {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: rgba(40, 40, 40, 0.8);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-icon-round:hover {
+    background-color: var(--primary-color);
+    border-color: var(--hover-color);
+}
+
+.btn-icon-round i {
+    width: 20px;
+    height: 20px;
+}
 
 /* ---
 // ===============================================
@@ -462,5 +487,149 @@ main {
     }
     .reader-main h1 {
         font-size: 2rem;
+    }
+}
+
+/* ---
+// ===============================================
+//   09. NEW: READER PAGE STYLES
+// ===============================================
+// --- */
+.reader-main {
+    max-width: 800px;
+    margin: 0 auto;
+    /* 70px header + 3rem top padding */
+    padding: calc(70px + 3rem) 2rem 4rem 2rem; 
+    min-height: calc(100vh - 85px); /* Fill height minus footer */
+}
+
+/* ... (existing styles) ... */
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+/* NEW: Styles for the center group */
+.pagination-center {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    /* This will keep it centered, as the parent is space-between */
+    margin: 0 auto; 
+}
+/* END OF NEW STYLES */
+
+.pagination-controls span {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+}
+
+/* ... (existing styles) ... */
+
+#prev-page .feather {
+    margin-right: 0.5rem;
+    margin-left: -0.25rem;
+}
+#next-page .feather {
+    margin-left: 0.5rem;
+    margin-right: -0.25rem;
+}
+
+/* NEW: Icon style for the Add to List button */
+#add-to-list-btn .feather {
+    margin-right: 0.5rem;
+    margin-left: -0.25rem;
+}
+/* END OF NEW STYLE */
+
+
+/* Hide buttons when they are disabled */
+.pagination-controls .btn:disabled {
+    background-color: var(--border-color);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    /* ... (existing mobile styles) ... */
+
+    /* UPDATED: Stack controls on mobile */
+    .pagination-controls {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .pagination-center {
+        order: -1; /* Move indicator and save button to the top */
+    }
+}
+
+/* ... (all your existing CSS from sections 01-09) ... */
+
+/* ---
+// ===============================================
+//   10. NEW: MY LIST PAGE STYLES
+// ===============================================
+// --- */
+
+.mylist-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.mylist-section h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+.mylist-grid {
+    display: grid;
+    /* Responsive grid: */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.empty-list-message {
+    font-size: 1.2rem;
+    color: var(--text-color-secondary);
+    text-align: center;
+    padding: 4rem 0;
+}
+
+/* ... (after .empty-list-message) ... */
+
+/* NEW: Delete Button Styling */
+.book-card .delete-book-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    /* Hide by default, show on card hover */
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+}
+
+.book-card:hover .delete-book-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.delete-book-btn:hover {
+    /* Make the hover state more obvious */
+    transform: scale(1.1) !important;
+}
+
+/* On mobile, just show the button all the time */
+@media (max-width: 768px) {
+    .book-card .delete-book-btn {
+        opacity: 1;
+        transform: scale(1);
+        background-color: rgba(20, 20, 20, 0.7);
     }
 }

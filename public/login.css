@@ -1,0 +1,357 @@
+/* ---
+// ===============================================
+//   LOGIN PAGE STYLES
+// ===============================================
+// --- */
+
+/* Full-page split container */
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 70px); /* Full height minus header */
+    margin-top: 70px; /* Offset for fixed header */
+}
+
+/* Left promotional panel */
+.login-promo-panel {
+    background-color: #000; /* Darker panel */
+    /* You can add a background image later:
+    background-image: url('your-image.jpg');
+    background-size: cover;
+    background-position: center;
+    */
+}
+
+/* Right form panel */
+.login-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background-color: var(--bg-color);
+}
+
+/* --- ADD THIS NEW STYLE FOR THE FORGOT PASSWORD PAGE --- */
+.login-form-panel-standalone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background-color: var(--bg-color);
+    /* Calculate min-height to fill screen between header (70px) and footer (85px) */
+    min-height: calc(100vh - 70px - 85px); 
+    margin-top: 70px; /* Offset for fixed header */
+}
+/* --- END OF NEW STYLE --- */
+
+
+.login-form-wrapper {
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-form-wrapper h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.login-form-wrapper p {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 2rem;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-color-secondary);
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--card-bg); /* Dark input background */
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-family: var(--font-main);
+}
+
+.form-link {
+    display: block;
+    text-align: right;
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    margin-top: -0.5rem;
+    margin-bottom: 1.5rem;
+}
+.form-link:hover {
+    color: var(--text-color);
+    text-decoration: underline;
+}
+
+.btn-full-width {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.form-toggle-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-color-secondary);
+}
+
+.form-toggle-link a {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+.form-toggle-link a:hover {
+    text-decoration: underline;
+}
+
+.active-profile-icon {
+    color: var(--primary-color);
+    stroke-width: 3px;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-container {
+        /* Stack the panels on top of each other */
+        grid-template-columns: 1fr;
+    }
+
+    /* Add this rule to center the standalone form on mobile too */
+    .login-form-panel-standalone {
+        min-height: calc(100vh - 70px - 85px);
+        padding: 2rem 1rem;
+    }
+
+    .login-promo-panel {
+        display: none; /* Hide the promo panel on mobile */
+    }
+
+    .login-form-panel {
+        /* Remove padding to make it full width */
+        padding: 2rem 1rem;
+    }
+}
+
+/* ---
+// ===============================================
+//   REPLACED: 3D BOOK ANIMATION STYLES
+// ===============================================
+// --- */
+
+.login-promo-panel {
+    /* Required for 3D transforms */
+    perspective: 1500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hides book before it slides up */
+    position: relative;
+    background: linear-gradient(to bottom, #111 0%, #000 100%);
+}
+
+.book-animation-container {
+    opacity: 0;
+    transform: translateY(110%); /* Start below the screen */
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* --- 1. POP-UP ANIMATION (On Load) --- */
+.book-animation-container.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.animated-book {
+    /* UPDATED: Made book bigger */
+    width: 250px;
+    height: 350px;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(10deg) rotateY(-20deg); /* Angled view */
+    transition: transform 0.5s ease-in-out;
+}
+
+.book-cover,
+.book-back-cover,
+.book-spine,
+.book-pages-container,
+.page {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 2px 8px 8px 2px;
+}
+
+.book-cover {
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    z-index: 10;
+    /* Animation: 0.8s delay after slide-in */
+    transition: transform 1.2s cubic-bezier(0.6, 0, 0.4, 1);
+    transition-delay: 0.8s; 
+}
+
+/* --- 2. OPEN BOOK ANIMATION (On Load) --- */
+.book-animation-container.loaded .book-cover {
+    transform: rotateY(-170deg);
+}
+
+.book-cover-front,
+.book-cover-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 2px 8px 8px 2px;
+}
+
+.book-cover-front {
+    background-color: var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.book-cover-back {
+    background: #fff; /* Inside cover */
+    transform: rotateY(180deg);
+}
+
+/* --- 3. PAGE STYLES & FLIPPING --- */
+.book-pages-container {
+    z-index: 5;
+    transform-style: preserve-3d;
+}
+
+.page {
+    transform-origin: left center;
+    transition: transform 0.8s cubic-bezier(0.6, 0, 0.4, 1);
+    background: #fdfdfd;
+    box-shadow: inset 5px 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 0 8px 8px 0; /* Only round the outer edge */
+}
+
+/* Stack the pages to give a 3D effect */
+.page-1 { transform: translateZ(-3px); }
+.page-2 { transform: translateZ(-6px); }
+.page-3 { transform: translateZ(-9px); }
+
+/* Flipped state */
+.page.page-flipped {
+    transform: rotateY(-170deg);
+}
+
+.book-back-cover {
+    background-color: var(--primary-color);
+    /* UPDATED: Pushed back further to account for pages */
+    transform: translateZ(-12px); 
+    z-index: 1;
+}
+
+.book-spine {
+    /* UPDATED: Made spine thicker */
+    width: 15px; 
+    background: #a00000; /* Darker red */
+    transform: rotateY(90deg) translateX(-7.5px) translateZ(-7.5px);
+    transform-origin: left center;
+    z-index: 5;
+}
+
+
+/* --- 4. CLOSING ANIMATION (On Click) --- */
+
+/* Close the book first */
+.book-animation-container.closing .book-cover {
+    transform: rotateY(0deg);
+    transition: transform 0.6s cubic-bezier(0.6, 0, 0.4, 1);
+    transition-delay: 0.4s; /* Wait for pages to flip back */
+}
+
+/* Flip pages back on close */
+.book-animation-container.closing .page {
+    transform: rotateY(0deg);
+    transition: transform 0.5s ease-out;
+    transition-delay: 0s;
+}
+
+/* Slide the container down *after* the book closes */
+.book-animation-container.closing {
+    opacity: 0;
+    transform: translateY(110%);
+    /* 0.8s delay to wait for book to close */
+    transition: opacity 0.8s ease-in, transform 0.8s ease-in;
+    transition-delay: 0.8s;
+}
+
+/* ---
+// ===============================================
+//   NEW: PEN ANIMATION STYLES
+// ===============================================
+// --- */
+
+.writing-pen {
+    position: absolute;
+    top: 40%;
+    left: 70%;
+    color: #333; /* Dark pen color */
+    
+    /* Hide by default */
+    opacity: 0;
+    transform: translateY(50px);
+    
+    /* Animation for appearing */
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    z-index: 20; /* Above the pages */
+    pointer-events: none; /* So it doesn't block clicks */
+}
+
+/* Pen appears when this class is added */
+.writing-pen.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Pen starts writing when this class is added */
+.writing-pen.is-writing {
+    /* Triggers the keyframe animation */
+    animation: writing-scribble 0.3s infinite;
+}
+
+/* Pen disappears when book is closing */
+.book-animation-container.closing .writing-pen {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease-out;
+}
+
+/* Keyframes for the pen appearing */
+@keyframes writing-scribble {
+    0% { transform: rotate(-10deg) translateX(0); }
+    50% { transform: rotate(-10deg) translateX(3px); }
+    100% { transform: rotate(-10deg) translateX(0); }
+}

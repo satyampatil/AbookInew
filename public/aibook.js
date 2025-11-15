@@ -58,6 +58,7 @@ async function initializeAIGenerator() {
         // --- API URL UPDATED (as requested) ---
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
+        // --- PROMPT UPDATED (Added image_prompt) ---
         const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
         Genre: ${formData.genre}
         Title: ${formData.title}
@@ -67,6 +68,8 @@ async function initializeAIGenerator() {
         {
           "title": "The Book Title",
           "genre": "${formData.genre}",
+          "description": "A short, one-sentence compelling logline or description for the book.",
+          "image_prompt": "A detailed, vivid 5-10 word prompt for an image generator (e.g., 'A detective on the moon, film noir, digital art').",
           "pages": [
             "Page 1 text...",
             "Page 2 text...",
@@ -81,8 +84,7 @@ async function initializeAIGenerator() {
           ]
         }`;
     
-        // --- PAYLOAD UPDATED ---
-        // Added back generationConfig for JSON mode
+        // --- PAYLOAD UPDATED (Added image_prompt to schema) ---
         const textPayload = {
           contents: [{ parts: [{ text: textPrompt }] }],
           generationConfig: {
@@ -92,12 +94,14 @@ async function initializeAIGenerator() {
                 properties: {
                     title: { type: "STRING" },
                     genre: { type: "STRING" },
+                    description: { type: "STRING" },
+                    image_prompt: { type: "STRING" }, // <-- NEW
                     pages: {
                         type: "ARRAY",
                         items: { type: "STRING" }
                     }
                 },
-                required: ["title", "genre", "pages"]
+                required: ["title", "genre", "description", "image_prompt", "pages"] // <-- NEW
             }
           }
         };
@@ -130,6 +134,14 @@ async function initializeAIGenerator() {
             // With JSON mode, the text is already clean JSON
             const rawText = result.candidates[0].content.parts[0].text;
             const bookData = JSON.parse(rawText);
+
+            // --- THIS IS THE UPDATED (FIXED) LINE ---
+            // Format the new image_prompt and genre to be URL-friendly
+            const imageQuery = encodeURIComponent(`${bookData.image_prompt},${bookData.genre}`);
+            // Use Unsplash to get a random 300x450 photo. 
+            // This query uses the specific prompt AND the general genre, making it more robust.
+            bookData.coverUrl = `https://source.unsplash.com/300x450/?${imageQuery}`;
+            // --- END OF UPDATE ---
 
             // Save to localStorage for the reader page
             localStorage.setItem('generatedBook', JSON.stringify(bookData));

@@ -44,6 +44,16 @@
     margin-top: 2rem;
 }
 
+/* NEW: Styles for the center group */
+.pagination-center {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    /* This will keep it centered, as the parent is space-between */
+    margin: 0 auto; 
+}
+/* END OF NEW STYLES */
+
 .pagination-controls span {
     font-size: 1rem;
     color: var(--text-color-secondary);
@@ -63,6 +73,14 @@
     margin-right: -0.25rem;
 }
 
+/* NEW: Icon style for the Add to List button */
+#add-to-list-btn .feather {
+    margin-right: 0.5rem;
+    margin-left: -0.25rem;
+}
+/* END OF NEW STYLE */
+
+
 /* Hide buttons when they are disabled */
 .pagination-controls .btn:disabled {
     background-color: var(--border-color);
@@ -80,5 +98,14 @@
     }
     .reader-main h1 {
         font-size: 2rem;
+    }
+
+    /* UPDATED: Stack controls on mobile */
+    .pagination-controls {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .pagination-center {
+        order: -1; /* Move indicator and save button to the top */
     }
 }
