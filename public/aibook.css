@@ -1,0 +1,164 @@
+/* ---
+// ===============================================
+//   AIBOOK GENERATOR PAGE
+// ===============================================
+// --- */
+.generator-container {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+}
+
+.generator-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.generator-header h1 {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.generator-header p {
+    font-size: 1.1rem;
+    color: var(--text-color-secondary);
+}
+
+.generator-form fieldset {
+    border: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+.generator-form legend {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.generator-form label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-color-secondary);
+}
+
+.generator-form input[type="text"],
+.generator-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.generator-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Genre Tags */
+.genre-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tag {
+    background-color: var(--border-color);
+    color: var(--text-color-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag:hover {
+    background-color: #444;
+}
+
+.tag.selected {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+/* Generate Button */
+.btn-generate {
+    width: 100%;
+    font-size: 1.2rem;
+    padding: 1rem;
+}
+
+/* Loading Section */
+#loading-section {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 5px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#loading-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+#loading-section p {
+    color: var(--text-color-secondary);
+}
+
+/* Reveal Section */
+#reveal-section {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+#new-book-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.reveal-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 2rem;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 2rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-link:hover {
+    color: var(--text-color);
+    text-decoration: underline;
+}

@@ -60,7 +60,7 @@ const bookDataHome = [
             { title: "The Last Wizard", coverUrl: "https://placehold.co/300x450/62E49C/000000?text=The+Last+Wizard", readUrl: null },
             { title: "Shadow Gate", coverUrl: "https://placehold.co/300x450/9B27AF/FFFFFF?text=Shadow+Gate", readUrl: null },
             { title: "Elven Crown", coverUrl: "https://placehold.co/300x450/E50914/FFFFFF?text=Elven+Crown", readUrl: null },
-            { title: "Sky Kingdom", coverUrl: "https://placehold.co/300x450/F8A00F/000000?text=Sky+Kingdom", readUrl: null },
+            { title: "Sky Kingdom", coverUrl: "httpsG://placehold.co/300x450/F8A00F/000000?text=Sky+Kingdom", readUrl: null },
             { title: "Shadow Gate", coverUrl: "https://placehold.co/300x450/9B27AF/FFFFFF?text=Shadow+Gate", readUrl: null },
         ]
     },
@@ -80,8 +80,8 @@ bookDataHome[0].books.unshift(romeoAndJulietBook);
 bookDataHome[1].books.unshift(romeoAndJulietBook);
 bookDataHome[0].books.unshift(MobyDick);
 bookDataHome[1].books.unshift(MobyDick);
-bookDataHome[0].books.unshift(PrideandPrejudice); // <-- TYPO FIX
-bookDataHome[1].books.unshift(PrideandPrejudice); // <-- TYPO FIX
+bookDataHome[0].books.unshift(PrideandPrejudice);
+bookDataHome[1].books.unshift(PrideandPrejudice);
 bookDataHome[0].books.unshift(AdventuresinWonderland);
 bookDataHome[2].books.unshift(AdventuresinWonderland);
 
@@ -170,166 +170,6 @@ function buildShelves(data) {
             }
         });
     });
-}
-
-// ---
-// ===============================================
-//   AIBOOK PAGE LOGIC (UPDATED)
-// ===============================================
-// ---
-async function initializeAIGenerator() {
-    const generatorForm = document.getElementById('generator-form');
-    const formSection = document.getElementById('generator-form-section');
-    const loadingSection = document.getElementById('loading-section');
-    const revealSection = document.getElementById('reveal-section');
-
-    if (!generatorForm) return; // Exit if we're not on the right page
-
-    // --- 1. Handle Genre Tag Selection ---
-    const genreTags = document.querySelectorAll('.genre-tags .tag');
-    const genreInput = document.getElementById('genre');
-    let selectedGenre = "Fantasy"; // Default
-    
-    // Set 'Fantasy' as selected by default
-    genreTags.forEach(tag => {
-        if (tag.dataset.genre === selectedGenre) {
-            tag.classList.add('selected');
-            genreInput.value = selectedGenre;
-        }
-    });
-
-    genreTags.forEach(tag => {
-        tag.addEventListener('click', () => {
-            genreTags.forEach(t => t.classList.remove('selected'));
-            tag.classList.add('selected');
-            selectedGenre = tag.dataset.genre;
-            genreInput.value = selectedGenre;
-        });
-    });
-    
-    // --- 2. Handle Form Submission ---
-    generatorForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); 
-
-        const formData = {
-            genre: selectedGenre,
-            title: document.getElementById('title').value || "My AI Story",
-            idea: document.getElementById('idea').value || `A ${selectedGenre} story.`
-        };
-
-        console.log("Generating text-only book with:", formData);
-
-        formSection.style.display = 'none';
-        loadingSection.style.display = 'block';
-        revealSection.style.display = 'none';
-
-        // --- REAL AI GENERATION ---
-        
-        // !!! IMPORTANT: You must get your own API key from Google AI Studio
-        const apiKey = "AIzaSyD88KgN1TibCC6VTvtC1ZFdelMnXA-tw7g";
-        
-        // --- API URL UPDATED ---
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
-        Genre: ${formData.genre}
-        Title: ${formData.title}
-        Core Idea: ${formData.idea}
-        
-        You must return ONLY a single JSON object matching this schema:
-        {
-          "title": "The Book Title",
-          "genre": "${formData.genre}",
-          "pages": [
-            "Page 1 text...",
-            "Page 2 text...",
-            "Page 3 text...",
-            "Page 4 text...",
-            "Page 5 text...",
-            "Page 6 text...",
-            "Page 7 text...",
-            "Page 8 text...",
-            "Page 9 text...",
-            "Page 10 text..."
-          ]
-        }`;
-    
-        // --- PAYLOAD UPDATED ---
-        // Added back generationConfig for JSON mode
-        const textPayload = {
-          contents: [{ parts: [{ text: textPrompt }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: "OBJECT",
-                properties: {
-                    title: { type: "STRING" },
-                    genre: { type: "STRING" },
-                    pages: {
-                        type: "ARRAY",
-                        items: { type: "STRING" }
-                    }
-                },
-                required: ["title", "genre", "pages"]
-            }
-          }
-        };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(textPayload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(errorBody.error.message);
-            }
-
-            const result = await response.json();
-            
-            // --- PARSING UPDATED ---
-            // With JSON mode, the text is already clean JSON
-            const rawText = result.candidates[0].content.parts[0].text;
-            const bookData = JSON.parse(rawText);
-
-            // Save to localStorage for the reader page
-            localStorage.setItem('generatedBook', JSON.stringify(bookData));
-
-            // --- Show Success ---
-            loadingSection.style.display = 'none';
-            revealSection.style.display = 'block';
-            document.getElementById('new-book-title').textContent = bookData.title;
-            
-            // Link the "Read Now" button to the reader page
-            document.getElementById('read-new-book-btn').href = 'reader.html';
-
-            feather.replace(); // Rerender icons
-
-        } catch (error) {
-            console.error("Error generating book:", error);
-            alert("Sorry, something went wrong while generating the book: " + error.message);
-            // Reset the form
-            formSection.style.display = 'block';
-            loadingSection.style.display = 'none';
-        }
-        // --- END REAL AI GENERATION ---
-    });
-
-    // --- 3. Handle "Start a New Book" button ---
-    const createNewBtn = document.getElementById('create-new-btn');
-    if (createNewBtn) {
-        createNewBtn.addEventListener('click', () => {
-            revealSection.style.display = 'none';
-            formSection.style.display = 'block';
-            generatorForm.reset();
-            genreTags.forEach(t => t.classList.remove('selected'));
-            // Reselect default
-            const defaultTag = document.querySelector('.tag[data-genre="Fantasy"]');
-            if(defaultTag) defaultTag.classList.add('selected');
-        });
-    }
 }
 
 // ---
@@ -449,13 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
             buildShelves(bookDataNewReleases); 
         } catch (e) {
             console.error("Error building shelves:", e);
-        }
-    } else if (page === 'aibook') {
-        // --- This is the AIBOOK page ---
-        try {
-            initializeAIGenerator();
-        } catch (e) {
-            console.error("Error initializing AI generator:", e);
         }
     } else if (page === 'reader') {
         // --- This is the new READER page ---
