@@ -1,0 +1,84 @@
+.reader-main {
+    max-width: 800px;
+    margin: 0 auto;
+    /* 70px header + 3rem top padding */
+    padding: calc(70px + 3rem) 2rem 4rem 2rem; 
+    min-height: calc(100vh - 85px); /* Fill height minus footer */
+}
+
+.reader-main h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+.reader-container {
+    background-color: #f3f3f3; /* Light paper color */
+    color: #333; /* Dark text for readability */
+    border-radius: 8px;
+    padding: 3rem 4rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    min-height: 50vh;
+}
+
+#reader-content {
+    font-family: 'Lora', serif; /* Use a serif font for reading */
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+#reader-content p {
+    margin-bottom: 1.5rem;
+}
+
+#reader-content h1 {
+    color: #333; /* Dark text for h1 inside */
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.pagination-controls span {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+}
+
+.pagination-controls .btn i {
+    width: 18px;
+    height: 18px;
+}
+/* Re-use main button styles but align icons */
+#prev-page .feather {
+    margin-right: 0.5rem;
+    margin-left: -0.25rem;
+}
+#next-page .feather {
+    margin-left: 0.5rem;
+    margin-right: -0.25rem;
+}
+
+/* Hide buttons when they are disabled */
+.pagination-controls .btn:disabled {
+    background-color: var(--border-color);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .reader-main {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .reader-container {
+        padding: 2rem 1.5rem;
+    }
+    .reader-main h1 {
+        font-size: 2rem;
+    }
+}

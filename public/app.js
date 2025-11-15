@@ -81,7 +81,7 @@ bookDataHome[1].books.unshift(romeoAndJulietBook);
 bookDataHome[0].books.unshift(MobyDick);
 bookDataHome[1].books.unshift(MobyDick);
 bookDataHome[0].books.unshift(PrideandPrejudice);
-bookDataHome[1].books.unshift(PrideandPrejudice); // Corrected typo here
+bookDataHome[1].books.unshift(PrideandPrejudice);
 bookDataHome[0].books.unshift(AdventuresinWonderland);
 bookDataHome[2].books.unshift(AdventuresinWonderland);
 
@@ -107,7 +107,6 @@ function buildHero(book) {
         url('${book.coverUrl}')
     `;
     
-    // We only show the title and buttons, no description logic
     const heroHtml = `
         <h1 class="hero-title">${book.title}</h1>
         <p class="hero-description">${book.description || ''}</p>
@@ -151,7 +150,6 @@ function buildShelves(data) {
             `;
         });
 
-        // Corrected class names to match CSS
         allShelvesHtml += `
             <div class="category-shelf">
                 <h2 class="category-title">${category.category}</h2>
@@ -176,10 +174,10 @@ function buildShelves(data) {
 
 // ---
 // ===============================================
-//   AIBOOK PAGE LOGIC
+//   AIBOOK PAGE LOGIC (UPDATED)
 // ===============================================
 // ---
-function initializeAIGenerator() {
+async function initializeAIGenerator() {
     const generatorForm = document.getElementById('generator-form');
     const formSection = document.getElementById('generator-form-section');
     const loadingSection = document.getElementById('loading-section');
@@ -190,40 +188,112 @@ function initializeAIGenerator() {
     // --- 1. Handle Genre Tag Selection ---
     const genreTags = document.querySelectorAll('.genre-tags .tag');
     const genreInput = document.getElementById('genre');
+    let selectedGenre = "Fantasy"; // Default
     
+    // Set 'Fantasy' as selected by default
+    genreTags.forEach(tag => {
+        if (tag.dataset.genre === selectedGenre) {
+            tag.classList.add('selected');
+            genreInput.value = selectedGenre;
+        }
+    });
+
     genreTags.forEach(tag => {
         tag.addEventListener('click', () => {
             genreTags.forEach(t => t.classList.remove('selected'));
             tag.classList.add('selected');
-            genreInput.value = tag.dataset.genre;
+            selectedGenre = tag.dataset.genre;
+            genreInput.value = selectedGenre;
         });
     });
     
     // --- 2. Handle Form Submission ---
-    generatorForm.addEventListener('submit', (e) => {
+    generatorForm.addEventListener('submit', async (e) => {
         e.preventDefault(); 
 
         const formData = {
-            genre: genreInput.value,
+            genre: selectedGenre,
             title: document.getElementById('title').value || "My AI Story",
-            idea: document.getElementById('idea').value
+            idea: document.getElementById('idea').value || `A ${selectedGenre} story.`
         };
 
         console.log("Generating text-only book with:", formData);
 
         formSection.style.display = 'none';
         loadingSection.style.display = 'block';
-        revealSection.style.display = 'none'; // Hide reveal section just in case
+        revealSection.style.display = 'none';
 
-        // --- SIMULATE AI GENERATION ---
-        setTimeout(() => {
+        // --- REAL AI GENERATION ---
+        
+        // !!! IMPORTANT: You must get your own API key from Google AI Studio
+        const apiKey = "AIzaSyApu2qzklft9CIWoLCj1S4ztMJ4HxIo5oY";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
+        Genre: ${formData.genre}
+        Title: ${formData.title}
+        Core Idea: ${formData.idea}
+        
+        You must return ONLY a single JSON object matching this schema:
+        {
+          "title": "The Book Title",
+          "genre": "${formData.genre}",
+          "pages": [
+            "Page 1 text...",
+            "Page 2 text...",
+            "Page 3 text...",
+            "Page 4 text...",
+            "Page 5 text...",
+            "Page 6 text...",
+            "Page 7 text...",
+            "Page 8 text...",
+            "Page 9 text...",
+            "Page 10 text..."
+          ]
+        }`;
+    
+        const textPayload = {
+          contents: [{ parts: [{ text: textPrompt }] }],
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(textPayload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(errorBody.error.message);
+            }
+
+            const result = await response.json();
+            const rawText = result.candidates[0].content.parts[0].text;
+            const cleanedJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+            const bookData = JSON.parse(cleanedJson);
+
+            // Save to localStorage for the reader page
+            localStorage.setItem('generatedBook', JSON.stringify(bookData));
+
+            // --- Show Success ---
             loadingSection.style.display = 'none';
             revealSection.style.display = 'block';
-
-            document.getElementById('new-book-title').textContent = formData.title;
+            document.getElementById('new-book-title').textContent = bookData.title;
             
+            // Link the "Read Now" button to the reader page
+            document.getElementById('read-new-book-btn').href = 'reader.html';
+
             feather.replace(); // Rerender icons
-        }, 3500); 
+
+        } catch (error) {
+            console.error("Error generating book:", error);
+            alert("Sorry, something went wrong while generating the book: " + error.message);
+            // Reset the form
+            formSection.style.display = 'block';
+            loadingSection.style.display = 'none';
+        }
+        // --- END REAL AI GENERATION ---
     });
 
     // --- 3. Handle "Start a New Book" button ---
@@ -234,9 +304,94 @@ function initializeAIGenerator() {
             formSection.style.display = 'block';
             generatorForm.reset();
             genreTags.forEach(t => t.classList.remove('selected'));
+            // Reselect default
+            const defaultTag = document.querySelector('.tag[data-genre="Fantasy"]');
+            if(defaultTag) defaultTag.classList.add('selected');
         });
     }
 }
+
+// ---
+// ===============================================
+//   NEW: READER PAGE LOGIC
+// ===============================================
+// ---
+function initializeReader() {
+    const titleEl = document.getElementById('reader-title');
+    const contentEl = document.getElementById('reader-content');
+    const pageIndicator = document.getElementById('page-indicator');
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+
+    if (!titleEl) return; // Exit if we're not on the reader page
+
+    let bookData = null;
+    let currentPage = 0; // 0 is the title page
+
+    try {
+        // 1. Get Book from localStorage
+        const bookJson = localStorage.getItem('generatedBook');
+        if (!bookJson) {
+            throw new Error("No book data found. Please generate a book first.");
+        }
+        
+        bookData = JSON.parse(bookJson);
+        if (!bookData || !bookData.title || !bookData.pages) {
+             throw new Error("Invalid book data in storage.");
+        }
+
+        // 2. Initialize Reader
+        updatePage();
+        feather.replace(); // Render icons on buttons
+
+    } catch (error) {
+        console.error("Error loading book:", error);
+        titleEl.textContent = "Error";
+        contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
+    }
+
+    // 3. Page turning logic
+    function updatePage() {
+        if (!bookData) return;
+
+        const totalPages = bookData.pages.length + 1; // +1 for title page
+
+        titleEl.textContent = bookData.title;
+
+        if (currentPage === 0) {
+            // Title Page
+            contentEl.innerHTML = `
+                <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: #333;">${bookData.title}</h1>
+                <p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p>
+                <p style="text-align: center; color: #555; margin-top: 8rem;">Click "Next" to begin.</p>
+            `;
+        } else {
+            // Story Page (currentPage is 1-based index for pages array)
+            const pageText = bookData.pages[currentPage - 1];
+            contentEl.innerHTML = pageText.split('\n').map(p => `<p>${p}</p>`).join('');
+        }
+        
+        pageIndicator.textContent = `Page ${currentPage} of ${totalPages - 1}`;
+        prevBtn.disabled = (currentPage === 0);
+        nextBtn.disabled = (currentPage === totalPages - 1);
+    }
+
+    // 4. Event Listeners
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) {
+            currentPage--;
+            updatePage();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (bookData && currentPage < bookData.pages.length) {
+            currentPage++;
+            updatePage();
+        }
+    });
+}
+
 
 // ---
 // ===============================================
@@ -255,7 +410,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error("Error building hero section:", e);
         }
-        
         try {
             buildShelves(bookDataHome); 
         } catch (e) {
@@ -270,7 +424,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error("Error building hero section:", e);
         }
-        
         try {
             buildShelves(bookDataNewReleases); 
         } catch (e) {
@@ -283,6 +436,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error("Error initializing AI generator:", e);
         }
+    } else if (page === 'reader') {
+        // --- This is the new READER page ---
+        try {
+            initializeReader();
+        } catch(e) {
+            console.error("Error initializing reader:", e);
+        }
     }
 });
-
