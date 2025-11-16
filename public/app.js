@@ -137,11 +137,26 @@ function buildShelves(data) {
     data.forEach(category => {
         let booksHtml = '';
         category.books.forEach(book => {
-            const readUrlAttr = book.readUrl ? `data-read-url="${book.readUrl}"` : '';
-            const clickableClass = book.readUrl ? 'clickable' : '';
+            // Handle both AI-generated books (no readUrl) and static books
+            const isGeneratedBook = !book.readUrl && book.pages;
+            const isStaticBook = !!book.readUrl;
+            
+            let clickableClass = '';
+            let dataAttrs = '';
+
+            if (isStaticBook) {
+                clickableClass = 'clickable';
+                dataAttrs = `data-read-url="${book.readUrl}"`;
+            } else if (isGeneratedBook) {
+                clickableClass = 'clickable';
+                // Use title/desc as ID since 'my list' uses this
+                const safeTitle = book.title.replace(/"/g, '&quot;');
+                const safeDesc = book.description.replace(/"/g, '&quot;');
+                dataAttrs = `data-book-title="${safeTitle}" data-book-description="${safeDesc}" data-generated="true"`;
+            }
 
             booksHtml += `
-                <div class="book-card ${clickableClass}" ${readUrlAttr}>
+                <div class="book-card ${clickableClass}" ${dataAttrs}>
                     <img src="${book.coverUrl}" alt="${book.title}">
                     <div class="book-card-info">
                         <h3 class="book-card-title">${book.title}</h3>
@@ -162,11 +177,30 @@ function buildShelves(data) {
 
     shelvesContainer.innerHTML = allShelvesHtml;
 
+    // Add click listeners
     document.querySelectorAll('.book-card.clickable').forEach(card => {
         card.addEventListener('click', () => {
-            const url = card.getAttribute('data-read-url');
-            if (url) {
-                window.open(url, '_blank');
+            const staticUrl = card.getAttribute('data-read-url');
+            const isGenerated = card.getAttribute('data-generated');
+
+            if (staticUrl) {
+                // Static book, open in new tab
+                window.open(staticUrl, '_blank');
+            } else if (isGenerated) {
+                // AI book, find in localstorage and open in reader
+                const title = card.getAttribute('data-book-title');
+                const description = card.getAttribute('data-book-description');
+                
+                const myListJson = localStorage.getItem('myBookList');
+                const myList = JSON.parse(myListJson || '[]');
+                const bookToRead = myList.find(book => 
+                    book.title === title && book.description === description
+                );
+                
+                if (bookToRead) {
+                    localStorage.setItem('generatedBook', JSON.stringify(bookToRead));
+                    window.location.href = 'reader.html';
+                }
             }
         });
     });
@@ -183,8 +217,8 @@ function initializeReader() {
     const pageIndicator = document.getElementById('page-indicator');
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
-    // --- NEW: Get the Add to List button ---
-    const addToListBtn = document.getElementById('add-to-list-btn');
+    // --- UPDATED: Get the new Add to List button ---
+    const addToListBtn = document.getElementById('reader-save-btn');
 
     if (!titleEl || !addToListBtn) return; // Exit if we're not on the reader page
 
@@ -199,23 +233,32 @@ function initializeReader() {
         }
         
         bookData = JSON.parse(bookJson);
-        // --- UPDATED: Check for new description field ---
-        if (!bookData || !bookData.title || !bookData.pages || !bookData.description) {
-             throw new Error("Invalid book data in storage. Please try generating a new book.");
+        // Check for all required fields
+        if (!bookData || !bookData.title || !bookData.pages || !bookData.description || !bookData.genre || !bookData.cover_hex_bg) {
+             throw new Error("Invalid or outdated book data. Please generate a new book.");
         }
 
-        // --- NEW: Check if book is already in My List ---
+        // --- UPDATED: Check if book is already in My List ---
         const myListJson = localStorage.getItem('myBookList');
         if (myListJson) {
             const myList = JSON.parse(myListJson);
-            // Check by title AND description to be safer (in case of duplicate titles)
-            const isAlreadySaved = myList.some(book => book.title === bookData.title && book.description === bookData.description);
+            // Check by title AND description
+            const isAlreadySaved = myList.some(book => 
+                book.title === bookData.title && 
+                book.description === bookData.description
+            );
+            
             if (isAlreadySaved) {
-                addToListBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved!';
+                // Set "Saved!" state
+                addToListBtn.innerHTML = `
+                    <span class="reader-save-icon"><i data-feather="check"></i></span>
+                    <span class="reader-save-text">Saved!</span>
+                `;
                 addToListBtn.disabled = true;
+                addToListBtn.classList.add('saved');
             }
         }
-        // --- END OF NEW CHECK ---
+        // --- END OF UPDATED CHECK ---
 
         // 2. Initialize Reader
         updatePage();
@@ -228,7 +271,10 @@ function initializeReader() {
         // Disable all buttons on error
         if(prevBtn) prevBtn.disabled = true;
         if(nextBtn) nextBtn.disabled = true;
-        if(addToListBtn) addToListBtn.disabled = true;
+        if(addToListBtn) {
+            addToListBtn.disabled = true;
+            addToListBtn.style.display = 'none'; // Hide button on error
+        }
     }
 
     // 3. Page turning logic
@@ -240,7 +286,7 @@ function initializeReader() {
         titleEl.textContent = bookData.title;
 
         if (currentPage === 0) {
-            // --- TITLE PAGE UPDATED ---
+            // Title Page
             contentEl.innerHTML = `
                 <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: #333;">${bookData.title}</h1>
                 <p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p>
@@ -248,9 +294,9 @@ function initializeReader() {
                 <p style="text-align: center; font-size: 1rem; color: #555; max-width: 600px; margin: 2rem auto 0 auto;">
                     ${bookData.description}
                 </p>
+
                 <p style="text-align: center; color: #555; margin-top: 6rem;">Click "Next" to begin.</p>
             `;
-            // --- END OF TITLE PAGE UPDATE ---
         } else {
             // Story Page (currentPage is 1-based index for pages array)
             const pageText = bookData.pages[currentPage - 1];
@@ -277,9 +323,9 @@ function initializeReader() {
         }
     });
 
-    // --- 5. Add to List logic ---
+    // --- 5. UPDATED: Add to List logic ---
     addToListBtn.addEventListener('click', () => {
-        if (!bookData) return; // No book data to save
+        if (!bookData || addToListBtn.disabled) return; // Don't run if disabled
 
         try {
             // Get existing list or create new one
@@ -290,25 +336,32 @@ function initializeReader() {
             }
 
             // Check if book (by title AND description) is already in the list
-            const isAlreadySaved = myList.some(book => book.title === bookData.title && book.description === bookData.description);
+            const isAlreadySaved = myList.some(book => 
+                book.title === bookData.title && 
+                book.description === bookData.description
+            );
 
             if (!isAlreadySaved) {
                 
-                // Create a placeholder cover URL if one doesn't exist
+                // Ensure coverUrl exists (it should have been added by aibook.js)
                 if (!bookData.coverUrl) {
-                    // Use the user's requested Unsplash method
-                    const genreQuery = bookData.genre.toLowerCase().replace(/[^a-z0-9]/g, '-');
-                    bookData.coverUrl = `https://source.unsplash.com/300x450/?${genreQuery}`;
+                    const titleQuery = encodeURIComponent(bookData.title);
+                    const hexBg = bookData.cover_hex_bg.replace('#', '');
+                    const hexText = bookData.cover_hex_text.replace('#', '');
+                    bookData.coverUrl = `https://placehold.co/300x450/${hexBg}/${hexText}?text=${titleQuery}&font=inter`;
                 }
                 
-                // Add the current bookData object to the list
                 myList.push(bookData);
                 localStorage.setItem('myBookList', JSON.stringify(myList));
             }
 
             // Provide feedback
-            addToListBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved!';
+            addToListBtn.innerHTML = `
+                <span class="reader-save-icon"><i data-feather="check"></i></span>
+                <span class="reader-save-text">Saved!</span>
+            `;
             addToListBtn.disabled = true;
+            addToListBtn.classList.add('saved');
             feather.replace(); // Rerender the new 'check' icon
 
         } catch (error) {
@@ -319,13 +372,15 @@ function initializeReader() {
     // --- END OF NEW LOGIC ---
 }
 
+
 // ---
 // ===============================================
-//   NEW: MY LIST PAGE LOGIC
+//   NEW: MY LIST PAGE LOGIC (UPDATED)
 // ===============================================
 // ---
 function initializeMyList() {
-    const container = document.getElementById('mylist-grid-container');
+    // Use the new container ID from mylist.html
+    const container = document.getElementById('book-shelves-container');
     if (!container) return;
 
     const myListJson = localStorage.getItem('myBookList');
@@ -336,155 +391,97 @@ function initializeMyList() {
         return;
     }
 
-    let booksHtml = '';
-    myList.forEach((book, index) => {
-        // AI books don't have descriptions, so we'll just show the title.
-        // We gave them a coverUrl when saving.
-        booksHtml += `
-            <div class="book-card clickable" data-index="${index}">
-                <img src="${book.coverUrl}" alt="${book.title}">
-                <div class="book-card-info">
-                    <h3 class="book-card-title">${book.title}</h3>
-                </div>
-            </div>
-        `;
+    // --- 1. Group Books by Genre ---
+    const groupedByGenre = {};
+    myList.forEach(book => {
+        const genre = book.genre || "Uncategorized"; // Fallback genre
+        if (!groupedByGenre[genre]) {
+            groupedByGenre[genre] = [];
+        }
+        groupedByGenre[genre].push(book);
     });
 
-    container.innerHTML = booksHtml;
+    // --- 2. Build Shelves HTML ---
+    let allShelvesHtml = '';
+    // Get genres, but sort them so "Fantasy" or "Sci-Fi" are often first
+    const genres = Object.keys(groupedByGenre).sort(); 
 
-    // Add event listeners to each card
-    container.querySelectorAll('.book-card.clickable').forEach(card => {
-        card.addEventListener('click', () => {
-            const index = card.getAttribute('data-index');
-            const bookToRead = myList[index];
+    genres.forEach(genre => {
+        allShelvesHtml += `
+            <div class="category-shelf">
+                <h2 class="category-title">${genre}</h2>
+                <div class="book-scroll-container">
+        `;
 
-            if (bookToRead) {
-                // Set this book as the one to read
-                localStorage.setItem('generatedBook', JSON.stringify(bookToRead));
-                // Go to the reader page
-                window.location.href = 'reader.html';
-            }
+        // Get the books for this genre and REVERSE them to show newest first
+        const booksInGenre = groupedByGenre[genre];
+        let booksHtml = ''; // Use a string for books
+        booksInGenre.reverse().forEach(book => {
+            // Use title and description as unique IDs
+            const safeTitle = book.title.replace(/"/g, '&quot;');
+            const safeDesc = book.description.replace(/"/g, '&quot;');
+
+            booksHtml += `
+                <div class="book-card clickable" 
+                     data-book-title="${safeTitle}" 
+                     data-book-description="${safeDesc}">
+                    
+                    <img src="${book.coverUrl}" alt="${book.title}" onerror="this.src='https://placehold.co/300x450/1a1a1a/f5f5f5?text=Image+Error&font=inter'">
+                    <div class="book-card-info">
+                        <h3 class="book-card-title">${book.title}</h3>
+                    </div>
+                    
+                    <button class="btn-icon-round delete-book-btn" 
+                            title="Delete Book"
+                            data-book-title="${safeTitle}" 
+                            data-book-description="${safeDesc}">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+            `;
         });
-    });
-}
 
-
-// ---
-// ===============================================
-//   MAIN PAGE ROUTER (Runs on Load)
-// ===============================================
-// ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Check the 'data-page' attribute on the <body> tag
-    const page = document.body.dataset.page;
-
-    if (page === 'home') {
-        // --- This is the HOME page ---
-        try {
-            const featuredBook = bookDataHome[0].books[0]; 
-            buildHero(featuredBook); 
-        } catch (e) {
-            console.error("Error building hero section:", e);
-        }
-        try {
-            buildShelves(bookDataHome); 
-        } catch (e) {
-            console.error("Error building shelves:", e);
-        }
-
-    } else if (page === 'new-releases') {
-        // --- This is the NEW RELEASES page ---
-        try {
-            const featuredBook = newReleasesList[0]; 
-            buildHero(featuredBook);
-        } catch (e) {
-            console.error("Error building hero section:", e);
-        }
-        try {
-            buildShelves(bookDataNewReleases); 
-        } catch (e) {
-            console.error("Error building shelves:", e);
-        }
-    } else if (page === 'reader') {
-        // --- This is the new READER page ---
-        try {
-            initializeReader();
-        } catch(e) {
-            console.error("Error initializing reader:", e);
-        }
-    } else if (page === 'mylist') {
-        // --- This is the new MY LIST page ---
-        try {
-            initializeMyList();
-        } catch(e) {
-            console.error("Error initializing my list:", e);
-        }
-    }
-});
-
-// ... (Top of app.js remains the same) ...
-
-// ---
-// ===============================================
-//   NEW: MY LIST PAGE LOGIC
-// ===============================================
-// ---
-function initializeMyList() {
-    const container = document.getElementById('mylist-grid-container');
-    if (!container) return;
-
-    const myListJson = localStorage.getItem('myBookList');
-    const myList = JSON.parse(myListJson || '[]');
-
-    if (myList.length === 0) {
-        container.innerHTML = `<p class="empty-list-message">Your list is empty. Go generate some books on the 'AIBOOK' page!</p>`;
-        return;
-    }
-
-    let booksHtml = '';
-    myList.forEach((book, index) => {
-        // --- UPDATED HTML to include delete button ---
-        booksHtml += `
-            <div class="book-card clickable" data-index="${index}">
-                <img src="${book.coverUrl}" alt="${book.title}">
-                <div class="book-card-info">
-                    <h3 class="book-card-title">${book.title}</h3>
-                </div>
-                <button class="btn-icon-round delete-book-btn" data-index="${index}" title="Delete Book">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-        `;
-        // --- END OF UPDATE ---
+        allShelvesHtml += booksHtml; // Add this genre's books
+        allShelvesHtml += `</div></div>`; // Close scroll-container and category-shelf
     });
 
-    container.innerHTML = booksHtml;
+    container.innerHTML = allShelvesHtml;
     feather.replace(); // Render the new 'x' icons
 
-    // --- UPDATED Event Listener Logic (Event Delegation) ---
+    // --- 3. Add Event Listeners (using updated logic) ---
     container.addEventListener('click', (e) => {
-        // Find the clicked element or its parent that is the button or card
         const deleteButton = e.target.closest('.delete-book-btn');
-        const card = e.target.closest('.book-card');
+        const card = e.target.closest('.book-card.clickable');
+
+        // Get the full list from localStorage again for accuracy
+        const currentMyListJson = localStorage.getItem('myBookList');
+        let currentMyList = JSON.parse(currentMyListJson || '[]');
 
         if (deleteButton) {
             // --- DELETE LOGIC ---
             e.stopPropagation(); // Stop the card click from firing
-            const index = deleteButton.getAttribute('data-index');
-            
-            // Remove the book from the array
-            myList.splice(index, 1);
-            
-            // Update localStorage
-            localStorage.setItem('myBookList', JSON.stringify(myList));
-            
-            // Refresh the list display (simple way is to re-run the function)
-            initializeMyList();
+            const title = deleteButton.getAttribute('data-book-title');
+            const description = deleteButton.getAttribute('data-book-description');
+
+            // Find the index of the book to delete
+            const indexToDelete = currentMyList.findIndex(book => 
+                book.title === title && book.description === description
+            );
+
+            if (indexToDelete > -1) {
+                currentMyList.splice(indexToDelete, 1);
+                localStorage.setItem('myBookList', JSON.stringify(currentMyList));
+                initializeMyList(); // Re-render the list
+            }
 
         } else if (card) {
             // --- READ BOOK LOGIC ---
-            const index = card.getAttribute('data-index');
-            const bookToRead = myList[index];
+            const title = card.getAttribute('data-book-title');
+            const description = card.getAttribute('data-book-description');
+            
+            const bookToRead = currentMyList.find(book => 
+                book.title === title && book.description === description
+            );
 
             if (bookToRead) {
                 // Set this book as the one to read
@@ -494,7 +491,6 @@ function initializeMyList() {
             }
         }
     });
-    // --- END OF UPDATED LOGIC ---
 }
 
 
@@ -503,7 +499,6 @@ function initializeMyList() {
 //   MAIN PAGE ROUTER (Runs on Load)
 // ===============================================
 // ---
-// ... (The router logic remains exactly the same as before) ...
 document.addEventListener('DOMContentLoaded', () => {
     // Check the 'data-page' attribute on the <body> tag
     const page = document.body.dataset.page;
@@ -511,8 +506,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (page === 'home') {
         // --- This is the HOME page ---
         try {
-            const featuredBook = bookDataHome[0].books[0]; 
-            buildHero(featuredBook); 
+            // Use a defined book for the hero, e.g., Pride and Prejudice
+            buildHero(PrideandPrejudice); 
         } catch (e) {
             console.error("Error building hero section:", e);
         }

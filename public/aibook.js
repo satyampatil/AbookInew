@@ -8,10 +8,21 @@ async function initializeAIGenerator() {
     const formSection = document.getElementById('generator-form-section');
     const loadingSection = document.getElementById('loading-section');
     const revealSection = document.getElementById('reveal-section');
+    
+    // --- NEW: Get reveal section elements ---
+    const newBookTitle = document.getElementById('new-book-title');
+    const newBookDescription = document.getElementById('new-book-description');
+    const newBookCover = document.getElementById('new-book-cover');
+    const saveNewBookBtn = document.getElementById('save-new-book-btn');
+    const createNewBtn = document.getElementById('create-new-btn');
+    
+    // Keep track of the currently generated book
+    let currentBookData = null;
 
     if (!generatorForm) return; // Exit if we're not on the right page
 
     // --- 1. Handle Genre Tag Selection ---
+    // ... (this logic is unchanged) ...
     const genreTags = document.querySelectorAll('.genre-tags .tag');
     const genreInput = document.getElementById('genre');
     let selectedGenre = "Fantasy"; // Default
@@ -43,6 +54,10 @@ async function initializeAIGenerator() {
             idea: document.getElementById('idea').value || `A ${selectedGenre} story.`
         };
 
+        // Reset button state on new generation
+        saveNewBookBtn.disabled = false;
+        saveNewBookBtn.innerHTML = '<i data-feather="plus" class="btn-icon"></i> Save to My Library';
+
         console.log("Generating text-only book with:", formData);
 
         formSection.style.display = 'none';
@@ -53,12 +68,10 @@ async function initializeAIGenerator() {
         
         // --- !!! PASTE YOUR API KEY HERE !!! ---
         const apiKey = "AIzaSyD88KgN1TibCC6VTvtC1ZFdelMnXA-tw7g"; 
-        // Get your key from Google AI Studio
         
-        // --- API URL UPDATED (as requested) ---
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        // --- PROMPT UPDATED (Added image_prompt) ---
+        // --- PROMPT UPDATED (Added hex colors) ---
         const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
         Genre: ${formData.genre}
         Title: ${formData.title}
@@ -70,6 +83,8 @@ async function initializeAIGenerator() {
           "genre": "${formData.genre}",
           "description": "A short, one-sentence compelling logline or description for the book.",
           "image_prompt": "A detailed, vivid 5-10 word prompt for an image generator (e.g., 'A detective on the moon, film noir, digital art').",
+          "cover_hex_bg": "A 6-digit hex color code (no '#') for the book cover background, based on the theme.",
+          "cover_hex_text": "A 6-digit hex color code (no '#') for the text that contrasts well with the background color.",
           "pages": [
             "Page 1 text...",
             "Page 2 text...",
@@ -84,7 +99,7 @@ async function initializeAIGenerator() {
           ]
         }`;
     
-        // --- PAYLOAD UPDATED (Added image_prompt to schema) ---
+        // --- PAYLOAD UPDATED (Added hex colors to schema) ---
         const textPayload = {
           contents: [{ parts: [{ text: textPrompt }] }],
           generationConfig: {
@@ -95,13 +110,18 @@ async function initializeAIGenerator() {
                     title: { type: "STRING" },
                     genre: { type: "STRING" },
                     description: { type: "STRING" },
-                    image_prompt: { type: "STRING" }, // <-- NEW
+                    image_prompt: { type: "STRING" },
+                    cover_hex_bg: { type: "STRING" }, // <-- NEW
+                    cover_hex_text: { type: "STRING" }, // <-- NEW
                     pages: {
                         type: "ARRAY",
                         items: { type: "STRING" }
                     }
                 },
-                required: ["title", "genre", "description", "image_prompt", "pages"] // <-- NEW
+                required: [
+                    "title", "genre", "description", "image_prompt", 
+                    "cover_hex_bg", "cover_hex_text", "pages" // <-- NEW
+                ]
             }
           }
         };
@@ -130,26 +150,31 @@ async function initializeAIGenerator() {
 
             const result = await response.json();
             
-            // --- PARSING UPDATED ---
-            // With JSON mode, the text is already clean JSON
             const rawText = result.candidates[0].content.parts[0].text;
             const bookData = JSON.parse(rawText);
 
             // --- THIS IS THE UPDATED (FIXED) LINE ---
-            // Format the new image_prompt and genre to be URL-friendly
-            const imageQuery = encodeURIComponent(`${bookData.image_prompt},${bookData.genre}`);
-            // Use Unsplash to get a random 300x450 photo. 
-            // This query uses the specific prompt AND the general genre, making it more robust.
-            bookData.coverUrl = `https://source.unsplash.com/300x450/?${imageQuery}`;
-            // --- END OF UPDATE ---
+            const titleQuery = encodeURIComponent(bookData.title);
+            const hexBg = bookData.cover_hex_bg.replace('#', '');
+            const hexText = bookData.cover_hex_text.replace('#', '');
+            
+            bookData.coverUrl = `https://placehold.co/300x450/${hexBg}/${hexText}?text=${titleQuery}&font=inter`;
+            
+            // --- Store book data globally for the save button ---
+            currentBookData = bookData;
 
             // Save to localStorage for the reader page
             localStorage.setItem('generatedBook', JSON.stringify(bookData));
 
-            // --- Show Success ---
+            // --- Show Success & Populate New Fields ---
             loadingSection.style.display = 'none';
             revealSection.style.display = 'block';
-            document.getElementById('new-book-title').textContent = bookData.title;
+            
+            // Populate the new template
+            newBookTitle.textContent = bookData.title;
+            newBookDescription.textContent = bookData.description;
+            newBookCover.src = bookData.coverUrl;
+            newBookCover.alt = bookData.title;
             
             // Link the "Read Now" button to the reader page
             document.getElementById('read-new-book-btn').href = 'reader.html';
@@ -167,7 +192,6 @@ async function initializeAIGenerator() {
     });
 
     // --- 3. Handle "Start a New Book" button ---
-    const createNewBtn = document.getElementById('create-new-btn');
     if (createNewBtn) {
         createNewBtn.addEventListener('click', () => {
             revealSection.style.display = 'none';
@@ -177,6 +201,43 @@ async function initializeAIGenerator() {
             // Reselect default
             const defaultTag = document.querySelector('.tag[data-genre="Fantasy"]');
             if(defaultTag) defaultTag.classList.add('selected');
+        });
+    }
+    
+    // --- 4. NEW: Handle "Save to My Library" button ---
+    if (saveNewBookBtn) {
+        saveNewBookBtn.addEventListener('click', () => {
+            if (!currentBookData) return; // No book data to save
+
+            try {
+                // Get existing list or create new one
+                const myListJson = localStorage.getItem('myBookList');
+                let myList = [];
+                if (myListJson) {
+                    myList = JSON.parse(myListJson);
+                }
+
+                // Check if book (by title AND description) is already in the list
+                const isAlreadySaved = myList.some(book => 
+                    book.title === currentBookData.title && 
+                    book.description === currentBookData.description
+                );
+
+                if (!isAlreadySaved) {
+                    // Add the current bookData object to the list
+                    myList.push(currentBookData);
+                    localStorage.setItem('myBookList', JSON.stringify(myList));
+                }
+
+                // Provide feedback
+                saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved!';
+                saveNewBookBtn.disabled = true;
+                feather.replace(); // Rerender the new 'check' icon
+
+            } catch (error) {
+                console.error("Error saving book to list:", error);
+                alert("There was an error saving your book.");
+            }
         });
     }
 }

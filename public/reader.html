@@ -39,6 +39,10 @@
         <h1 id="reader-title">Loading book...</h1>
         
         <div class="reader-container">
+            <button class="reader-save-button" id="reader-save-btn" title="Add to Library">
+                <span class="reader-save-icon"><i data-feather="plus"></i></span>
+                <span class="reader-save-text">Add to Library</span>
+            </button>
             <div id="reader-content">
                 <p>Loading page content...</p>
             </div>
@@ -50,12 +54,7 @@
                 Previous
             </button>
             
-            <div class="pagination-center">
-                <span id="page-indicator">Page 0 of 0</span>
-                <button class="btn btn-secondary" id="add-to-list-btn">
-                    <i data-feather="plus" class="btn-icon"></i> Add to List
-                </button>
-            </div>
+            <span id="page-indicator">Page 0 of 0</span>
             
             <button class="btn btn-primary" id="next-page" disabled>
                 Next

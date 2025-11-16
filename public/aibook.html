@@ -34,7 +34,7 @@
             <a href="login.html" class="nav-profile">
                 <i data-feather="user"></i>
             </a>
-            </nav>
+        </nav>
     </header>
 
     <main>
@@ -87,17 +87,27 @@
             </div>
 
             <div class="generator-section" id="reveal-section" style="display: none;">
-                <h2 id="new-book-title">Your new book is ready!</h2>
                 
-                <p class="reveal-subtitle">Your text-only book has been generated.</p>
-                
-                <div class="hero-buttons">
-                    <a href="reader.html" class="btn btn-primary" id="read-new-book-btn">
-                        <i data-feather="book-open" class="btn-icon"></i> Read Now
-                    </a>
-                    <button class="btn btn-secondary" id="save-new-book-btn">
-                        <i data-feather="plus" class="btn-icon"></i> Save to My Library
-                    </button>
+                <p class="reveal-subtitle">Your new book is ready!</p>
+
+                <div class="reveal-layout">
+                    <div class="reveal-cover">
+                        <img id="new-book-cover" src="https://placehold.co/300x450/1a1a1a/f5f5f5?text=Cover" alt="New book cover">
+                    </div>
+
+                    <div class="reveal-details">
+                        <h1 id="new-book-title">Book Title</h1>
+                        <p id="new-book-description">A short, compelling description of the book goes here...</p>
+                        
+                        <div class="hero-buttons-stacked">
+                            <a href="reader.html" class="btn btn-primary" id="read-new-book-btn">
+                                <i data-feather="book-open" class="btn-icon"></i> Read Now
+                            </a>
+                            <button class="btn btn-secondary" id="save-new-book-btn">
+                                <i data-feather="plus" class="btn-icon"></i> Save to My Library
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <button class="btn-link" id="create-new-btn">

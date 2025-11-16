@@ -21,22 +21,100 @@
     padding: 3rem 4rem;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     min-height: 50vh;
+    position: relative; /* IMPORTANT: For absolute positioning */
 }
+
+/* --- NEW: SAVE BUTTON STYLES --- */
+.reader-save-button {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 10;
+    
+    /* Base style (circle) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    width: 42px;
+    padding: 0;
+    border-radius: 50%;
+    
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #333;
+    cursor: pointer;
+    overflow: hidden; /* Hides the text */
+    
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reader-save-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+.reader-save-icon .feather {
+    width: 20px;
+    height: 20px;
+}
+
+.reader-save-text {
+    /* Hide text by default */
+    display: none; 
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0 1rem 0 0.5rem;
+}
+
+/* Hover Animation */
+.reader-save-button:hover {
+    width: auto; /* Expand width */
+    padding-left: 0.75rem; /* Add padding */
+    border-radius: 50px; /* Pill shape */
+    background-color: rgba(0, 0, 0, 0.08);
+}
+.reader-save-button:hover .reader-save-icon {
+    width: auto;
+    transform: rotate(90deg); /* Animate the '+' */
+}
+.reader-save-button:hover .reader-save-text {
+    display: block; /* Show the text */
+}
+
+/* Saved State */
+.reader-save-button.saved {
+    background-color: #28a745; /* Green */
+    border-color: #28a745;
+    color: #fff;
+    cursor: default;
+}
+.reader-save-button.saved:hover {
+    background-color: #218838;
+}
+.reader-save-button.saved:hover .reader-save-icon {
+    transform: rotate(0deg); /* No rotate on 'check' */
+}
+.reader-save-button.saved .reader-save-text {
+    /* Always show "Saved!" text on hover */
+    color: #fff;
+}
+/* --- END: SAVE BUTTON STYLES --- */
+
 
 #reader-content {
     font-family: 'Lora', serif; /* Use a serif font for reading */
     font-size: 1.1rem;
     line-height: 1.8;
 }
+/* ... (rest of reader-content styles) ... */
 
-#reader-content p {
-    margin-bottom: 1.5rem;
-}
-
-#reader-content h1 {
-    color: #333; /* Dark text for h1 inside */
-}
-
+/* --- UPDATED: PAGINATION STYLES --- */
 .pagination-controls {
     display: flex;
     justify-content: space-between;
@@ -44,68 +122,15 @@
     margin-top: 2rem;
 }
 
-/* NEW: Styles for the center group */
-.pagination-center {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    /* This will keep it centered, as the parent is space-between */
-    margin: 0 auto; 
-}
-/* END OF NEW STYLES */
+/* REMOVED .pagination-center */
 
 .pagination-controls span {
     font-size: 1rem;
     color: var(--text-color-secondary);
+    margin: 0 auto; /* This now centers the page indicator */
 }
+/* ... (rest of pagination styles) ... */
 
-.pagination-controls .btn i {
-    width: 18px;
-    height: 18px;
-}
-/* Re-use main button styles but align icons */
-#prev-page .feather {
-    margin-right: 0.5rem;
-    margin-left: -0.25rem;
-}
-#next-page .feather {
-    margin-left: 0.5rem;
-    margin-right: -0.25rem;
-}
+/* REMOVED #add-to-list-btn styles */
 
-/* NEW: Icon style for the Add to List button */
-#add-to-list-btn .feather {
-    margin-right: 0.5rem;
-    margin-left: -0.25rem;
-}
-/* END OF NEW STYLE */
-
-
-/* Hide buttons when they are disabled */
-.pagination-controls .btn:disabled {
-    background-color: var(--border-color);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-    .reader-main {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    .reader-container {
-        padding: 2rem 1.5rem;
-    }
-    .reader-main h1 {
-        font-size: 2rem;
-    }
-
-    /* UPDATED: Stack controls on mobile */
-    .pagination-controls {
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-    .pagination-center {
-        order: -1; /* Move indicator and save button to the top */
-    }
-}
+/* ... (rest of reader.css) ... */

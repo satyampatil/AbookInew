@@ -21,11 +21,17 @@
     padding: 0;
 }
 
+/* UPDATED BODY STYLES FOR STICKY FOOTER */
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: var(--font-main);
     line-height: 1.6;
+    
+    /* NEW: Flexbox setup */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 a {
@@ -43,8 +49,12 @@ img {
     display: block;
 }
 
+/* UPDATED MAIN STYLES FOR STICKY FOOTER */
 main {
     padding-top: 70px; /* Offset for fixed header */
+    
+    /* NEW: Make main content grow to fill space */
+    flex-grow: 1;
 }
 
 /* ---
@@ -354,13 +364,17 @@ main {
 //   07. FOOTER
 // ===============================================
 // --- */
+/* UPDATED FOOTER STYLES FOR STICKY FOOTER */
 .main-footer {
     text-align: center;
     padding: 2rem;
-    margin-top: 3rem;
+    /* margin-top: 3rem;  <-- REMOVED THIS LINE */
     border-top: 1px solid var(--border-color);
     color: var(--text-color-secondary);
     font-size: 0.9rem;
+    
+    /* NEW: Prevent footer from growing or shrinking */
+    flex-shrink: 0;
 }
 
 /* ---
@@ -402,7 +416,7 @@ main {
 
 /* ---
 // ===============================================
-//   09. NEW: READER PAGE STYLES
+//   09. NEW: READER PAGE STYLES (UPDATED)
 // ===============================================
 // --- */
 .reader-main {
@@ -428,7 +442,95 @@ main {
     padding: 3rem 4rem;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     min-height: 50vh;
+    position: relative; /* IMPORTANT: For absolute positioning */
 }
+
+/* --- NEW: SAVE BUTTON STYLES --- */
+.reader-save-button {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 10;
+    
+    /* Base style (circle) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    width: 42px;
+    padding: 0;
+    border-radius: 50%;
+    
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #333;
+    cursor: pointer;
+    overflow: hidden; /* Hides the text */
+    
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reader-save-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+.reader-save-icon .feather {
+    width: 20px;
+    height: 20px;
+}
+
+.reader-save-text {
+    /* Hide text by default */
+    display: none; 
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0 1rem 0 0.5rem;
+}
+
+/* Hover Animation */
+.reader-save-button:not(.saved):hover {
+    width: auto; /* Expand width */
+    padding-left: 0.75rem; /* Add padding */
+    border-radius: 50px; /* Pill shape */
+    background-color: rgba(0, 0, 0, 0.08);
+}
+.reader-save-button:not(.saved):hover .reader-save-icon {
+    width: auto;
+    transform: rotate(90deg); /* Animate the '+' */
+}
+.reader-save-button:not(.saved):hover .reader-save-text {
+    display: block; /* Show the text */
+}
+
+/* Saved State */
+.reader-save-button.saved {
+    background-color: #28a745; /* Green */
+    border-color: #28a745;
+    color: #fff;
+    cursor: default;
+}
+.reader-save-button.saved:hover {
+    background-color: #218838;
+    width: auto; /* Expand width */
+    padding-left: 0.75rem; /* Add padding */
+    border-radius: 50px; /* Pill shape */
+}
+.reader-save-button.saved:hover .reader-save-icon {
+    width: auto;
+    transform: rotate(0deg); /* No rotate on 'check' */
+}
+.reader-save-button.saved:hover .reader-save-text {
+    display: block; /* Show "Saved!" text */
+    color: #fff;
+}
+/* --- END: SAVE BUTTON STYLES --- */
+
 
 #reader-content {
     font-family: 'Lora', serif; /* Use a serif font for reading */
@@ -451,9 +553,12 @@ main {
     margin-top: 2rem;
 }
 
+/* REMOVED .pagination-center */
+
 .pagination-controls span {
     font-size: 1rem;
     color: var(--text-color-secondary);
+    margin: 0 auto; /* This now centers the page indicator */
 }
 
 .pagination-controls .btn i {
@@ -469,6 +574,8 @@ main {
     margin-left: 0.5rem;
     margin-right: -0.25rem;
 }
+
+/* REMOVED #add-to-list-btn styles */
 
 /* Hide buttons when they are disabled */
 .pagination-controls .btn:disabled {
@@ -488,81 +595,21 @@ main {
     .reader-main h1 {
         font-size: 2rem;
     }
-}
-
-/* ---
-// ===============================================
-//   09. NEW: READER PAGE STYLES
-// ===============================================
-// --- */
-.reader-main {
-    max-width: 800px;
-    margin: 0 auto;
-    /* 70px header + 3rem top padding */
-    padding: calc(70px + 3rem) 2rem 4rem 2rem; 
-    min-height: calc(100vh - 85px); /* Fill height minus footer */
-}
-
-/* ... (existing styles) ... */
-
-.pagination-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 2rem;
-}
-
-/* NEW: Styles for the center group */
-.pagination-center {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    /* This will keep it centered, as the parent is space-between */
-    margin: 0 auto; 
-}
-/* END OF NEW STYLES */
-
-.pagination-controls span {
-    font-size: 1rem;
-    color: var(--text-color-secondary);
-}
-
-/* ... (existing styles) ... */
-
-#prev-page .feather {
-    margin-right: 0.5rem;
-    margin-left: -0.25rem;
-}
-#next-page .feather {
-    margin-left: 0.5rem;
-    margin-right: -0.25rem;
-}
-
-/* NEW: Icon style for the Add to List button */
-#add-to-list-btn .feather {
-    margin-right: 0.5rem;
-    margin-left: -0.25rem;
-}
-/* END OF NEW STYLE */
-
-
-/* Hide buttons when they are disabled */
-.pagination-controls .btn:disabled {
-    background-color: var(--border-color);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-    /* ... (existing mobile styles) ... */
 
     /* UPDATED: Stack controls on mobile */
     .pagination-controls {
         flex-direction: column;
         gap: 1.5rem;
     }
-    .pagination-center {
-        order: -1; /* Move indicator and save button to the top */
+    .pagination-controls span {
+        order: -1; /* Move indicator to the top */
+        margin: 0;
+    }
+
+    /* Keep save button visible on mobile */
+    .reader-save-button {
+        top: 0.5rem;
+        right: 0.5rem;
     }
 }
 
@@ -570,40 +617,35 @@ main {
 
 /* ---
 // ===============================================
-//   10. NEW: MY LIST PAGE STYLES
+//   10. NEW: MY LIST PAGE STYLES (UPDATED)
 // ===============================================
 // --- */
 
-.mylist-section {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.mylist-section h1 {
+/* Re-use .book-shelves from section 05 */
+.mylist-page-title {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 2rem;
     color: var(--text-color);
+    /* Add padding to match the .book-shelves section */
+    padding: 0 2rem;
 }
 
-.mylist-grid {
-    display: grid;
-    /* Responsive grid: */
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
-}
+/* The .book-shelves container (from section 05) 
+   will now be used, so no new grid styles are needed.
+*/
 
+/* Updated empty list message to work in the new container */
 .empty-list-message {
     font-size: 1.2rem;
     color: var(--text-color-secondary);
     text-align: center;
-    padding: 4rem 0;
+    padding: 4rem 2rem; /* Add padding to center it */
 }
 
-/* ... (after .empty-list-message) ... */
-
-/* NEW: Delete Button Styling */
+/* The delete button styles (from section 04 & 10) 
+   are still used and will work correctly.
+*/
 .book-card .delete-book-btn {
     position: absolute;
     top: 0.5rem;
@@ -631,5 +673,10 @@ main {
         opacity: 1;
         transform: scale(1);
         background-color: rgba(20, 20, 20, 0.7);
+    }
+    
+    .mylist-page-title {
+        padding: 0 1rem;
+        font-size: 2rem;
     }
 }
