@@ -1,0 +1,137 @@
+/* ... Existing Profile Styles ... */
+
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 70px - 85px);
+    margin-top: 70px;
+    padding: 2rem;
+    background-color: var(--bg-color);
+}
+
+.profile-card {
+    background-color: var(--card-bg, #1a1a1a); 
+    border: 1px solid var(--border-color, #333);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.profile-header { margin-bottom: 2rem; }
+
+.profile-img-wrapper {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem auto;
+    border-radius: 50%;
+    background-color: #111; /* Dark bg for ghost glow */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border: 4px solid var(--bg-color);
+    box-shadow: 0 0 0 2px var(--primary-color, #e50914);
+    position: relative;
+    cursor: pointer;
+}
+
+#profile-pic {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px; /* Add padding so ghost doesn't touch edges */
+}
+
+#profile-placeholder { color: white; }
+#profile-placeholder svg { width: 64px; height: 64px; }
+
+.edit-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; transition: opacity 0.2s ease;
+}
+.edit-overlay svg { color: white; width: 32px; height: 32px; }
+.profile-img-wrapper:hover .edit-overlay { opacity: 1; }
+
+#profile-name {
+    font-size: 1.5rem; font-weight: 700; color: var(--text-color, #fff); margin-bottom: 0.5rem;
+}
+.profile-email { color: var(--text-color-secondary, #aaa); font-size: 1rem; }
+
+/* Buttons */
+.btn-danger {
+    background: transparent; border: 1px solid #ff4444; color: #ff4444;
+    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+    padding: 0.75rem; width: 100%; border-radius: 4px; font-weight: 600; cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-danger:hover { background: #ff4444; color: white; }
+
+/* Modal */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); z-index: 1000;
+    justify-content: center; align-items: center; backdrop-filter: blur(5px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal-content {
+    background: var(--card-bg, #1a1a1a); padding: 2rem; border-radius: 12px;
+    width: 90%; max-width: 420px; text-align: center;
+    border: 1px solid var(--border-color, #333);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+.modal-content h2 { margin-bottom: 0.5rem; color: var(--primary-color, #e50914); }
+.modal-content p { color: var(--text-color-secondary, #aaa); margin-bottom: 1.5rem; }
+
+.avatar-preview-container {
+    width: 140px; height: 140px; margin: 0 auto 1.5rem auto;
+    background-color: #1a1a1a; /* Dark bg for glow */
+    border-radius: 50%; border: 2px solid #333;
+    display: flex; justify-content: center; align-items: center;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+#generated-avatar-preview { width: 90%; height: 90%; object-fit: contain; }
+
+/* Customization Panel */
+.customization-panel {
+    text-align: left; margin-bottom: 1.5rem;
+    background: rgba(255,255,255,0.03);
+    padding: 1rem; border-radius: 8px;
+}
+
+.control-group { margin-bottom: 1rem; }
+.control-group label {
+    display: block; font-size: 0.85rem; color: var(--text-color-secondary);
+    margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* Color Options */
+.color-options { display: flex; gap: 0.5rem; justify-content: flex-start; flex-wrap: wrap; }
+.color-btn {
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; transition: transform 0.2s;
+}
+.color-btn:hover { transform: scale(1.1); }
+.color-btn.active { border-color: white; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+/* Button Options (Mood/Acc) */
+.option-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.opt-btn {
+    background: transparent; border: 1px solid #444; color: #ccc;
+    padding: 0.4rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.opt-btn:hover { border-color: #777; }
+.opt-btn.active { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+
+.modal-actions { margin-top: 1.5rem; }
+.btn-close-text {
+    background: none; border: none; color: var(--text-color-secondary);
+    cursor: pointer; text-decoration: underline; font-size: 0.9rem; margin-top: 1rem;
+}

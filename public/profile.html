@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - abooki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body data-page="profile">
+
+    <header class="main-header">
+        <nav class="main-nav">
+            <div class="logo">ABOOKI</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li>
+                    <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
+                        <span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span>
+                    </a>
+                </li>
+                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
+                <li><a href="mylist.html" class="nav-link">My List</a></li>
+            </ul>
+            <a href="profile.html" class="nav-profile active">
+                <i data-feather="user" class="active-profile-icon"></i>
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-img-wrapper" id="profile-img-trigger" title="Click to customize avatar">
+                        <img id="profile-pic" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Profile" style="display: none;">
+                        <div id="profile-placeholder">
+                            <i data-feather="user"></i>
+                        </div>
+                        <div class="edit-overlay">
+                            <i data-feather="edit-2"></i>
+                        </div>
+                    </div>
+                    <h1 id="profile-name">Loading...</h1>
+                    <p id="profile-email" class="profile-email">...</p>
+                </div>
+                <div class="profile-actions">
+                    <button id="logout-btn" class="btn btn-danger btn-full-width">
+                        <i data-feather="log-out"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- UPDATED AVATAR GENERATOR MODAL -->
+    <div id="avatar-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Customize Ghost</h2>
+            <p>Create your reading companion!</p>
+            
+            <div class="avatar-preview-container">
+                <img id="generated-avatar-preview" src="" alt="Avatar Preview">
+            </div>
+
+            <!-- New Customization Controls -->
+            <div class="customization-panel">
+                
+                <div class="control-group">
+                    <label>Color</label>
+                    <div class="color-options" id="color-options">
+                        <button class="color-btn active" data-color="blue" style="background: #a6eaff;"></button>
+                        <button class="color-btn" data-color="purple" style="background: #e0baff;"></button>
+                        <button class="color-btn" data-color="green" style="background: #b9f6ca;"></button>
+                        <button class="color-btn" data-color="pink" style="background: #ffcdd2;"></button>
+                        <button class="color-btn" data-color="orange" style="background: #ffe0b2;"></button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Mood</label>
+                    <div class="option-buttons" id="mood-options">
+                        <button class="opt-btn active" data-mood="happy">😊</button>
+                        <button class="opt-btn" data-mood="curious">😮</button>
+                        <button class="opt-btn" data-mood="nerdy">🤓</button>
+                        <button class="opt-btn" data-mood="sleepy">😴</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Extra</label>
+                    <div class="option-buttons" id="acc-options">
+                        <button class="opt-btn active" data-acc="none">None</button>
+                        <button class="opt-btn" data-acc="hat">Hat</button>
+                        <button class="opt-btn" data-acc="sparkles">✨</button>
+                        <button class="opt-btn" data-acc="runes">Runes</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-save-avatar" class="btn btn-primary btn-full-width">
+                    Save Profile Picture
+                </button>
+            </div>
+            <button id="btn-close-modal" class="btn-close-text">Cancel</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2025 abooki. All rights reserved.</p>
+    </footer>
+
+    <script>feather.replace()</script>
+    <script type="module" src="profile.js"></script>
+</body>
+</html>

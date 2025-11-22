@@ -1,6 +1,6 @@
 // Import Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } 
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 // Your web app's Firebase configuration
@@ -19,6 +19,17 @@ const auth = getAuth(app);
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // --- NEW: Check if already logged in ---
+    // If user is already logged in, skip the login page and go to profile
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Optional: You can remove this if you want users to be able to see the login page animation
+            // before redirecting, but usually instant redirect is better UX.
+            console.log("User already logged in, redirecting...");
+            window.location.href = 'profile.html';
+        }
+    });
+
     // --- Get All Form Elements ---
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -130,7 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Wait for animation then redirect
             setTimeout(() => {
-                window.location.href = 'index.html'; // Redirect to home page
+                // UPDATED: Redirect to profile page
+                window.location.href = 'profile.html'; 
             }, 1800); 
         }
 
