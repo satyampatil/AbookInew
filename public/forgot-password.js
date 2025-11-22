@@ -1,57 +1,53 @@
-// Wait for the document to be fully loaded
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+  authDomain: "studio-5978542726-e345b.firebaseapp.com",
+  projectId: "studio-5978542726-e345b",
+  storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+  messagingSenderId: "968782492427",
+  appId: "1:968782492427:web:90108da3599e50bc2b680e"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Get all three form elements
     const emailForm = document.getElementById('form-send-email');
-    const otpForm = document.getElementById('form-enter-otp');
-    const resetForm = document.getElementById('form-reset-password');
+    const successMessage = document.getElementById('success-message');
 
-    // Make sure we are on the right page
-    if (emailForm && otpForm && resetForm) {
-
-        // --- Step 1: Handle Send Email ---
+    if (emailForm && successMessage) {
         emailForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // In a real app, you'd call your backend to send the email here
-            console.log("Sending OTP to email:", document.getElementById('reset-email').value);
             
-            // Show the next step
-            emailForm.style.display = 'none';
-            otpForm.style.display = 'block';
-        });
+            const emailInput = document.getElementById('reset-email');
+            const email = emailInput.value;
+            const btn = emailForm.querySelector('button');
+            const originalText = btn.innerText;
 
-        // --- Step 2: Handle Verify OTP ---
-        otpForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // In a real app, you'd verify the OTP with your backend
-            console.log("Verifying OTP:", document.getElementById('otp-code').value);
+            btn.innerText = "Sending...";
+            btn.disabled = true;
 
-            // For now, we'll assume it's correct and show the next step
-            otpForm.style.display = 'none';
-            resetForm.style.display = 'block';
-        });
-
-        // --- Step 3: Handle Reset Password ---
-        resetForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-
-            if (newPassword !== confirmPassword) {
-                alert("Passwords do not match!");
-                return;
-            }
-
-            // In a real app, you'd send the new password to your backend
-            console.log("Resetting password...");
-
-            // For now, just show a success message and redirect to login
-            alert("Password has been reset successfully! Please sign in.");
-            window.location.href = 'login.html';
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    // Success
+                    emailForm.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    // Re-render icons for the new checkmark
+                    if (typeof feather !== 'undefined') feather.replace();
+                })
+                .catch((error) => {
+                    console.error(error);
+                    alert("Error: " + error.message);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
         });
     }
     
-    // Run Feather icons (if they exist on the page)
     if (typeof feather !== 'undefined') {
         feather.replace();
     }

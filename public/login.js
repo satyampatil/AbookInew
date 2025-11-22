@@ -1,4 +1,22 @@
-// Wait for the document to be fully loaded
+// Import Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } 
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+  authDomain: "studio-5978542726-e345b.firebaseapp.com",
+  projectId: "studio-5978542726-e345b",
+  storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+  messagingSenderId: "968782492427",
+  appId: "1:968782492427:web:90108da3599e50bc2b680e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 document.addEventListener('DOMContentLoaded', () => {
     
     // --- Get All Form Elements ---
@@ -10,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Get All Book Animation Elements ---
     const bookContainer = document.getElementById('book-anim-container');
     const allPages = document.querySelectorAll('.page');
-    const writingPen = document.getElementById('writing-pen'); // NEW: Get the pen
+    const writingPen = document.getElementById('writing-pen');
     
     // --- Get Form Inputs ---
     const loginInputs = [
@@ -22,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('signup-email'),
         document.getElementById('signup-password')
     ];
-    // Combine all inputs for easy event handling
     const allInputs = [...loginInputs, ...signupInputs];
 
     // --- Helper Function: Flip a specific page ---
@@ -30,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (allPages[pageIndex]) {
             allPages[pageIndex].classList.add('page-flipped');
         }
-        // Flip preceding pages too, just in case
         for (let i = 0; i < pageIndex; i++) {
             if (allPages[i]) allPages[i].classList.add('page-flipped');
         }
@@ -43,25 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- NEW: Pen Animation Helper Functions ---
+    // --- Pen Animation Helper Functions ---
     let writingTimeout = null;
 
     function showPen() {
-        if (writingPen) {
-            writingPen.classList.add('visible');
-        }
+        if (writingPen) writingPen.classList.add('visible');
     }
 
     function startWriting() {
         if (!writingPen) return;
         writingPen.classList.add('is-writing');
-        
-        // Clear any existing timer
-        if (writingTimeout) {
-            clearTimeout(writingTimeout);
-        }
-
-        // Set a timer to stop writing after 500ms
+        if (writingTimeout) clearTimeout(writingTimeout);
         writingTimeout = setTimeout(stopWriting, 500);
     }
 
@@ -72,38 +80,35 @@ document.addEventListener('DOMContentLoaded', () => {
             writingPen?.classList.remove('is-writing');
         }
     }
-    // --- END: Pen Animation Helper Functions ---
-
 
     // --- 1. Form Toggle Logic ---
     if (loginForm && signupForm && showSignupButton && showLoginButton) {
-        
         showSignupButton.addEventListener('click', (e) => {
             e.preventDefault(); 
             loginForm.style.display = 'none';
             signupForm.style.display = 'block';
-            unflipAllPages(); // Flip pages back
-            stopWriting(true); // Hide pen
+            unflipAllPages();
+            stopWriting(true);
         });
 
         showLoginButton.addEventListener('click', (e) => {
             e.preventDefault(); 
             signupForm.style.display = 'none';
             loginForm.style.display = 'block';
-            unflipAllPages(); // Flip pages back
-            stopWriting(true); // Hide pen
+            unflipAllPages();
+            stopWriting(true);
         });
     }
 
-    // --- 2. Book Animation Logic ---
+    // --- 2. Book Animation & Auth Logic ---
     if (bookContainer && loginForm && signupForm && allPages.length > 0) {
         
-        // On Page Load: Pop up and open the book
+        // On Page Load: Pop up
         setTimeout(() => {
             bookContainer.classList.add('loaded');
         }, 100);
 
-        // Add page flip listeners to inputs
+        // Flip listeners
         loginInputs[0]?.addEventListener('focus', () => { flipPage(0); showPen(); });
         loginInputs[1]?.addEventListener('focus', () => { flipPage(1); showPen(); });
         
@@ -111,34 +116,85 @@ document.addEventListener('DOMContentLoaded', () => {
         signupInputs[1]?.addEventListener('focus', () => { flipPage(1); showPen(); });
         signupInputs[2]?.addEventListener('focus', () => { flipPage(2); showPen(); });
 
-        // NEW: Add writing listeners to all inputs
+        // Writing listeners
         allInputs.forEach(input => {
-            if (input) {
-                input.addEventListener('input', startWriting);
-            }
+            if (input) input.addEventListener('input', startWriting);
         });
 
-        // On Submit: Play the "closing" animation
-        function playCloseAnimation(event) {
-            event.preventDefault();
-            
-            // Stop pen animation
+        // --- Animation Trigger ---
+        function playCloseAnimationAndRedirect() {
+            // Stop pen
             stopWriting(true);
-
-            // Add the .closing class to trigger the CSS animations
+            // Add closing class
             bookContainer.classList.add('closing');
-
-            // Wait for the animation to finish
+            
+            // Wait for animation then redirect
             setTimeout(() => {
-                event.target.submit();
+                window.location.href = 'index.html'; // Redirect to home page
             }, 1800); 
         }
 
-        loginForm.addEventListener('submit', playCloseAnimation);
-        signupForm.addEventListener('submit', playCloseAnimation);
+        // --- FIREBASE LOGIN ---
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = loginInputs[0].value;
+            const password = loginInputs[1].value;
+            const btn = loginForm.querySelector('button');
+            const originalText = btn.innerText;
+
+            // Basic Feedback
+            btn.innerText = "Signing In...";
+            btn.disabled = true;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Success
+                    console.log("Logged in:", userCredential.user);
+                    btn.innerText = "Success!";
+                    playCloseAnimationAndRedirect();
+                })
+                .catch((error) => {
+                    // Error
+                    console.error(error.code, error.message);
+                    alert("Login Failed: " + error.message);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+        });
+
+        // --- FIREBASE SIGNUP ---
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = signupInputs[0].value;
+            const email = signupInputs[1].value;
+            const password = signupInputs[2].value;
+            const btn = signupForm.querySelector('button');
+            const originalText = btn.innerText;
+
+            btn.innerText = "Creating Account...";
+            btn.disabled = true;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    // Update Display Name
+                    return updateProfile(user, { displayName: name });
+                })
+                .then(() => {
+                    // Success
+                    console.log("Account created");
+                    btn.innerText = "Success!";
+                    playCloseAnimationAndRedirect();
+                })
+                .catch((error) => {
+                    console.error(error.code, error.message);
+                    alert("Signup Failed: " + error.message);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+        });
     }
 
-    // Run Feather icons to render any icons on this page
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
