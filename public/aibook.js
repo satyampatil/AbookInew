@@ -22,7 +22,6 @@ async function initializeAIGenerator() {
     if (!generatorForm) return; // Exit if we're not on the right page
 
     // --- 1. Handle Genre Tag Selection ---
-    // ... (this logic is unchanged) ...
     const genreTags = document.querySelectorAll('.genre-tags .tag');
     const genreInput = document.getElementById('genre');
     let selectedGenre = "Fantasy"; // Default
@@ -99,7 +98,7 @@ async function initializeAIGenerator() {
           ]
         }`;
     
-        // --- PAYLOAD UPDATED (Added hex colors to schema) ---
+        // --- PAYLOAD UPDATED ---
         const textPayload = {
           contents: [{ parts: [{ text: textPrompt }] }],
           generationConfig: {
@@ -111,8 +110,8 @@ async function initializeAIGenerator() {
                     genre: { type: "STRING" },
                     description: { type: "STRING" },
                     image_prompt: { type: "STRING" },
-                    cover_hex_bg: { type: "STRING" }, // <-- NEW
-                    cover_hex_text: { type: "STRING" }, // <-- NEW
+                    cover_hex_bg: { type: "STRING" }, 
+                    cover_hex_text: { type: "STRING" }, 
                     pages: {
                         type: "ARRAY",
                         items: { type: "STRING" }
@@ -120,7 +119,7 @@ async function initializeAIGenerator() {
                 },
                 required: [
                     "title", "genre", "description", "image_prompt", 
-                    "cover_hex_bg", "cover_hex_text", "pages" // <-- NEW
+                    "cover_hex_bg", "cover_hex_text", "pages"
                 ]
             }
           }
@@ -153,14 +152,14 @@ async function initializeAIGenerator() {
             const rawText = result.candidates[0].content.parts[0].text;
             const bookData = JSON.parse(rawText);
 
-            // --- THIS IS THE UPDATED (FIXED) LINE ---
+            // --- URL Encoding Fix ---
             const titleQuery = encodeURIComponent(bookData.title);
             const hexBg = bookData.cover_hex_bg.replace('#', '');
             const hexText = bookData.cover_hex_text.replace('#', '');
             
             bookData.coverUrl = `https://placehold.co/300x450/${hexBg}/${hexText}?text=${titleQuery}&font=inter`;
             
-            // --- Store book data globally for the save button ---
+            // --- Store book data globally ---
             currentBookData = bookData;
 
             // Save to localStorage for the reader page
@@ -183,7 +182,21 @@ async function initializeAIGenerator() {
 
         } catch (error) {
             console.error("Error generating book:", error);
-            alert("Sorry, something went wrong while generating the book: " + error.message);
+            
+            // --- UPDATED ERROR HANDLING ---
+            // Detect specifically if the error is about blocked referers
+            if (error.message.includes("blocked") || error.message.includes("referer")) {
+                alert(
+                    "API KEY ERROR: Requests from localhost are blocked.\n\n" +
+                    "1. Go to Google Cloud Console > Credentials.\n" +
+                    "2. Edit your API Key.\n" +
+                    "3. Add 'http://localhost:3000/*' and 'http://127.0.0.1:3000/*' to Website Restrictions.\n" +
+                    "4. Save and wait 5 minutes."
+                );
+            } else {
+                alert("Sorry, something went wrong while generating the book: " + error.message);
+            }
+
             // Reset the form
             formSection.style.display = 'block';
             loadingSection.style.display = 'none';
@@ -204,7 +217,7 @@ async function initializeAIGenerator() {
         });
     }
     
-    // --- 4. NEW: Handle "Save to My Library" button ---
+    // --- 4. Handle "Save to My Library" button ---
     if (saveNewBookBtn) {
         saveNewBookBtn.addEventListener('click', () => {
             if (!currentBookData) return; // No book data to save
@@ -247,8 +260,6 @@ async function initializeAIGenerator() {
 //   MAIN PAGE ROUTER (Runs on Load)
 // ===============================================
 // ---
-// This file only needs to initialize the AI generator.
-// The main app.js will handle the other pages.
 document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.dataset.page;
     if (page === 'aibook') {
