@@ -199,9 +199,9 @@ export function generateGhostAvatar(config = {}) {
                     <animate attributeName="x" values="10; 5" dur="3s" repeatCount="indefinite" begin="0s"/>
                     <animate attributeName="opacity" values="0; 1; 0" dur="3s" repeatCount="indefinite" begin="0s"/>
                 </text>
-                <!-- '?' from right page -->
+                <!-- 'Z' from right page -->
                 <text x="35" y="10" font-size="12" opacity="0">
-                    ?
+                    Z
                     <animate attributeName="y" values="10; -25" dur="4s" repeatCount="indefinite" begin="1.5s"/>
                     <animate attributeName="x" values="35; 40" dur="4s" repeatCount="indefinite" begin="1.5s"/>
                     <animate attributeName="opacity" values="0; 1; 0" dur="4s" repeatCount="indefinite" begin="1.5s"/>
@@ -210,7 +210,7 @@ export function generateGhostAvatar(config = {}) {
                 <text x="22" y="15" font-size="9" opacity="0">
                     B
                     <animate attributeName="y" values="15; -15" dur="3.5s" repeatCount="indefinite" begin="0.8s"/>
-                    <animate attributeName="opacity" values="0; 0.8; 0" dur="3.5s" repeatCount="indefinite" begin="0.8s"/>
+                    <animate attributeName="opacity" values="0; 1; 0" dur="3.5s" repeatCount="indefinite" begin="0.8s"/>
                 </text>
             </g>
 

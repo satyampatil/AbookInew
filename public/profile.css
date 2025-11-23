@@ -1,5 +1,6 @@
-/* ... Existing Profile Styles ... */
+/* --- Profile Page Styles --- */
 
+/* 1. Main Background - Transparent (showing whatever is behind) */
 .profile-container {
     display: flex;
     justify-content: center;
@@ -7,47 +8,127 @@
     min-height: calc(100vh - 70px - 85px);
     margin-top: 70px;
     padding: 2rem;
-    background-color: var(--bg-color);
+    background-color: #ffffff00; /* Transparent as requested */
+    position: relative; 
+    z-index: 1; 
 }
 
-.profile-card {
-    background-color: var(--card-bg, #1a1a1a); 
-    border: 1px solid var(--border-color, #333);
-    border-radius: 12px;
-    padding: 3rem 2rem;
+/* --- Background Ghost Styles --- */
+#background-ghost-container {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100px; 
+    height: 100px;
+    z-index: 0; 
+    pointer-events: none; 
+    transition: transform 0.15s ease-out; /* Slightly smoother transition */
+    opacity: 0.25; /* Made slightly more visible */
+    display: none; 
+}
+
+#background-ghost-img {
     width: 100%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); 
 }
 
-.profile-header { margin-bottom: 2rem; }
+/* 2. Card Design */
+.profile-card {
+    background-color: #ffffff; 
+    border-radius: 30px; 
+    width: 100%;
+    max-width: 450px; 
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5); 
+    position: relative;
+    overflow: hidden; 
+    padding-bottom: 3rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
 
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+}
+
+/* 3. Wavy Header Graphic */
+.profile-card-header-graphic {
+    width: 100%;
+    height: 220px; 
+    /* Updated Gradient: Bottom-to-Top White to Red */
+    background: linear-gradient(0deg, #ffffff 20%, #E50914 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.profile-card-header-graphic svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; 
+}
+
+/* --- WAVE ANIMATION --- */
+@keyframes wave-drift {
+    0% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(-15px) scaleY(1.02); } 
+    100% { transform: translateX(0) scaleY(1); }
+}
+
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(1) {
+    animation: wave-drift 5s ease-in-out infinite;
+}
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(2) {
+    animation: wave-drift 4s ease-in-out infinite reverse;
+}
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(3) {
+    animation: wave-drift 3s ease-in-out infinite;
+}
+
+/* 4. Content Wrapper */
+.profile-content {
+    position: relative;
+    z-index: 1; 
+    padding: 0 2rem;
+    padding-top: 140px; 
+}
+
+/* 5. Profile Image - Overlapping */
 .profile-img-wrapper {
-    width: 120px;
-    height: 120px;
+    width: 200px; /* Increased size */
+    height: 200px;
     margin: 0 auto 1.5rem auto;
     border-radius: 50%;
-    background-color: #111; /* Dark bg for ghost glow */
+    background-color: #1a1a1a; 
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    border: 4px solid var(--bg-color);
-    box-shadow: 0 0 0 2px var(--primary-color, #e50914);
+    border: 5px solid #ffffff; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     position: relative;
     cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.profile-img-wrapper:hover {
+    transform: scale(1.05);
 }
 
 #profile-pic {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 10px; /* Add padding so ghost doesn't touch edges */
+    padding: 25px; /* Adjusted padding for larger circle */
 }
 
 #profile-placeholder { color: white; }
-#profile-placeholder svg { width: 64px; height: 64px; }
+#profile-placeholder svg { width: 80px; height: 80px; } /* Adjusted icon size */
 
 .edit-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -58,80 +139,121 @@
 .edit-overlay svg { color: white; width: 32px; height: 32px; }
 .profile-img-wrapper:hover .edit-overlay { opacity: 1; }
 
+/* 6. Typography */
 #profile-name {
-    font-size: 1.5rem; font-weight: 700; color: var(--text-color, #fff); margin-bottom: 0.5rem;
+    font-size: 1.8rem; 
+    font-weight: 700; 
+    color: #111; 
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.5px;
 }
-.profile-email { color: var(--text-color-secondary, #aaa); font-size: 1rem; }
 
-/* Buttons */
-.btn-danger {
-    background: transparent; border: 1px solid #ff4444; color: #ff4444;
-    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
-    padding: 0.75rem; width: 100%; border-radius: 4px; font-weight: 600; cursor: pointer;
-    transition: all 0.3s ease;
+.profile-email { 
+    color: #666; 
+    font-size: 0.95rem; 
+    margin-bottom: 1.5rem;
 }
-.btn-danger:hover { background: #ff4444; color: white; }
 
-/* Modal */
+.profile-bio {
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 1.5rem 0 2.5rem 0;
+    padding: 0 1rem;
+}
+
+/* 7. Action Buttons */
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-primary-pill {
+    background-color: #E50914; 
+    color: white;
+    border: none;
+    padding: 0.8rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.btn-primary-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(229, 9, 20, 0.4);
+    background-color: #F6121D;
+}
+
+.btn-secondary-pill {
+    background-color: transparent;
+    color: #666;
+    border: 2px solid #ddd;
+    padding: 0.8rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary-pill:hover {
+    border-color: #999;
+    color: #333;
+}
+
+/* --- MODAL STYLES --- */
 .modal-overlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85); z-index: 1000;
+    background: rgba(0, 0, 0, 0.85); z-index: 2000;
     justify-content: center; align-items: center; backdrop-filter: blur(5px);
 }
 .modal-overlay.open { display: flex; }
 
 .modal-content {
-    background: var(--card-bg, #1a1a1a); padding: 2rem; border-radius: 12px;
+    background: #1a1a1a; 
+    padding: 2rem; border-radius: 20px;
     width: 90%; max-width: 420px; text-align: center;
-    border: 1px solid var(--border-color, #333);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border: 1px solid #333;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-.modal-content h2 { margin-bottom: 0.5rem; color: var(--primary-color, #e50914); }
-.modal-content p { color: var(--text-color-secondary, #aaa); margin-bottom: 1.5rem; }
+.modal-content h2 { margin-bottom: 0.5rem; color: #E50914; }
+.modal-content p { color: #aaa; margin-bottom: 1.5rem; }
 
 .avatar-preview-container {
     width: 140px; height: 140px; margin: 0 auto 1.5rem auto;
-    background-color: #1a1a1a; /* Dark bg for glow */
+    background-color: #111;
     border-radius: 50%; border: 2px solid #333;
     display: flex; justify-content: center; align-items: center;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
 #generated-avatar-preview { width: 90%; height: 90%; object-fit: contain; }
 
-/* Customization Panel */
 .customization-panel {
     text-align: left; margin-bottom: 1.5rem;
-    background: rgba(255,255,255,0.03);
-    padding: 1rem; border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    padding: 1rem; border-radius: 12px;
 }
 
 .control-group { margin-bottom: 1rem; }
 .control-group label {
-    display: block; font-size: 0.85rem; color: var(--text-color-secondary);
+    display: block; font-size: 0.85rem; color: #bbb;
     margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* Color Options */
-.color-options { display: flex; gap: 0.5rem; justify-content: flex-start; flex-wrap: wrap; }
+.color-options, .option-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .color-btn {
-    width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent;
-    cursor: pointer; transition: transform 0.2s;
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
 }
-.color-btn:hover { transform: scale(1.1); }
-.color-btn.active { border-color: white; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+.color-btn.active { transform: scale(1.2); border-color: white; }
 
-/* Button Options (Mood/Acc) */
-.option-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .opt-btn {
     background: transparent; border: 1px solid #444; color: #ccc;
-    padding: 0.4rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem;
-    transition: all 0.2s;
+    padding: 0.4rem 0.8rem; border-radius: 20px; cursor: pointer;
 }
-.opt-btn:hover { border-color: #777; }
-.opt-btn.active { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+.opt-btn.active { background: #E50914; border-color: #E50914; color: white; }
 
-.modal-actions { margin-top: 1.5rem; }
-.btn-close-text {
-    background: none; border: none; color: var(--text-color-secondary);
-    cursor: pointer; text-decoration: underline; font-size: 0.9rem; margin-top: 1rem;
-}
+.btn-full-width { width: 100%; padding: 1rem; font-size: 1rem; background: #E50914; color: white; border: none; border-radius: 8px; cursor: pointer; }
+.btn-close-text { background: none; border: none; color: #888; cursor: pointer; margin-top: 1rem; text-decoration: underline; }

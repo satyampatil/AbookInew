@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { generateGhostAvatar } from "./avatar-generator.js";
+import { generateCursorGhost } from "./cursor-ghost-generator.js"; // NEW Import
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
@@ -14,7 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // Initialize Firestore
+const db = getFirestore(app); 
 
 // UI Elements
 const nameEl = document.getElementById('profile-name');
@@ -23,6 +24,10 @@ const picEl = document.getElementById('profile-pic');
 const placeholderEl = document.getElementById('profile-placeholder');
 const logoutBtn = document.getElementById('logout-btn');
 const profileImgTrigger = document.getElementById('profile-img-trigger');
+
+// Background Ghost Elements
+const bgGhostContainer = document.getElementById('background-ghost-container');
+const bgGhostImg = document.getElementById('background-ghost-img');
 
 // Modal Elements
 const modal = document.getElementById('avatar-modal');
@@ -44,6 +49,28 @@ let avatarConfig = {
     accessory: 'none'
 };
 
+// --- UPDATE BACKGROUND GHOST ---
+// Now accepts the config object instead of the raw SRC
+function updateBackgroundGhost(config) {
+    if (bgGhostImg && config) {
+        // Generate the specific cursor-chasing version
+        const ghostSrc = generateCursorGhost(config);
+        bgGhostImg.src = ghostSrc;
+        bgGhostContainer.style.display = 'block';
+    }
+}
+
+// --- MOUSE FOLLOW LOGIC ---
+document.addEventListener('mousemove', (e) => {
+    if (bgGhostContainer && bgGhostContainer.style.display !== 'none') {
+        // Position ghost to the LEFT of the cursor (-120px)
+        const x = e.clientX - 120; 
+        const y = e.clientY - 50;
+        bgGhostContainer.style.transform = `translate(${x}px, ${y}px)`;
+    }
+});
+
+
 // 1. Auth Check & Load Profile
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -51,22 +78,22 @@ onAuthStateChanged(auth, async (user) => {
         nameEl.innerText = user.displayName || "Ghost Reader";
         emailEl.innerText = user.email;
 
-        // --- NEW: Load Avatar Config from Firestore ---
         try {
             const docRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists() && docSnap.data().avatarConfig) {
-                // If config exists, load it and generate image locally
                 const savedConfig = docSnap.data().avatarConfig;
-                const svgData = generateGhostAvatar(savedConfig);
                 
-                // Update UI
-                picEl.src = svgData;
+                // Generate Standard Avatar for Card
+                const cardAvatarSrc = generateGhostAvatar(savedConfig);
+                picEl.src = cardAvatarSrc;
                 picEl.style.display = 'block';
                 placeholderEl.style.display = 'none';
                 
-                // Update local state so modal opens with correct settings
+                // Generate Cursor Ghost for Background
+                updateBackgroundGhost(savedConfig);
+                
                 avatarConfig = savedConfig;
                 updateSelectionUI();
             }
@@ -92,52 +119,36 @@ function updatePreview() {
     previewImg.src = dataUrl;
 }
 
-// Helper to handle selection
 function setupSelection(buttons, configKey) {
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Update config
             const value = btn.dataset[Object.keys(btn.dataset)[0]];
             avatarConfig[configKey] = value;
-            
-            // Update Visuals
             updateSelectionUI();
             updatePreview();
         });
     });
 }
 
-// Update the active class on buttons based on current `avatarConfig`
 function updateSelectionUI() {
-    // Colors
-    colorBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.color === avatarConfig.color);
-    });
-    // Moods
-    moodBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mood === avatarConfig.mood);
-    });
-    // Accessories
-    accBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.acc === avatarConfig.accessory);
-    });
+    colorBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.color === avatarConfig.color));
+    moodBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.mood === avatarConfig.mood));
+    accBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.acc === avatarConfig.accessory));
 }
 
-// Initialize Listeners
 setupSelection(colorBtns, 'color');
 setupSelection(moodBtns, 'mood');
 setupSelection(accBtns, 'accessory');
 
-// Modal Open/Close
 function openModal() {
-    updatePreview(); // Show current config
+    updatePreview(); 
     modal.classList.add('open');
 }
 function closeModal() {
     modal.classList.remove('open');
 }
 
-// 4. Save Logic (Updated: Removed updateProfile call)
+// 4. Save Logic
 async function saveAvatar() {
     if (!currentUser) return;
     
@@ -147,20 +158,20 @@ async function saveAvatar() {
     btn.disabled = true;
 
     try {
-        // Save the CONFIG to Firestore
-        // We ONLY save the text configuration (color, mood, etc.) which is very small.
-        // We do NOT save the image itself.
         await setDoc(doc(db, "users", currentUser.uid), {
             avatarConfig: avatarConfig,
             email: currentUser.email,
             updatedAt: new Date().toISOString()
         }, { merge: true });
 
-        // Update the main profile picture immediately in the UI
-        const newAvatarUrl = generateGhostAvatar(avatarConfig);
-        picEl.src = newAvatarUrl;
+        // Update Card Avatar
+        const newCardAvatar = generateGhostAvatar(avatarConfig);
+        picEl.src = newCardAvatar;
         picEl.style.display = 'block';
         placeholderEl.style.display = 'none';
+        
+        // Update Background Ghost
+        updateBackgroundGhost(avatarConfig);
         
         closeModal();
     } catch (error) {
@@ -172,7 +183,6 @@ async function saveAvatar() {
     }
 }
 
-// Event Bindings
 if (profileImgTrigger) profileImgTrigger.addEventListener('click', openModal);
 if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
 if (btnSaveAvatar) btnSaveAvatar.addEventListener('click', saveAvatar);
