@@ -5,7 +5,7 @@
 // --- */
 :root {
     --bg-color: #111111;
-    --bg-color-rgb: 17, 17, 17; /* For gradient transparency */
+    --bg-color-rgb: 17, 17, 17;
     --text-color: #f5f5f5;
     --text-color-secondary: #aaaaaa;
     --primary-color: #E50914;
@@ -15,47 +15,21 @@
     --font-main: 'Inter', sans-serif;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* UPDATED BODY STYLES FOR STICKY FOOTER */
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: var(--font-main);
     line-height: 1.6;
-    
-    /* NEW: Flexbox setup */
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    display: flex; flex-direction: column; min-height: 100vh;
 }
 
-a {
-    color: var(--text-color);
-    text-decoration: none;
-}
+a { color: var(--text-color); text-decoration: none; }
+ul { list-style: none; }
+img { max-width: 100%; height: auto; display: block; }
 
-ul {
-    list-style: none;
-}
-
-img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* UPDATED MAIN STYLES FOR STICKY FOOTER */
-main {
-    padding-top: 70px; /* Offset for fixed header */
-    
-    /* NEW: Make main content grow to fill space */
-    flex-grow: 1;
-}
+main { padding-top: 70px; flex-grow: 1; }
 
 /* ---
 // ===============================================
@@ -63,107 +37,60 @@ main {
 // ===============================================
 // --- */
 .main-header {
-    width: 100%;
-    height: 70px;
-    background-color: var(--bg-color);
+    width: 100%; height: 70px; background-color: var(--bg-color);
     border-bottom: 1px solid var(--border-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
+    position: fixed; top: 0; left: 0; z-index: 1000;
 }
-
 .main-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 100%; max-width: 1400px; margin: 0 auto; padding: 0 2rem;
 }
+.logo { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+.nav-links { display: flex; gap: 1.5rem; margin: 0 auto; }
+.nav-link { font-size: 1rem; font-weight: 500; color: var(--text-color-secondary); transition: color 0.2s ease; }
+.nav-link:hover, .nav-link.active { color: var(--text-color); }
+.nav-link.active { font-weight: 700; }
+.nav-profile { color: var(--text-color); }
 
-.logo {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--primary-color);
+/* --- AIBOOK ANIMATION --- */
+.nav-link-anim { display: flex; align-items: center; position: relative; overflow: hidden; }
+.nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.nav-link-anim .book-part {
+    display: inline-block; max-width: 0; opacity: 0; transform: translateX(-10px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; color: var(--primary-color);
 }
-
-.nav-links {
-    display: flex;
-    gap: 1.5rem;
-    margin: 0 auto; /* This centers the links */
+.nav-link-anim:hover .book-part, .nav-link-anim.active .book-part {
+    max-width: 100px; opacity: 1; transform: translateX(0); margin: 0 0.05em 0 0.15em;
 }
-
-.nav-link {
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-color-secondary);
-    transition: color 0.2s ease;
+.nav-link-anim:hover, .nav-link-anim.active {
+    text-shadow: 0 0 8px rgba(229, 9, 20, 0.7); color: var(--text-color);
 }
-
-.nav-link:hover {
-    color: var(--text-color);
-}
-
-.nav-link.active {
-    color: var(--text-color);
-    font-weight: 700;
-}
-
-.nav-profile {
-    color: var(--text-color);
-}
-
 
 /* ---
 // ===============================================
-//   03. "AIBOOK" LINK ANIMATION
+//   03. BUTTONS & UI ELEMENTS
 // ===============================================
 // --- */
-.nav-link-anim {
-    display: flex;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    /*padding: 4px; Add padding for the glow effect */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.75rem 1.5rem; border: none; border-radius: 4px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
 }
+.btn-icon { margin-right: 0.5rem; }
+.btn-primary { background-color: var(--primary-color); color: var(--text-color); }
+.btn-primary:hover { background-color: var(--hover-color); }
+.btn-secondary { background-color: rgba(109, 109, 110, 0.7); color: var(--text-color); }
+.btn-secondary:hover { background-color: rgba(109, 109, 110, 0.4); }
 
-.nav-link-anim .ai-part,
-.nav-link-anim .i-part {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.btn-icon-round {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; padding: 0; border-radius: 50%;
+    background-color: rgba(40, 40, 40, 0.9);
+    border: 1px solid var(--border-color); color: var(--text-color);
+    cursor: pointer; transition: all 0.2s ease;
 }
-
-.nav-link-anim .book-part {
-    display: inline-block;
-    max-width: 0;
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
-    color: var(--primary-color);
-    font-weight: 400;
-}
-
-.nav-link-anim:hover .book-part,
-.nav-link-anim.active .book-part {
-    max-width: 100px; /* Reveal the text */
-    opacity: 1;
-    transform: translateX(0);
-    margin: 0 0.05em 0 0.15em;
-}
-
-.nav-link-anim:hover .i-part,
-.nav-link-anim.active .i-part {
-    transform: translateX(0);
-}
-
-/* Add a hover/active glow */
-.nav-link-anim:hover,
-.nav-link-anim.active {
-    text-shadow: 0 0 8px rgba(229, 9, 20, 0.7);
-    color: var(--text-color); /* Ensure A and I are white on hover */
-}
+.btn-icon-round:hover { background-color: var(--primary-color); border-color: var(--hover-color); }
+.btn-icon-round i { width: 18px; height: 18px; }
 
 /* ---
 // ===============================================
@@ -171,512 +98,66 @@ main {
 // ===============================================
 // --- */
 .hero-section {
-    height: 70vh;
-    min-height: 500px;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    padding: 0 2rem;
-    position: relative; /* For the gradient */
+    height: 70vh; min-height: 500px;
+    background-size: cover; background-position: center;
+    display: flex; align-items: center; padding: 0 2rem; position: relative;
 }
-
-.hero-content {
-    max-width: 50%;
-    padding-left: 2rem;
-    z-index: 10;
-}
-
-.hero-title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-.hero-description {
-    font-size: 1.1rem;
-    color: var(--text-color-secondary);
-    margin-bottom: 2rem;
-    max-width: 600px;
-}
-
-.hero-buttons {
-    display: flex;
-    gap: 1rem;
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-icon {
-    margin-right: 0.5rem;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-}
-
-.btn-primary:hover {
-    background-color: var(--hover-color);
-}
-
-.btn-secondary {
-    background-color: rgba(109, 109, 110, 0.7);
-    color: var(--text-color);
-}
-
-.btn-secondary:hover {
-    background-color: rgba(109, 109, 110, 0.4);
-}
-
-/* NEW: Helper class for round icon buttons */
-.btn-icon-round {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 50%;
-    background-color: rgba(40, 40, 40, 0.8);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-icon-round:hover {
-    background-color: var(--primary-color);
-    border-color: var(--hover-color);
-}
-
-.btn-icon-round i {
-    width: 20px;
-    height: 20px;
-}
+.hero-content { max-width: 50%; padding-left: 2rem; z-index: 10; }
+.hero-title { font-size: 3.5rem; font-weight: 700; margin-bottom: 1rem; }
+.hero-description { font-size: 1.1rem; color: var(--text-color-secondary); margin-bottom: 2rem; max-width: 600px; }
+.hero-buttons { display: flex; gap: 1rem; }
 
 /* ---
 // ===============================================
 //   05. BOOK SHELVES
 // ===============================================
 // --- */
-.book-shelves {
-    padding: 2rem;
-}
-
-.category-shelf {
-    margin-bottom: 3rem;
-}
-
-.category-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
+.book-shelves { padding: 2rem; }
+.category-shelf { margin-bottom: 3rem; }
+.category-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; }
 .book-scroll-container {
-    display: flex;
-    gap: 1rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 1.5rem; /* For scrollbar spacing */
+    display: flex; gap: 1rem; overflow-x: auto; overflow-y: hidden; padding-bottom: 1.5rem;
+    -ms-overflow-style: none; scrollbar-width: none;
 }
-
-/* Hide scrollbar for a cleaner look */
-.book-scroll-container::-webkit-scrollbar {
-    display: none;
-}
-.book-scroll-container {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
+.book-scroll-container::-webkit-scrollbar { display: none; }
 
 .book-card {
-    flex: 0 0 auto;
-    width: 200px; /* Width of the book card */
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
+    flex: 0 0 auto; width: 200px; background-color: var(--card-bg);
+    border-radius: 8px; overflow: hidden; position: relative;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.book-card.clickable {
-    cursor: pointer;
-}
-
-.book-card img {
-    width: 100%;
-    height: 300px; /* Fixed height for all covers */
-    object-fit: cover;
-    display: block;
-}
+.book-card.clickable { cursor: pointer; }
+.book-card img { width: 100%; height: 300px; object-fit: cover; display: block; }
 
 .book-card-info {
-    padding: 1rem;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-    transform: translateY(100%);
-    opacity: 0;
-    transition: all 0.3s ease;
+    padding: 1rem; position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    transform: translateY(100%); opacity: 0; transition: all 0.3s ease;
 }
+.book-card-title { font-size: 1rem; font-weight: 700; color: var(--text-color); }
 
-.book-card-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-color);
-}
-
-.book-card.clickable:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-}
-
-.book-card.clickable:hover .book-card-info {
-    transform: translateY(0);
-    opacity: 1;
-}
+.book-card.clickable:hover { transform: scale(1.05); z-index: 5; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+.book-card.clickable:hover .book-card-info { transform: translateY(0); opacity: 1; }
 
 /* ---
 // ===============================================
-//   06. AIBOOK GENERATOR PAGE (REMOVED)
+//   06. FOOTER
 // ===============================================
 // --- */
-/* This section has been moved to aibook.css */
-
-
-/* ---
-// ===============================================
-//   07. FOOTER
-// ===============================================
-// --- */
-/* UPDATED FOOTER STYLES FOR STICKY FOOTER */
 .main-footer {
-    text-align: center;
-    padding: 2rem;
-    /* margin-top: 3rem;  <-- REMOVED THIS LINE */
-    border-top: 1px solid var(--border-color);
-    color: var(--text-color-secondary);
-    font-size: 0.9rem;
-    
-    /* NEW: Prevent footer from growing or shrinking */
-    flex-shrink: 0;
+    text-align: center; padding: 2rem; border-top: 1px solid var(--border-color);
+    color: var(--text-color-secondary); font-size: 0.9rem; flex-shrink: 0;
 }
 
 /* ---
 // ===============================================
-//   08. RESPONSIVE MEDIA QUERIES
+//   07. RESPONSIVE
 // ===============================================
 // --- */
 @media (max-width: 768px) {
-    .nav-links {
-        display: none; /* Hide nav links on small screens */
-    }
-
-    .hero-content {
-        max-width: 80%;
-        padding-left: 0;
-    }
-
-    .hero-title {
-        font-size: 2.5rem;
-    }
-
-    .hero-description {
-        font-size: 1rem;
-    }
-
-    .book-card {
-        width: 160px;
-    }
-
-    .book-card img {
-        height: 240px;
-    }
-
-    .generator-container {
-        margin: 1rem;
-        padding: 1rem;
-    }
-}
-
-/* ---
-// ===============================================
-//   09. NEW: READER PAGE STYLES (UPDATED)
-// ===============================================
-// --- */
-.reader-main {
-    max-width: 800px;
-    margin: 0 auto;
-    /* 70px header + 3rem top padding */
-    padding: calc(70px + 3rem) 2rem 4rem 2rem; 
-    min-height: calc(100vh - 85px); /* Fill height minus footer */
-}
-
-.reader-main h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 2rem;
-    color: var(--text-color);
-}
-
-.reader-container {
-    background-color: #f3f3f3; /* Light paper color */
-    color: #333; /* Dark text for readability */
-    border-radius: 8px;
-    padding: 3rem 4rem;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-    min-height: 50vh;
-    position: relative; /* IMPORTANT: For absolute positioning */
-}
-
-/* --- NEW: SAVE BUTTON STYLES --- */
-.reader-save-button {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 10;
-    
-    /* Base style (circle) */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 42px;
-    width: 42px;
-    padding: 0;
-    border-radius: 50%;
-    
-    background-color: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: #333;
-    cursor: pointer;
-    overflow: hidden; /* Hides the text */
-    
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.reader-save-icon {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.3s ease;
-}
-.reader-save-icon .feather {
-    width: 20px;
-    height: 20px;
-}
-
-.reader-save-text {
-    /* Hide text by default */
-    display: none; 
-    white-space: nowrap;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin: 0 1rem 0 0.5rem;
-}
-
-/* Hover Animation */
-.reader-save-button:not(.saved):hover {
-    width: auto; /* Expand width */
-    padding-left: 0.75rem; /* Add padding */
-    border-radius: 50px; /* Pill shape */
-    background-color: rgba(0, 0, 0, 0.08);
-}
-.reader-save-button:not(.saved):hover .reader-save-icon {
-    width: auto;
-    transform: rotate(90deg); /* Animate the '+' */
-}
-.reader-save-button:not(.saved):hover .reader-save-text {
-    display: block; /* Show the text */
-}
-
-/* Saved State */
-.reader-save-button.saved {
-    background-color: #28a745; /* Green */
-    border-color: #28a745;
-    color: #fff;
-    cursor: default;
-}
-.reader-save-button.saved:hover {
-    background-color: #218838;
-    width: auto; /* Expand width */
-    padding-left: 0.75rem; /* Add padding */
-    border-radius: 50px; /* Pill shape */
-}
-.reader-save-button.saved:hover .reader-save-icon {
-    width: auto;
-    transform: rotate(0deg); /* No rotate on 'check' */
-}
-.reader-save-button.saved:hover .reader-save-text {
-    display: block; /* Show "Saved!" text */
-    color: #fff;
-}
-/* --- END: SAVE BUTTON STYLES --- */
-
-
-#reader-content {
-    font-family: 'Lora', serif; /* Use a serif font for reading */
-    font-size: 1.1rem;
-    line-height: 1.8;
-}
-
-#reader-content p {
-    margin-bottom: 1.5rem;
-}
-
-#reader-content h1 {
-    color: #333; /* Dark text for h1 inside */
-}
-
-.pagination-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 2rem;
-}
-
-/* REMOVED .pagination-center */
-
-.pagination-controls span {
-    font-size: 1rem;
-    color: var(--text-color-secondary);
-    margin: 0 auto; /* This now centers the page indicator */
-}
-
-.pagination-controls .btn i {
-    width: 18px;
-    height: 18px;
-}
-/* Re-use main button styles but align icons */
-#prev-page .feather {
-    margin-right: 0.5rem;
-    margin-left: -0.25rem;
-}
-#next-page .feather {
-    margin-left: 0.5rem;
-    margin-right: -0.25rem;
-}
-
-/* REMOVED #add-to-list-btn styles */
-
-/* Hide buttons when they are disabled */
-.pagination-controls .btn:disabled {
-    background-color: var(--border-color);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-    .reader-main {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    .reader-container {
-        padding: 2rem 1.5rem;
-    }
-    .reader-main h1 {
-        font-size: 2rem;
-    }
-
-    /* UPDATED: Stack controls on mobile */
-    .pagination-controls {
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-    .pagination-controls span {
-        order: -1; /* Move indicator to the top */
-        margin: 0;
-    }
-
-    /* Keep save button visible on mobile */
-    .reader-save-button {
-        top: 0.5rem;
-        right: 0.5rem;
-    }
-}
-
-/* ... (all your existing CSS from sections 01-09) ... */
-
-/* ---
-// ===============================================
-//   10. NEW: MY LIST PAGE STYLES (UPDATED)
-// ===============================================
-// --- */
-
-/* Re-use .book-shelves from section 05 */
-.mylist-page-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    color: var(--text-color);
-    /* Add padding to match the .book-shelves section */
-    padding: 0 2rem;
-}
-
-/* The .book-shelves container (from section 05) 
-   will now be used, so no new grid styles are needed.
-*/
-
-/* Updated empty list message to work in the new container */
-.empty-list-message {
-    font-size: 1.2rem;
-    color: var(--text-color-secondary);
-    text-align: center;
-    padding: 4rem 2rem; /* Add padding to center it */
-}
-
-/* The delete button styles (from section 04 & 10) 
-   are still used and will work correctly.
-*/
-.book-card .delete-book-btn {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    z-index: 10;
-    /* Hide by default, show on card hover */
-    opacity: 0;
-    transform: scale(0.8);
-    transition: all 0.2s ease;
-}
-
-.book-card:hover .delete-book-btn {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.delete-book-btn:hover {
-    /* Make the hover state more obvious */
-    transform: scale(1.1) !important;
-}
-
-/* On mobile, just show the button all the time */
-@media (max-width: 768px) {
-    .book-card .delete-book-btn {
-        opacity: 1;
-        transform: scale(1);
-        background-color: rgba(20, 20, 20, 0.7);
-    }
-    
-    .mylist-page-title {
-        padding: 0 1rem;
-        font-size: 2rem;
-    }
+    .nav-links { display: none; }
+    .hero-content { max-width: 80%; padding-left: 0; }
+    .hero-title { font-size: 2.5rem; }
+    .book-card { width: 160px; }
+    .book-card img { height: 240px; }
 }

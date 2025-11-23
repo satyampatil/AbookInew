@@ -1,7 +1,7 @@
-// --- MY LIST PAGE LOGIC (WITH FIREBASE) ---
+// --- MY LIST PAGE LOGIC (WITH PUBLIC/PRIVATE TOGGLE) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy } 
+import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, orderBy, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -38,14 +38,12 @@ function initializeMyList() {
         try {
             // Fetch books from Firestore
             const booksRef = collection(db, 'artifacts', appId, 'users', user.uid, 'books');
-            // Try to order by creation time, but might fail if index missing, so simple fetch first
             const q = query(booksRef); 
             const querySnapshot = await getDocs(q);
 
             const myList = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                // Add the Firestore ID so we can delete it later
                 myList.push({ ...data, firestoreId: doc.id });
             });
 
@@ -59,7 +57,6 @@ function initializeMyList() {
 }
 
 function renderShelves(container, myList, userId) {
-    // Handle Empty List
     if (myList.length === 0) {
         container.innerHTML = `<p class="empty-list-message">Your cloud library is empty. Go generate some books on the 'AIBOOK' page!</p>`;
         return;
@@ -88,27 +85,42 @@ function renderShelves(container, myList, userId) {
 
         const booksInGenre = groupedByGenre[genre];
         
-        // Reverse to show newest added (visually)
         let booksHtml = ''; 
         booksInGenre.reverse().forEach(book => {
-            const safeTitle = book.title.replace(/"/g, '&quot;');
-            // Use firestoreId for deletion
-            const firestoreId = book.firestoreId; 
+            const firestoreId = book.firestoreId;
+            const isPublic = !!book.publicId; 
+            const publicClass = isPublic ? 'is-public' : '';
+            const publicIcon = isPublic ? 'globe' : 'lock';
+            const publicTitle = isPublic ? 'Make Private' : 'Make Public (Publish)';
+            const publicBtnStyle = isPublic ? 'background-color: #4CAF50; color: white;' : '';
 
             booksHtml += `
-                <div class="book-card clickable" 
-                     data-firestore-id="${firestoreId}">
+                <div class="book-card clickable" data-firestore-id="${firestoreId}">
                     
                     <img src="${book.coverUrl}" alt="${book.title}" onerror="this.src='https://placehold.co/300x450/1a1a1a/f5f5f5?text=Image+Error&font=inter'">
                     <div class="book-card-info">
                         <h3 class="book-card-title">${book.title}</h3>
                     </div>
                     
-                    <button class="btn-icon-round delete-book-btn" 
-                            title="Delete Book"
-                            data-firestore-id="${firestoreId}">
-                        <i data-feather="x"></i>
-                    </button>
+                    <!-- Action Buttons Container -->
+                    <div class="book-card-actions">
+                        <!-- RENAMED CLASS: list-public-btn -->
+                        <button class="btn-icon-round list-public-btn ${publicClass}" 
+                                title="${publicTitle}"
+                                style="${publicBtnStyle}"
+                                data-firestore-id="${firestoreId}"
+                                data-public-id="${book.publicId || ''}">
+                            <i data-feather="${publicIcon}"></i>
+                        </button>
+
+                        <!-- RENAMED CLASS: list-delete-btn -->
+                        <button class="btn-icon-round list-delete-btn" 
+                                title="Delete Book"
+                                data-firestore-id="${firestoreId}"
+                                data-public-id="${book.publicId || ''}">
+                            <i data-feather="x"></i>
+                        </button>
+                    </div>
                 </div>
             `;
         });
@@ -120,42 +132,112 @@ function renderShelves(container, myList, userId) {
     container.innerHTML = allShelvesHtml;
     if (typeof feather !== 'undefined') feather.replace(); 
 
-    // --- 3. Add Event Listeners ---
+    // --- 3. Event Listeners ---
     container.addEventListener('click', async (e) => {
-        const deleteButton = e.target.closest('.delete-book-btn');
+        // UPDATED LISTENERS TO MATCH NEW CLASSES
+        const deleteButton = e.target.closest('.list-delete-btn');
+        const publicButton = e.target.closest('.list-public-btn');
         const card = e.target.closest('.book-card.clickable');
 
-        if (deleteButton) {
-            // --- DELETE LOGIC (FIRESTORE) ---
+        // Stop propagation for buttons
+        if (deleteButton || publicButton) {
             e.stopPropagation();
-            if(!confirm("Are you sure you want to delete this book from your cloud library?")) return;
+        }
+
+        // --- A. DELETE LOGIC ---
+        if (deleteButton) {
+            if(!confirm("Are you sure you want to delete this book? This cannot be undone.")) return;
 
             const docId = deleteButton.getAttribute('data-firestore-id');
+            const publicId = deleteButton.getAttribute('data-public-id');
             const cardElement = deleteButton.closest('.book-card');
 
-            if (docId) {
-                try {
-                    cardElement.style.opacity = '0.5';
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'books', docId));
-                    // Remove from DOM strictly for visual feedback, or reload
-                    // Re-fetching is safer to keep sync
-                    initializeMyList(); 
-                } catch (err) {
-                    console.error("Error deleting book:", err);
-                    alert("Could not delete book: " + err.message);
-                    cardElement.style.opacity = '1';
-                }
-            }
+            try {
+                cardElement.style.opacity = '0.5';
+                
+                // 1. Delete Private Doc
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'books', docId));
 
-        } else if (card) {
-            // --- READ BOOK LOGIC ---
+                // 2. Delete Public Doc (if exists)
+                if (publicId) {
+                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', publicId));
+                }
+
+                initializeMyList(); 
+            } catch (err) {
+                console.error("Error deleting book:", err);
+                alert("Could not delete book: " + err.message);
+                cardElement.style.opacity = '1';
+            }
+        } 
+        
+        // --- B. TOGGLE PUBLIC/PRIVATE LOGIC ---
+        else if (publicButton) {
+            const docId = publicButton.getAttribute('data-firestore-id');
+            const publicId = publicButton.getAttribute('data-public-id');
+
+            // Find data in memory
+            const bookData = myList.find(b => b.firestoreId === docId);
+            if (!bookData) return;
+
+            publicButton.disabled = true;
+
+            try {
+                if (publicId) {
+                    // --- CASE 1: MAKE PRIVATE ---
+                    if(!confirm("Remove from New Releases?")) {
+                         publicButton.disabled = false; return;
+                    }
+
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', publicId));
+
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', userId, 'books', docId), {
+                        publicId: null
+                    });
+                    
+                    alert("Book is now Private.");
+                } else {
+                    // --- CASE 2: MAKE PUBLIC ---
+                    if(!confirm("Publish this book to 'New Releases'? Everyone will be able to see it.")) {
+                        publicButton.disabled = false; return;
+                    }
+
+                    const publicBookData = {
+                        title: bookData.title,
+                        description: bookData.description,
+                        genre: bookData.genre,
+                        coverUrl: bookData.coverUrl,
+                        pages: bookData.pages,
+                        cover_hex_bg: bookData.cover_hex_bg || '#333',
+                        cover_hex_text: bookData.cover_hex_text || '#fff',
+                        authorName: auth.currentUser.displayName || 'Anonymous',
+                        userId: userId,
+                        createdAt: serverTimestamp()
+                    };
+
+                    const publicRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), publicBookData);
+
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', userId, 'books', docId), {
+                        publicId: publicRef.id
+                    });
+
+                    alert("Book Published to New Releases!");
+                }
+                
+                initializeMyList(); 
+            } catch (err) {
+                console.error("Error toggling privacy:", err);
+                alert("Action failed: " + err.message);
+                publicButton.disabled = false;
+            }
+        }
+
+        // --- C. READ LOGIC ---
+        else if (card) {
             const docId = card.getAttribute('data-firestore-id');
-            
-            // Find the full book object from our memory list
             const bookToRead = myList.find(b => b.firestoreId === docId);
 
             if (bookToRead) {
-                // Save this specific book to localStorage for the reader page to pick up
                 localStorage.setItem('generatedBook', JSON.stringify(bookToRead));
                 window.location.href = 'reader.html';
             }
@@ -163,7 +245,6 @@ function renderShelves(container, myList, userId) {
     });
 }
 
-// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     if (document.body.dataset.page === 'mylist') {
         initializeMyList();

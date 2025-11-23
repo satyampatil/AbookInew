@@ -1,0 +1,41 @@
+/* ---
+// ===============================================
+//   NEW RELEASES PAGE STYLES
+// ===============================================
+// --- */
+
+/* Grid Layout for Community Creations */
+.book-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-bottom: 20px;
+}
+
+/* Special styling for the Featured Hero */
+.badge {
+    display: inline-block;
+    background-color: #E50914; /* Netflix-like Red */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.hero-author {
+    color: #cccccc;
+    margin-bottom: 1rem;
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 768px) {
+    .book-grid {
+        justify-content: center; /* Center books on mobile */
+    }
+}
