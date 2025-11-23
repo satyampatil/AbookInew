@@ -1,5 +1,5 @@
 // --- CURSOR CHASING GHOST GENERATOR ---
-// Updated: Ghost now faces RIGHT (towards cursor) with tail trailing left
+// Updated: Realistic Open Book with Page Flip Animation
 
 const COLORS = {
     'blue':   { main: '#40c4ff', dark: '#0d47a1', light: '#a7ffff', glow: '#80d8ff' },
@@ -11,49 +11,46 @@ const COLORS = {
 };
 
 const MOODS = {
-    // Shifted Eyes RIGHT (+10px from center) to face the cursor
     'happy': { 
-        eyes: (id) => `<ellipse cx="58" cy="55" rx="5.5" ry="8" fill="#002f6c"/><ellipse cx="85" cy="55" rx="5.5" ry="8" fill="#002f6c"/>`, 
-        mouth: `<path d="M 68 62 Q 71.5 68 75 62" stroke="#002f6c" stroke-width="2" fill="none" stroke-linecap="round"/>` 
+        eyes: (id) => `<ellipse cx="73" cy="55" rx="5.5" ry="8" fill="#002f6c"/><ellipse cx="100" cy="55" rx="5.5" ry="8" fill="#002f6c"/>`, 
+        mouth: `<path d="M 83 62 Q 86.5 68 90 62" stroke="#002f6c" stroke-width="2" fill="none" stroke-linecap="round"/>` 
     },
     'curious': { 
-        eyes: (id) => `<circle cx="58" cy="55" r="6" fill="#002f6c"/><circle cx="85" cy="55" r="6" fill="#002f6c"/>`, 
-        mouth: `<circle cx="71" cy="65" r="3" fill="#002f6c"/>` 
+        eyes: (id) => `<circle cx="73" cy="55" r="6" fill="#002f6c"/><circle cx="100" cy="55" r="6" fill="#002f6c"/>`, 
+        mouth: `<circle cx="86" cy="65" r="3" fill="#002f6c"/>` 
     },
     'sleepy': { 
-        eyes: (id) => `<path d="M 52 55 Q 58 60 64 55" fill="none" stroke="#002f6c" stroke-width="2.5" stroke-linecap="round"/><path d="M 80 55 Q 86 60 92 55" fill="none" stroke="#002f6c" stroke-width="2.5" stroke-linecap="round"/>`, 
-        mouth: `<path d="M 70 62 Q 72 60 74 62" fill="none" stroke="#002f6c" stroke-width="1.5" stroke-linecap="round"/>` 
+        eyes: (id) => `<path d="M 67 55 Q 73 60 79 55" fill="none" stroke="#002f6c" stroke-width="2.5" stroke-linecap="round"/><path d="M 95 55 Q 101 60 107 55" fill="none" stroke="#002f6c" stroke-width="2.5" stroke-linecap="round"/>`, 
+        mouth: `<path d="M 85 62 Q 87 60 89 62" fill="none" stroke="#002f6c" stroke-width="1.5" stroke-linecap="round"/>` 
     },
     'nerdy': {
         eyes: (id) => `
-            <circle cx="58" cy="55" r="5" fill="#002f6c"/><circle cx="85" cy="55" r="5" fill="#002f6c"/>
+            <circle cx="73" cy="55" r="5" fill="#002f6c"/><circle cx="100" cy="55" r="5" fill="#002f6c"/>
             <g stroke="#333" stroke-width="2" fill="rgba(255,255,255,0.2)">
-                <circle cx="58" cy="55" r="10"/><circle cx="85" cy="55" r="10"/>
-                <line x1="68" y1="55" x2="75" y2="55" stroke-width="2"/>
+                <circle cx="73" cy="55" r="10"/><circle cx="100" cy="55" r="10"/>
+                <line x1="83" y1="55" x2="90" y2="55" stroke-width="2"/>
             </g>`,
-        mouth: `<path d="M 68 65 Q 72 68 76 65" fill="none" stroke="#002f6c" stroke-width="2" stroke-linecap="round"/>`
+        mouth: `<path d="M 83 65 Q 87 68 91 65" fill="none" stroke="#002f6c" stroke-width="2" stroke-linecap="round"/>`
     }
 };
 
 const ACCESSORIES = {
     'none': '',
-    // Hat shifted right to match head tilt
     'hat': `
-        <g transform="translate(30, -10) rotate(10)">
+        <g transform="translate(45, -10) rotate(10)">
             <ellipse cx="60" cy="25" rx="25" ry="8" fill="#3e2723"/>
             <path d="M 40 25 L 80 25 L 72 5 L 48 5 Z" fill="#5d4037"/>
             <rect x="35" y="24" width="50" height="4" fill="#3e2723" rx="1"/>
         </g>`,
     'sparkles': `
         <g fill="#fff" filter="url(#outerGlow)">
-            <!-- Sparkles moved to right (leading edge) -->
-            <circle cx="110" cy="20" r="3" opacity="0.9"><animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></circle>
-            <circle cx="90" cy="10" r="2" opacity="0.7"/>
+            <circle cx="125" cy="20" r="3" opacity="0.9"><animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></circle>
+            <circle cx="105" cy="10" r="2" opacity="0.7"/>
         </g>`,
     'runes': `
         <g fill="rgba(255,255,255,0.6)" font-family="monospace" font-weight="bold">
-            <text x="100" y="40" font-size="12">∑</text>
-            <text x="20" y="20" font-size="10">?</text>
+            <text x="115" y="40" font-size="12">∑</text>
+            <text x="35" y="20" font-size="10">?</text>
         </g>`
 };
 
@@ -85,7 +82,7 @@ export function generateCursorGhost(config = {}) {
             </radialGradient>
 
             <filter id="outerGlow${uniqueId}" height="300%" width="300%" x="-75%" y="-75%">
-                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>
                 <feMerge>
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/>
@@ -102,38 +99,16 @@ export function generateCursorGhost(config = {}) {
         </defs>
     `;
 
-    // --- The Deep Ink Tail Base (Flipped to trail left) ---
-    // M 120 90 start point (right side)
-    const inkBase = `
-        <path d="M 120 100 
-                 Q 135 115 130 130 
-                 C 125 145 105 140 95 135
-                 C 85 130 90 115 100 115
-                 C 90 115 75 135 55 130
-                 C 35 125 25 105 40 90
-                 L 120 90 Z" 
-              fill="url(#inkBaseGrad${uniqueId})" 
-        />
-        <path d="M 115 110 Q 125 125 115 135 Q 100 125 105 110" fill="#000a12" opacity="0.6"/>
-    `;
-
-    // --- The Main Ghost Body (Tilted Right) ---
-    // Curves modified to lean towards x=80/90
+    // --- The Main Ghost Body (Using Custom Ink Shape) ---
     const ghostBody = `
-        <g filter="url(#outerGlow${uniqueId})">
-            <path d="M 80 15
-                     C 110 15 125 50 115 85 
-                     C 110 105 90 115 65 110
-                     C 40 105 25 80 30 50
-                     C 35 25 55 15 80 15 Z" 
-                  fill="url(#bodyBlender${uniqueId})" 
-            />
-            <!-- Highlight moved right -->
-            <ellipse cx="90" cy="30" rx="12" ry="6" fill="white" opacity="0.4" transform="rotate(25 90 30)"/>
+        <g transform="translate(10, 10) scale(6)" filter="url(#outerGlow${uniqueId})">
+            <path d="M6 1M6 1C7 1 5 2 4 3M2 15c-2 0-2 3-1 3s1 1 1 1 0 1 1 1q2 0 3 1L4 18c-1-1-1 0-2-1s0-2 1-2m3 6c1 2 10 5 13-2S20-3 10 1C7 2 5 7 6 9q1 2 1 5c0 3-2 5-3 4M4 3Q4 1 6 1" 
+                  fill="url(#bodyBlender${uniqueId})" />
+            <ellipse cx="10" cy="5" rx="2" ry="1" fill="white" opacity="0.4" transform="rotate(25 10 5)"/>
         </g>
     `;
 
-    // --- Face Group (Using updated MOOD coordinates) ---
+    // --- Face ---
     const face = `
         <g>
             ${typeof mood.eyes === 'function' ? mood.eyes(uniqueId) : mood.eyes}
@@ -141,51 +116,67 @@ export function generateCursorGhost(config = {}) {
         </g>
     `;
 
-    // --- The Book (Held on the right) ---
-    // Rotated +15 deg to tilt with the body
+    // --- The Book (Correct Orientation + Flipping) ---
     const book = `
         <g transform="translate(90, 75) rotate(15)">
-            <path d="M 5 15 L 35 15 L 30 22 L 10 22 Z" fill="#fff3e0"/>
-            <line x1="11" y1="17" x2="29" y2="17" stroke="#d7ccc8" stroke-width="1"/>
-            <line x1="12" y1="19" x2="28" y2="19" stroke="#d7ccc8" stroke-width="1"/>
+            
+            <!-- Hands holding from underneath -->
+            <circle cx="-5" cy="15" r="5" fill="${theme.main}"/>
+            <circle cx="35" cy="15" r="5" fill="${theme.main}"/>
 
-            <path d="M 0 0 L 20 15 L 18 18 L -2 3 Z" fill="#5d4037" stroke="#3e2723" stroke-width="1"/>
-            <path d="M 40 0 L 20 15 L 22 18 L 42 3 Z" fill="#5d4037" stroke="#3e2723" stroke-width="1"/>
-            
-            <path d="M 18 18 L 20 15 L 15 16 Z" fill="#ffb300"/>
-            <path d="M 22 18 L 20 15 L 25 16 Z" fill="#ffb300"/>
-            
-            <!-- Right Hand holding book -->
-            <circle cx="35" cy="5" r="5" fill="${theme.main}"/>
+            <!-- Back Cover (Dark Brown) -->
+            <!-- Trapezoid shape to simulate open book angle -->
+            <path d="M -10 5 L 15 15 L 40 5 L 40 8 L 15 20 L -10 8 Z" fill="#3e2723"/>
+
+            <!-- Left Page Block (White) -->
+            <path d="M -8 5 L 15 14 L 15 18 L -8 9 Z" fill="#f5f5f5"/>
+            <!-- Right Page Block (White) -->
+            <path d="M 15 14 L 38 5 L 38 9 L 15 18 Z" fill="#f5f5f5"/>
+
+            <!-- Spine Line -->
+            <path d="M 15 14 L 15 20" stroke="#3e2723" stroke-width="1" stroke-linecap="round"/>
+
+            <!-- FAKE PAGE FLIP ANIMATION -->
+            <!-- Path moves from Right Page -> Up (Arch) -> Left Page -->
+            <path fill="#ffffff" stroke="#e0e0e0" stroke-width="0.5" opacity="0.9">
+                <animate attributeName="d"
+                    values="M 15 14 Q 26 10 38 5 L 15 14; 
+                            M 15 14 Q 15 -5 15 -5 L 15 14; 
+                            M 15 14 Q 4 10 -8 5 L 15 14"
+                    dur="2.5s" 
+                    repeatCount="indefinite"
+                    keyTimes="0; 0.5; 1"
+                    calcMode="spline" 
+                    keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" 
+                />
+                <!-- Fade out slightly at the end of flip to blend -->
+                <animate attributeName="opacity" values="1; 1; 0" dur="2.5s" repeatCount="indefinite"/>
+            </path>
         </g>
-        <!-- Left Hand (separate to look natural) -->
-        <circle cx="40" cy="85" r="5" fill="${theme.main}" stroke="${theme.dark}" stroke-width="1"/>
     `;
 
-    // --- Floating Magic Letters (Trailing left) ---
+    // --- Floating Magic Letters ---
     const letters = `
         <g font-family="Georgia, serif" font-weight="bold" fill="${theme.light}" font-size="10" filter="url(#textGlow${uniqueId})">
-            <!-- Letters moving backwards (left) as ghost moves right -->
-            <text x="30" y="65">R <animate attributeName="x" values="30;10" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="3s"/></text>
-            <text x="40" y="85" font-size="12">A <animate attributeName="x" values="40;20" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="4s"/></text>
-            
-            <text x="10" y="50">I <animate attributeName="y" values="50;40" dur="3s" repeatCount="indefinite"/></text>
+            <text x="30" y="130">R <animate attributeName="x" values="10;1" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="3s"/></text>
+            <text x="40" y="140" font-size="12">A <animate attributeName="x" values="30;10" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="4s"/></text>
+            <text x="5" y="120">I <animate attributeName="y" values="120;100" dur="3s" repeatCount="indefinite"/></text>
         </g>
     `;
 
-    // --- Motion Trails (Behind on the LEFT) ---
+    // --- Motion Trails ---
     const motionTrails = `
         <g stroke="${theme.main}" stroke-width="2" stroke-linecap="round" opacity="0.6">
-            <path d="M 35 60 L 25 60" opacity="0.5">
-                 <animate attributeName="d" values="M 35 60 L 25 60; M 30 60 L 20 60; M 35 60 L 25 60" dur="1s" repeatCount="indefinite"/>
+            <path d="M 20 125 L 10 125" opacity="0.5">
+                 <animate attributeName="d" values="M 20 125 L 10 125; M 25 125 L 15 125; M 20 125 L 10 125" dur="1s" repeatCount="indefinite"/>
             </path>
-            <path d="M 40 80 L 28 85" opacity="0.4">
+            <path d="M 25 135 L 15 140" opacity="0.4">
                  <animate attributeName="opacity" values="0.4; 0.1; 0.4" dur="1.5s" repeatCount="indefinite"/>
             </path>
         </g>
     `;
 
-    const fullSvg = svgHeader + defs + inkBase + ghostBody + face + accessorySvg + book + letters + motionTrails + svgFooter;
+    const fullSvg = svgHeader + defs + ghostBody + face + accessorySvg + book + letters + motionTrails + svgFooter;
 
     return "data:image/svg+xml;base64," + btoa(fullSvg);
 }
