@@ -1,8 +1,31 @@
 // ---
 // ===============================================
-//   AIBOOK PAGE LOGIC (UPDATED)
+//   AIBOOK PAGE LOGIC (WITH FIREBASE)
 // ===============================================
 // ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+// Same config as login.js
+const firebaseConfig = {
+  apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+  authDomain: "studio-5978542726-e345b.firebaseapp.com",
+  projectId: "studio-5978542726-e345b",
+  storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+  messagingSenderId: "968782492427",
+  appId: "1:968782492427:web:90108da3599e50bc2b680e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Use a fixed App ID for data organization (or use global __app_id if available in your env)
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
+
 async function initializeAIGenerator() {
     const generatorForm = document.getElementById('generator-form');
     const formSection = document.getElementById('generator-form-section');
@@ -162,7 +185,7 @@ async function initializeAIGenerator() {
             // --- Store book data globally ---
             currentBookData = bookData;
 
-            // Save to localStorage for the reader page
+            // --- KEEP LOCAL SAVE for the Reader Page to work immediately ---
             localStorage.setItem('generatedBook', JSON.stringify(bookData));
 
             // --- Show Success & Populate New Fields ---
@@ -183,8 +206,6 @@ async function initializeAIGenerator() {
         } catch (error) {
             console.error("Error generating book:", error);
             
-            // --- UPDATED ERROR HANDLING ---
-            // Detect specifically if the error is about blocked referers
             if (error.message.includes("blocked") || error.message.includes("referer")) {
                 alert(
                     "API KEY ERROR: Requests from localhost are blocked.\n\n" +
@@ -201,7 +222,6 @@ async function initializeAIGenerator() {
             formSection.style.display = 'block';
             loadingSection.style.display = 'none';
         }
-        // --- END REAL AI GENERATION ---
     });
 
     // --- 3. Handle "Start a New Book" button ---
@@ -217,49 +237,50 @@ async function initializeAIGenerator() {
         });
     }
     
-    // --- 4. Handle "Save to My Library" button ---
+    // --- 4. Handle "Save to My Library" button (FIREBASE EDITION) ---
     if (saveNewBookBtn) {
-        saveNewBookBtn.addEventListener('click', () => {
-            if (!currentBookData) return; // No book data to save
+        saveNewBookBtn.addEventListener('click', async () => {
+            if (!currentBookData) return;
+
+            const user = auth.currentUser;
+            
+            if (!user) {
+                alert("You must be logged in to save books to the cloud library!");
+                // Optional: Redirect to login or show modal
+                // window.location.href = 'index.html'; 
+                return;
+            }
 
             try {
-                // Get existing list or create new one
-                const myListJson = localStorage.getItem('myBookList');
-                let myList = [];
-                if (myListJson) {
-                    myList = JSON.parse(myListJson);
-                }
+                saveNewBookBtn.innerHTML = 'Saving...';
+                saveNewBookBtn.disabled = true;
 
-                // Check if book (by title AND description) is already in the list
-                const isAlreadySaved = myList.some(book => 
-                    book.title === currentBookData.title && 
-                    book.description === currentBookData.description
-                );
+                // Prepare data for Firestore
+                const bookToSave = {
+                    ...currentBookData,
+                    createdAt: serverTimestamp(),
+                    userId: user.uid // Redundant but good for queries
+                };
 
-                if (!isAlreadySaved) {
-                    // Add the current bookData object to the list
-                    myList.push(currentBookData);
-                    localStorage.setItem('myBookList', JSON.stringify(myList));
-                }
+                // Add to Firestore: /artifacts/{appId}/users/{userId}/books
+                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'books'), bookToSave);
 
                 // Provide feedback
-                saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved!';
-                saveNewBookBtn.disabled = true;
-                feather.replace(); // Rerender the new 'check' icon
+                saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved to Cloud!';
+                feather.replace();
 
             } catch (error) {
-                console.error("Error saving book to list:", error);
-                alert("There was an error saving your book.");
+                console.error("Error saving book to Firebase:", error);
+                alert("There was an error saving your book to the cloud: " + error.message);
+                saveNewBookBtn.disabled = false;
+                saveNewBookBtn.innerHTML = '<i data-feather="plus" class="btn-icon"></i> Try Again';
+                feather.replace();
             }
         });
     }
 }
 
-// ---
-// ===============================================
-//   MAIN PAGE ROUTER (Runs on Load)
-// ===============================================
-// ---
+// --- MAIN PAGE ROUTER ---
 document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.dataset.page;
     if (page === 'aibook') {
