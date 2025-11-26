@@ -1,10 +1,5 @@
-/* ---
-// ===============================================
-//   NEW RELEASES PAGE STYLES
-// ===============================================
-// --- */
+/* --- NEW RELEASES PAGE STYLES --- */
 
-/* Grid Layout for Community Creations */
 .book-grid {
     display: flex;
     flex-wrap: wrap;
@@ -12,10 +7,9 @@
     padding-bottom: 20px;
 }
 
-/* Special styling for the Featured Hero */
 .badge {
     display: inline-block;
-    background-color: #E50914; /* Netflix-like Red */
+    background-color: #E50914;
     color: white;
     padding: 4px 8px;
     border-radius: 4px;
@@ -33,9 +27,102 @@
     font-size: 1.1rem;
 }
 
-/* Responsive Grid Adjustments */
-@media (max-width: 768px) {
-    .book-grid {
-        justify-content: center; /* Center books on mobile */
+/* --- RATING STYLES --- */
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 5px;
+    cursor: pointer;
+    position: relative;
+    z-index: 60; /* High z-index to be clickable */
+}
+
+.rating-container .rate-star {
+    width: 14px;
+    height: 14px;
+    transition: all 0.2s;
+}
+
+.rating-container .rate-star.filled { color: #FFD700; fill: #FFD700; }
+.rating-container .rate-star.empty { color: #666; fill: none; }
+.rating-container:hover .rate-star { color: #FFD700; }
+
+.rating-text {
+    font-size: 0.75rem;
+    color: #888;
+    margin-left: 5px;
+}
+
+/* --- FIX: TITLE BAR UNDER --- */
+.book-card .book-card-info {
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 40;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.8) 80%, transparent);
+    padding-bottom: 15px;
+}
+
+.book-card:hover .book-card-info {
+    transform: translateY(0);
+}
+
+/* --- STAR ANIMATION OVERLAY --- */
+.star-celebration-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    overflow: hidden;
+    /* Center everything so stars emerge from center */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.anim-star {
+    position: absolute;
+    top: 15px; /* Start position (center-top of the arc) */
+    left: 50%; /* Start center horizontal */
+    transform: translateX(-50%) scale(0); /* Start hidden/small */
+    color: #FFD700;
+    fill: #FFD700;
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+}
+
+/* Animations */
+.anim-star.pop { 
+    animation: starPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+}
+
+.anim-star.emerge { 
+    animation: starEmerge 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards; 
+}
+
+@keyframes starPop {
+    0% { transform: translateX(-50%) scale(0); opacity: 0; }
+    50% { transform: translateX(-50%) scale(1.5); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* Emerge: Starts at center, ends at specific offset */
+@keyframes starEmerge {
+    0% { 
+        transform: translateX(-50%) scale(0); 
+        opacity: 0; 
     }
+    100% { 
+        /* Translate using the CSS vars passed from JS */
+        transform: translate(calc(-50% + var(--tx)), var(--ty)) rotate(var(--rot)) scale(1); 
+        opacity: 1; 
+    }
+}
+
+@media (max-width: 768px) {
+    .book-grid { justify-content: center; }
 }
