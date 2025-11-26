@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DO NOT OPEN - abooki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Creepster&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ads.css">
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9656742927015142"
+     crossorigin="anonymous"></script>
+
+</head>
+<body data-page="ads">
+
+    <header class="main-header">
+        <nav class="main-nav">
+            <div class="logo">ABOOKI</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
+                <li><a href="mylist.html" class="nav-link">My List</a></li>
+            </ul>
+            <div class="nav-profile"><i data-feather="user"></i></div>
+        </nav>
+    </header>
+
+    <main class="ads-main">
+        <div class="warning-banner">
+            <h1>⚠️ YOU OPENED IT! ⚠️</h1>
+            <p>We told you not to click this. Now you must pay the price... by supporting our developers!</p>
+        </div>
+
+        <div class="ads-container">
+            
+            <!-- FAKE AD BLOCK 1 -->
+            <div class="ad-card">
+                <div class="ad-badge">SPONSORED CONTENT</div>
+                <h3>Invisible Ink for AI</h3>
+                <p>Tired of reading? Buy our invisible ink! It makes every book 100% shorter.</p>
+                <button class="btn btn-primary watch-ad-btn" data-reward="0.05">
+                    <i data-feather="play-circle"></i> Watch Ad ($0.05)
+                </button>
+            </div>
+
+            <!-- REAL ADSENSE PLACEHOLDER -->
+            <div class="ad-card google-ad-slot">
+                <p class="ad-placeholder-text">Google Ad Space</p>
+                <!-- Paste your specific Ad Unit code here -->
+                <!-- <ins class="adsbygoogle" ...></ins> -->
+            </div>
+
+            <!-- FAKE AD BLOCK 2 -->
+            <div class="ad-card">
+                <div class="ad-badge">HOT DEAL</div>
+                <h3>Time Machine (Beta)</h3>
+                <p>Go back and un-click this tab. Warning: Might cause paradoxes.</p>
+                <button class="btn btn-primary watch-ad-btn" data-reward="0.10">
+                    <i data-feather="play-circle"></i> Watch Ad ($0.10)
+                </button>
+            </div>
+
+        </div>
+
+        <div class="support-counter">
+            <p>Total Support Generated:</p>
+            <div id="money-counter">$0.00</div>
+            <p class="small-text">(Fake money, but we appreciate the thought!)</p>
+        </div>
+    </main>
+
+    <!-- Modal for "Watching" Ads -->
+    <div id="ad-modal" class="ad-modal">
+        <div class="ad-modal-content">
+            <h2>Watching Very Important Ad...</h2>
+            <div class="loader"></div>
+            <p id="ad-timer">5s remaining</p>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2025 abooki. All rights reserved.</p>
+    </footer>
+
+    <script>feather.replace()</script>
+    <script type="module" src="app.js"></script> <!-- For Nav Logic -->
+    <script src="ads.js"></script>
+</body>
+</html>

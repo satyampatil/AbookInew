@@ -3,6 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, orderBy, serverTimestamp, getDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { updateNavUser } from "./nav.js"; // --- IMPORT ---
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
@@ -23,6 +24,9 @@ function initializeMyList() {
     if (!container) return;
 
     onAuthStateChanged(auth, async (user) => {
+        // --- UPDATE NAV ---
+        updateNavUser(user);
+
         if (!user) {
             container.innerHTML = `
                 <div class="empty-list-message" style="text-align:center; padding: 2rem;">
@@ -90,7 +94,6 @@ function renderShelves(container, myList, userId) {
             const publicTitle = isPublic ? 'Make Private' : 'Make Public (Publish)';
             const publicBtnStyle = isPublic ? 'background-color: #4CAF50; color: white;' : '';
             
-            // --- NEW: Add glow class to the CARD itself ---
             const glowClass = isPublic ? 'glow-public' : 'glow-private';
 
             booksHtml += `

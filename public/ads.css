@@ -1,0 +1,147 @@
+/* --- ADS PAGE STYLES --- */
+
+.ads-main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.warning-banner {
+    background-color: rgba(229, 9, 20, 0.1);
+    border: 2px solid #E50914;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    animation: pulseWarning 2s infinite;
+}
+
+.warning-banner h1 {
+    font-family: 'Creepster', cursive; /* Scary font fallback or generic */
+    font-size: 3rem;
+    color: #E50914;
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+}
+
+@keyframes pulseWarning {
+    0% { box-shadow: 0 0 10px rgba(229, 9, 20, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(229, 9, 20, 0.5); }
+    100% { box-shadow: 0 0 10px rgba(229, 9, 20, 0.2); }
+}
+
+.ads-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.ad-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.ad-card:hover {
+    transform: translateY(-5px);
+    border-color: #E50914;
+}
+
+.ad-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #333;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #888;
+}
+
+.ad-card h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.ad-card p {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Google Ad Placeholder Style */
+.google-ad-slot {
+    background-color: #222;
+    border: 1px dashed #555;
+    justify-content: center;
+    min-height: 250px;
+}
+
+.ad-placeholder-text {
+    color: #555;
+    font-weight: bold;
+}
+
+.support-counter {
+    background: linear-gradient(45deg, #1a1a1a, #252525);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #333;
+    display: inline-block;
+}
+
+#money-counter {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #4CAF50; /* Money Green */
+    margin: 0.5rem 0;
+    text-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+}
+
+.small-text {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* --- MODAL STYLES --- */
+.ad-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.ad-modal-content {
+    background-color: #1a1a1a;
+    padding: 3rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #E50914;
+}
+
+.loader {
+    border: 4px solid #333;
+    border-top: 4px solid #E50914;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

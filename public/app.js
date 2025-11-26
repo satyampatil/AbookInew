@@ -1,3 +1,22 @@
+// --- NEW: Import Firebase for Navigation Updates ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { updateNavUser } from "./nav.js";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+  authDomain: "studio-5978542726-e345b.firebaseapp.com",
+  projectId: "studio-5978542726-e345b",
+  storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+  messagingSenderId: "968782492427",
+  appId: "1:968782492427:web:90108da3599e50bc2b680e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 // --- DEFINE CONSTANTS FOR HOME PAGE ---
 const romeoAndJulietBook = { 
     title: "Romeo and Juliet", 
@@ -140,6 +159,11 @@ function buildShelves(data) {
 // --- MAIN PAGE ROUTER (Runs on Load) ---
 document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.dataset.page;
+
+    // --- NEW: Navigation Update ---
+    onAuthStateChanged(auth, (user) => {
+        updateNavUser(user);
+    });
 
     if (page === 'home') {
         try {

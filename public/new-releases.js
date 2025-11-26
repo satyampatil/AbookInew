@@ -1,8 +1,9 @@
 // --- NEW RELEASES PAGE LOGIC ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, updateDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { updateNavUser } from "./nav.js"; // --- IMPORT ---
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
@@ -19,6 +20,11 @@ const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
 async function initializeNewReleases() {
+    // --- NEW: Listen to auth state to update NAV ---
+    onAuthStateChanged(auth, (user) => {
+        updateNavUser(user);
+    });
+
     const heroContent = document.querySelector('.hero-content');
     const shelvesContainer = document.getElementById('book-shelves-container');
 
@@ -74,41 +80,30 @@ function triggerStarAnimation(cardElement, ratingValue) {
     const overlay = document.createElement('div');
     overlay.className = 'star-celebration-overlay';
     
-    // Position configuration for a rounder arc
-    // tx: horizontal translate, ty: vertical translate (positive is down)
     const positions = {
-        1: { tx: '-70px', ty: '40px', rot: '-30deg' }, // Far Left
-        2: { tx: '-35px', ty: '10px', rot: '-15deg' }, // Mid Left
-        3: { tx: '0px',   ty: '0px',  rot: '0deg' },   // Center (Pop only)
-        4: { tx: '35px',  ty: '10px', rot: '15deg' },  // Mid Right
-        5: { tx: '70px',  ty: '40px', rot: '30deg' }   // Far Right
+        1: { tx: '-70px', ty: '40px', rot: '-30deg' }, 
+        2: { tx: '-35px', ty: '10px', rot: '-15deg' }, 
+        3: { tx: '0px',   ty: '0px',  rot: '0deg' },   
+        4: { tx: '35px',  ty: '10px', rot: '15deg' },  
+        5: { tx: '70px',  ty: '40px', rot: '30deg' }   
     };
 
-    // Determine active stars based on rating
     let activeIndices = [];
     switch (ratingValue) {
         case 1: activeIndices = [3]; break;
-        case 2: activeIndices = [2, 4]; break;          // Mid-Left, Mid-Right (Skip center)
+        case 2: activeIndices = [2, 4]; break;          
         case 3: activeIndices = [2, 3, 4]; break;
-        case 4: activeIndices = [1, 2, 4, 5]; break;    // Outer/Mid Left & Right (Skip center)
+        case 4: activeIndices = [1, 2, 4, 5]; break;    
         case 5: activeIndices = [1, 2, 3, 4, 5]; break;
         default: activeIndices = [3];
     }
 
     let html = '';
-    // Loop through all potential 5 positions
     for(let i=1; i<=5; i++) {
         if (activeIndices.includes(i)) {
-            // Only pop the middle star (index 3) if it is active
             let animClass = (i === 3) ? 'pop' : 'emerge';
-            
-            // For even ratings (2, 4), index 3 is NOT active, so all active stars use 'emerge'
-            // This looks nicer as they fan out without a center anchor
-            
             const pos = positions[i];
-            // Inject CSS vars for the specific trajectory
             const style = `--tx: ${pos.tx}; --ty: ${pos.ty}; --rot: ${pos.rot};`;
-            
             html += `<i data-feather="star" class="anim-star ${animClass}" style="${style}"></i>`;
         }
     }
@@ -229,11 +224,9 @@ function buildShelves(container, books) {
         const stars = starContainer.querySelectorAll('.rate-star');
         const firestoreId = starContainer.dataset.firestoreId;
 
-        // --- HOVER LOGIC FOR STARS ---
+        // --- HOVER LOGIC ---
         stars.forEach(star => {
             const starValue = parseInt(star.dataset.value);
-
-            // Hover In: Fill up to this star
             star.addEventListener('mouseover', () => {
                 stars.forEach((s, index) => {
                     if (index < starValue) {
@@ -247,7 +240,6 @@ function buildShelves(container, books) {
             });
         });
 
-        // Hover Out: Reset to actual rating
         starContainer.addEventListener('mouseleave', () => {
             const currentRatingValues = getRatingValues(book.ratings);
             const currentAvg = currentRatingValues.length > 0 ? (currentRatingValues.reduce((a, b) => a + b, 0) / currentRatingValues.length) : 0;
@@ -299,7 +291,6 @@ function buildShelves(container, books) {
 
                 const heroContainer = document.querySelector('.hero-content .rating-container');
                 if (heroContainer && heroContainer.dataset.firestoreId === firestoreId) {
-                    // Update hero too if it matches
                     updateVisuals(heroContainer, ratingValue, Object.keys(book.ratings).length);
                 }
 

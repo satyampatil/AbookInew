@@ -2,7 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { generateGhostAvatar } from "./avatar-generator.js";
-import { generateCursorGhost } from "./cursor-ghost-generator.js"; // NEW Import
+import { generateCursorGhost } from "./cursor-ghost-generator.js"; 
+import { updateNavUser } from "./nav.js"; // --- IMPORT ---
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
@@ -73,6 +74,9 @@ document.addEventListener('mousemove', (e) => {
 
 // 1. Auth Check & Load Profile
 onAuthStateChanged(auth, async (user) => {
+    // --- NEW: UPDATE NAV ---
+    updateNavUser(user);
+
     if (user) {
         currentUser = user;
         nameEl.innerText = user.displayName || "Ghost Reader";

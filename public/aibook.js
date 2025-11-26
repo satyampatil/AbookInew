@@ -4,11 +4,11 @@
 // ===============================================
 // ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { updateNavUser } from "./nav.js"; // --- IMPORT ---
 
-// Same config as login.js
 const firebaseConfig = {
   apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
   authDomain: "studio-5978542726-e345b.firebaseapp.com",
@@ -23,33 +23,34 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Use a fixed App ID for data organization (or use global __app_id if available in your env)
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
 async function initializeAIGenerator() {
+    // --- NEW: LISTEN FOR AUTH ---
+    onAuthStateChanged(auth, (user) => {
+        updateNavUser(user);
+    });
+
     const generatorForm = document.getElementById('generator-form');
     const formSection = document.getElementById('generator-form-section');
     const loadingSection = document.getElementById('loading-section');
     const revealSection = document.getElementById('reveal-section');
     
-    // --- NEW: Get reveal section elements ---
     const newBookTitle = document.getElementById('new-book-title');
     const newBookDescription = document.getElementById('new-book-description');
     const newBookCover = document.getElementById('new-book-cover');
     const saveNewBookBtn = document.getElementById('save-new-book-btn');
     const createNewBtn = document.getElementById('create-new-btn');
     
-    // Keep track of the currently generated book
     let currentBookData = null;
 
-    if (!generatorForm) return; // Exit if we're not on the right page
+    if (!generatorForm) return; 
 
     // --- 1. Handle Genre Tag Selection ---
     const genreTags = document.querySelectorAll('.genre-tags .tag');
     const genreInput = document.getElementById('genre');
-    let selectedGenre = "Fantasy"; // Default
+    let selectedGenre = "Fantasy"; 
     
-    // Set 'Fantasy' as selected by default
     genreTags.forEach(tag => {
         if (tag.dataset.genre === selectedGenre) {
             tag.classList.add('selected');
@@ -76,7 +77,6 @@ async function initializeAIGenerator() {
             idea: document.getElementById('idea').value || `A ${selectedGenre} story.`
         };
 
-        // Reset button state on new generation
         saveNewBookBtn.disabled = false;
         saveNewBookBtn.innerHTML = '<i data-feather="plus" class="btn-icon"></i> Save to My Library';
 
@@ -87,13 +87,10 @@ async function initializeAIGenerator() {
         revealSection.style.display = 'none';
 
         // --- REAL AI GENERATION ---
-        
-        // --- !!! PASTE YOUR API KEY HERE !!! ---
         const apiKey = "AIzaSyD88KgN1TibCC6VTvtC1ZFdelMnXA-tw7g"; 
         
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        // --- PROMPT UPDATED (Added hex colors) ---
         const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
         Genre: ${formData.genre}
         Title: ${formData.title}
@@ -121,7 +118,6 @@ async function initializeAIGenerator() {
           ]
         }`;
     
-        // --- PAYLOAD UPDATED ---
         const textPayload = {
           contents: [{ parts: [{ text: textPrompt }] }],
           generationConfig: {
@@ -149,10 +145,6 @@ async function initializeAIGenerator() {
         };
 
         try {
-            if (apiKey === "PASTE_YOUR_API_KEY_HERE") {
-                throw new Error("API Key is not set. Please add your API key to app.js.");
-            }
-            
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -175,50 +167,37 @@ async function initializeAIGenerator() {
             const rawText = result.candidates[0].content.parts[0].text;
             const bookData = JSON.parse(rawText);
 
-            // --- URL Encoding Fix ---
             const titleQuery = encodeURIComponent(bookData.title);
             const hexBg = bookData.cover_hex_bg.replace('#', '');
             const hexText = bookData.cover_hex_text.replace('#', '');
             
             bookData.coverUrl = `https://placehold.co/300x450/${hexBg}/${hexText}?text=${titleQuery}&font=inter`;
             
-            // --- Store book data globally ---
             currentBookData = bookData;
 
-            // --- KEEP LOCAL SAVE for the Reader Page to work immediately ---
             localStorage.setItem('generatedBook', JSON.stringify(bookData));
 
-            // --- Show Success & Populate New Fields ---
             loadingSection.style.display = 'none';
             revealSection.style.display = 'block';
             
-            // Populate the new template
             newBookTitle.textContent = bookData.title;
             newBookDescription.textContent = bookData.description;
             newBookCover.src = bookData.coverUrl;
             newBookCover.alt = bookData.title;
             
-            // Link the "Read Now" button to the reader page
             document.getElementById('read-new-book-btn').href = 'reader.html';
 
-            feather.replace(); // Rerender icons
+            feather.replace(); 
 
         } catch (error) {
             console.error("Error generating book:", error);
             
             if (error.message.includes("blocked") || error.message.includes("referer")) {
-                alert(
-                    "API KEY ERROR: Requests from localhost are blocked.\n\n" +
-                    "1. Go to Google Cloud Console > Credentials.\n" +
-                    "2. Edit your API Key.\n" +
-                    "3. Add 'http://localhost:3000/*' and 'http://127.0.0.1:3000/*' to Website Restrictions.\n" +
-                    "4. Save and wait 5 minutes."
-                );
+                alert("API KEY ERROR: Check referer restrictions.");
             } else {
                 alert("Sorry, something went wrong while generating the book: " + error.message);
             }
 
-            // Reset the form
             formSection.style.display = 'block';
             loadingSection.style.display = 'none';
         }
@@ -231,7 +210,6 @@ async function initializeAIGenerator() {
             formSection.style.display = 'block';
             generatorForm.reset();
             genreTags.forEach(t => t.classList.remove('selected'));
-            // Reselect default
             const defaultTag = document.querySelector('.tag[data-genre="Fantasy"]');
             if(defaultTag) defaultTag.classList.add('selected');
         });
@@ -246,8 +224,6 @@ async function initializeAIGenerator() {
             
             if (!user) {
                 alert("You must be logged in to save books to the cloud library!");
-                // Optional: Redirect to login or show modal
-                // window.location.href = 'index.html'; 
                 return;
             }
 
@@ -255,17 +231,14 @@ async function initializeAIGenerator() {
                 saveNewBookBtn.innerHTML = 'Saving...';
                 saveNewBookBtn.disabled = true;
 
-                // Prepare data for Firestore
                 const bookToSave = {
                     ...currentBookData,
                     createdAt: serverTimestamp(),
-                    userId: user.uid // Redundant but good for queries
+                    userId: user.uid 
                 };
 
-                // Add to Firestore: /artifacts/{appId}/users/{userId}/books
                 await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'books'), bookToSave);
 
-                // Provide feedback
                 saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved to Cloud!';
                 feather.replace();
 
@@ -280,7 +253,6 @@ async function initializeAIGenerator() {
     }
 }
 
-// --- MAIN PAGE ROUTER ---
 document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.dataset.page;
     if (page === 'aibook') {
