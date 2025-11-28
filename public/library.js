@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, deleteDoc, getDocs, writeBatch } 
+import { getFirestore, collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, deleteDoc, getDocs, writeBatch, limit } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { updateNavUser } from "./nav.js";
 import { generateGhostAvatar } from "./avatar-generator.js";
@@ -30,8 +30,7 @@ const MUSIC_FOLDER = 'Music/';
 const PLAYLIST = [
     "Purple lofi",
     "In Dreamland",
-    "Loading cute",
-    "On The Top"
+    "Loading cute"
 ];
 let currentTrackIndex = 0;
 let audioObj = new Audio();
@@ -173,16 +172,10 @@ function initMusicPlayer() {
         <circle cx="50" cy="50" r="6" fill="white" />
         
         <!-- Symmetrical Sound Waves (Arcs) -->
-        <!-- Grouping for potential animation -->
         <g fill="none" stroke="white" stroke-width="4" stroke-linecap="round">
-            <!-- Right Inner -->
             <path d="M 62 38 A 17 17 0 0 1 62 62" />
-            <!-- Right Outer -->
             <path d="M 70 30 A 28 28 0 0 1 70 70" />
-            
-            <!-- Left Inner -->
             <path d="M 38 62 A 17 17 0 0 1 38 38" />
-            <!-- Left Outer -->
             <path d="M 30 70 A 28 28 0 0 1 30 30" />
         </g>
     </svg>`;
@@ -253,7 +246,6 @@ function initMusicPlayer() {
     const updateUI = () => {
         songName.innerText = PLAYLIST[currentTrackIndex];
         
-        // Update Play Button Icon
         if (isPlaying) {
             playBtn.innerHTML = `<i data-feather="pause"></i>`;
             widget.classList.add('playing');
@@ -262,7 +254,6 @@ function initMusicPlayer() {
             widget.classList.remove('playing');
         }
         
-        // Update Playlist Highlights
         const items = playlistContainer.querySelectorAll('.playlist-item');
         items.forEach((item, idx) => {
             if (idx === currentTrackIndex) item.classList.add('active');
@@ -286,7 +277,6 @@ function initMusicPlayer() {
         updateUI();
     };
 
-    // Toggle Play/Pause on Disc click too
     disc.onclick = () => {
         if (!audioObj.src) { playTrack(); return; }
         if (isPlaying) { audioObj.pause(); isPlaying = false; }
@@ -315,7 +305,6 @@ function initMusicPlayer() {
         playTrack();
     };
 
-    // Try starting (might be blocked until interaction)
     playTrack();
 }
 
@@ -413,8 +402,46 @@ function createGhost(data) {
         <strong>${data.displayName}</strong>
         Reading: <br>
         <em>${data.bookTitle || 'A Mystery Book'}</em>
+        <div style="font-size:0.75rem; color:#aaa; margin-top:2px;">(Click to Join)</div>
     `;
     el.appendChild(tooltip);
+
+    // --- CLICK HANDLER TO JOIN BOOK ---
+    el.addEventListener('click', async (e) => {
+        e.stopPropagation(); // Stop moving for a sec or just handle click
+        
+        // Don't do anything if no book title
+        if (!data.bookTitle) return;
+
+        try {
+            // Find the book in the Public Library
+            const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
+            // Query by exact title
+            const q = query(booksRef, where('title', '==', data.bookTitle), limit(1));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const bookDoc = querySnapshot.docs[0];
+                const bookData = bookDoc.data();
+                
+                // Add essential flags so reader.js knows it's a public book
+                bookData.firestoreId = bookDoc.id; 
+                bookData.isPublicView = true;
+
+                // Save to localStorage so reader.html can pick it up
+                localStorage.setItem('generatedBook', JSON.stringify(bookData));
+                
+                // Redirect
+                window.location.href = 'reader.html';
+            } else {
+                // If the book doesn't exist (e.g. Dummy data or deleted book)
+                alert(`"${data.bookTitle}" is currently not available in the public library.`);
+            }
+        } catch (error) {
+            console.error("Error fetching book:", error);
+            alert("Could not open book info.");
+        }
+    });
 
     if (playground) playground.appendChild(el);
     activeGhosts.set(data.userId, el);
@@ -432,6 +459,7 @@ function updateGhost(userId, data) {
             <strong>${data.displayName}</strong>
             Reading: <br>
             <em>${data.bookTitle || 'A Mystery Book'}</em>
+            <div style="font-size:0.75rem; color:#aaa; margin-top:2px;">(Click to Join)</div>
         `;
     }
 }
