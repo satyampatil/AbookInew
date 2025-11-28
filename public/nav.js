@@ -33,14 +33,14 @@ export async function updateNavUser(user) {
         }
 
         // --- UPDATED DROPDOWN STRUCTURE ---
-        // "Do Not Open" now links to ads.html
+        // Changed link to support.html
         navProfileContainer.innerHTML = `
             <a href="profile.html" class="nav-profile-link">
                 ${avatarHtml}
             </a>
             <div class="nav-dropdown">
                 <a href="profile.html" class="dropdown-item">Profile</a>
-                <a href="ads.html" class="dropdown-item" style="color: #ff4444;">Do Not Open ⚠️</a>
+                <a href="support.html" class="dropdown-item" style="color: #FFD700;">Support Us</a>
                 <a href="#" class="dropdown-item disabled">Settings</a>
                 <a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a>
             </div>

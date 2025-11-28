@@ -1,12 +1,13 @@
 // --- READER PAGE LOGIC (WITH FIREBASE) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } 
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, serverTimestamp, query, where, getDocs } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { updateNavUser } from "./nav.js";
 
 // Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+  apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU", 
   authDomain: "studio-5978542726-e345b.firebaseapp.com",
   projectId: "studio-5978542726-e345b",
   storageBucket: "studio-5978542726-e345b.firebasestorage.app",
@@ -21,78 +22,173 @@ const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
 function initializeReader() {
+    let currentUser = null;
+    let savedBookDocId = null; 
+
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        updateNavUser(user);
+        if (user) {
+            checkIfSaved(user); 
+        }
+        updateButtonsState(); 
+    });
+
     const titleEl = document.getElementById('reader-title');
     const contentEl = document.getElementById('reader-content');
     const pageIndicator = document.getElementById('page-indicator');
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
-    const addToListBtn = document.getElementById('reader-save-btn');
+    
+    const readerContainer = document.querySelector('.reader-container');
+    const oldBtn = document.getElementById('reader-save-btn');
+    if (oldBtn) oldBtn.remove();
 
-    if (!titleEl || !addToListBtn) return; 
+    // Create Action Bar
+    let actionBar = document.querySelector('.reader-action-bar');
+    if (!actionBar) {
+        actionBar = document.createElement('div');
+        actionBar.className = 'reader-action-bar';
+        actionBar.style.cssText = `
+            position: absolute; 
+            top: 1.5rem; 
+            right: 1.5rem; 
+            display: flex; 
+            gap: 15px; 
+            z-index: 10;
+            align-items: center;
+        `;
+        if (readerContainer) readerContainer.appendChild(actionBar);
+    } else {
+        actionBar.innerHTML = ''; 
+    }
+    
+    // 1. Save/Remove Button
+    const saveListBtn = document.createElement('button');
+    saveListBtn.className = 'reader-save-button';
+    saveListBtn.id = 'save-list-btn';
+    saveListBtn.style.position = 'relative'; 
+    saveListBtn.style.top = 'auto';
+    saveListBtn.style.right = 'auto';
+    saveListBtn.innerHTML = `
+        <span class="reader-save-icon"><i data-feather="bookmark"></i></span>
+        <span class="reader-save-text">Save to List</span>
+    `;
+    
+    // 2. Publish Button
+    const saveCloudBtn = document.createElement('button');
+    saveCloudBtn.className = 'reader-save-button';
+    saveCloudBtn.id = 'save-cloud-btn';
+    saveCloudBtn.style.position = 'relative';
+    saveCloudBtn.style.top = 'auto';
+    saveCloudBtn.style.right = 'auto';
+    saveCloudBtn.innerHTML = `
+        <span class="reader-save-icon"><i data-feather="cloud"></i></span>
+        <span class="reader-save-text">Publish to Cloud</span>
+    `;
+
+    actionBar.appendChild(saveListBtn);
+    actionBar.appendChild(saveCloudBtn);
 
     let bookData = null;
-    let currentPage = 0; // 0 is the title page
+    let currentPage = 0; 
 
     try {
-        // 1. Get Book from localStorage (Passed from aibook.js or mylist.js)
         const bookJson = localStorage.getItem('generatedBook');
-        if (!bookJson) {
-            throw new Error("No book data found. Please generate a book first.");
-        }
-        
+        if (!bookJson) throw new Error("No book data found.");
         bookData = JSON.parse(bookJson);
-        
-        // Basic validation
-        if (!bookData || !bookData.title || !bookData.pages) {
-             throw new Error("Invalid or outdated book data. Please generate a new book.");
-        }
+        if (!bookData || !bookData.title || !bookData.pages) throw new Error("Invalid book data.");
 
-        // --- Check if this book is already "Saved" (Has a firestore ID) ---
-        // If we opened this from My List, it already has an ID, so we disable the button
-        if (bookData.firestoreId) {
-            addToListBtn.innerHTML = `
-                <span class="reader-save-icon"><i data-feather="check"></i></span>
-                <span class="reader-save-text">In Library</span>
-            `;
-            addToListBtn.disabled = true;
-            addToListBtn.classList.add('saved');
-        }
-
-        // 2. Initialize Reader UI
         updatePage();
         if (typeof feather !== 'undefined') feather.replace();
 
     } catch (error) {
         console.error("Error loading book:", error);
-        titleEl.textContent = "Error";
-        contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
-        if(prevBtn) prevBtn.disabled = true;
-        if(nextBtn) nextBtn.disabled = true;
-        addToListBtn.style.display = 'none';
+        if(titleEl) titleEl.textContent = "Error";
+        if(contentEl) contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
     }
 
-    // 3. Page turning logic
-    function updatePage() {
+    // --- CHECK FIREBASE STATUS ---
+    async function checkIfSaved(user) {
+        if (!bookData) return;
+        try {
+            const q = query(
+                collection(db, 'artifacts', appId, 'users', user.uid, 'books'),
+                where('title', '==', bookData.title),
+                where('description', '==', bookData.description)
+            );
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                savedBookDocId = snapshot.docs[0].id; 
+                setSaveButtonState(true);
+            } else {
+                savedBookDocId = null;
+                setSaveButtonState(false);
+            }
+        } catch (err) {
+            console.error("Error checking save status:", err);
+        }
+    }
+
+    function setSaveButtonState(isSaved) {
+        if (isSaved) {
+            saveListBtn.innerHTML = `<span class="reader-save-icon"><i data-feather="check"></i></span><span class="reader-save-text">In Library</span>`;
+            saveListBtn.classList.add('saved'); 
+            saveListBtn.style.backgroundColor = '#4CAF50';
+            saveListBtn.style.color = 'white';
+            saveListBtn.style.borderColor = '#4CAF50';
+        } else {
+            saveListBtn.innerHTML = `<span class="reader-save-icon"><i data-feather="bookmark"></i></span><span class="reader-save-text">Save to List</span>`;
+            saveListBtn.classList.remove('saved');
+            saveListBtn.style.backgroundColor = '';
+            saveListBtn.style.color = '';
+            saveListBtn.style.borderColor = '';
+        }
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    function updateButtonsState() {
         if (!bookData) return;
 
-        const totalPages = bookData.pages.length + 1; // +1 for title page
+        // Cloud Button Logic
+        if (bookData.isPublicView || bookData.publicId) {
+            saveCloudBtn.innerHTML = `<span class="reader-save-icon"><i data-feather="globe"></i></span><span class="reader-save-text">Public (Cloud)</span>`;
+            saveCloudBtn.classList.add('saved');
+            saveCloudBtn.style.backgroundColor = '#4CAF50';
+            saveCloudBtn.style.color = 'white';
+            saveCloudBtn.disabled = true;
+        } else {
+            const isPrivateCopyOwner = currentUser && (bookData.userId === currentUser.uid || !bookData.userId);
+            // --- FIX: Check Original Authorship ---
+            // If originalUserId exists, current user MUST match it.
+            // If it doesn't exist, we assume the current user generated it or it's a legacy book.
+            const isOriginalAuthor = !bookData.originalUserId || (currentUser && bookData.originalUserId === currentUser.uid);
 
+            if (isPrivateCopyOwner && isOriginalAuthor) {
+                saveCloudBtn.disabled = false;
+                saveCloudBtn.innerHTML = `<span class="reader-save-icon"><i data-feather="upload-cloud"></i></span><span class="reader-save-text">Publish</span>`;
+                saveCloudBtn.style.display = 'flex';
+            } else {
+                saveCloudBtn.style.display = 'none'; // Hide if not original author
+            }
+        }
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    function updatePage() {
+        if (!bookData) return;
+        const totalPages = bookData.pages.length + 1; 
         titleEl.textContent = bookData.title;
 
         if (currentPage === 0) {
-            // Title Page
             contentEl.innerHTML = `
                 <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: #333;">${bookData.title}</h1>
                 <p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p>
-                
-                <p style="text-align: center; font-size: 1rem; color: #555; max-width: 600px; margin: 2rem auto 0 auto;">
-                    ${bookData.description}
-                </p>
-
+                <p style="text-align: center; font-size: 1rem; color: #555; max-width: 600px; margin: 2rem auto 0 auto;">${bookData.description}</p>
                 <p style="text-align: center; color: #555; margin-top: 6rem;">Click "Next" to begin.</p>
             `;
         } else {
-            // Story Page (currentPage is 1-based index for pages array)
             const pageText = bookData.pages[currentPage - 1];
             contentEl.innerHTML = pageText.split('\n').map(p => `<p>${p}</p>`).join('');
         }
@@ -102,78 +198,101 @@ function initializeReader() {
         nextBtn.disabled = (currentPage === totalPages - 1);
     }
 
-    // 4. Event Listeners
-    prevBtn.addEventListener('click', () => {
-        if (currentPage > 0) {
-            currentPage--;
-            updatePage();
+    if(prevBtn) prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) { currentPage--; updatePage(); }
+    });
+
+    if(nextBtn) nextBtn.addEventListener('click', () => {
+        if (bookData && currentPage < bookData.pages.length) { currentPage++; updatePage(); }
+    });
+
+    // --- CLICK: SAVE / REMOVE TOGGLE ---
+    saveListBtn.addEventListener('click', async () => {
+        if (!currentUser) { alert("Please log in."); return; }
+        
+        if (saveListBtn.disabled) return;
+        saveListBtn.disabled = true;
+
+        try {
+            if (savedBookDocId) {
+                // REMOVE
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', savedBookDocId));
+                savedBookDocId = null; 
+                setSaveButtonState(false); 
+            } else {
+                // SAVE
+                const { firestoreId, publicId, isPublicView, isLibraryView, ...cleanData } = bookData;
+                if (!cleanData.coverUrl) {
+                    const titleQuery = encodeURIComponent(cleanData.title);
+                    cleanData.coverUrl = `https://placehold.co/300x450/333/FFF?text=${titleQuery}&font=inter`;
+                }
+
+                // --- FIX: Track Original Author ---
+                // If the book already has an originalUserId, preserve it.
+                // If not, and it has a userId (from another author), use that.
+                // Otherwise (fresh gen), use current user.
+                let originId = cleanData.originalUserId;
+                if (!originId) {
+                    originId = cleanData.userId || currentUser.uid;
+                }
+
+                const bookToSave = {
+                    ...cleanData,
+                    createdAt: serverTimestamp(),
+                    userId: currentUser.uid,
+                    originalUserId: originId // Store origin
+                };
+
+                const docRef = await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books'), bookToSave);
+                savedBookDocId = docRef.id; 
+                setSaveButtonState(true); 
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Action failed: " + error.message);
+        } finally {
+            saveListBtn.disabled = false;
         }
     });
 
-    nextBtn.addEventListener('click', () => {
-        if (bookData && currentPage < bookData.pages.length) {
-            currentPage++;
-            updatePage();
-        }
-    });
-
-    // --- 5. SAVE TO FIREBASE LOGIC ---
-    addToListBtn.addEventListener('click', async () => {
-        if (!bookData || addToListBtn.disabled) return; 
-
-        const user = auth.currentUser;
-            
-        if (!user) {
-            alert("You must be logged in to save books to the cloud library!");
+    // --- CLICK: PUBLISH ---
+    saveCloudBtn.addEventListener('click', async () => {
+        if (!currentUser) { alert("Please log in."); return; }
+        if (bookData.userId && bookData.userId !== currentUser.uid) {
+            alert("You can only publish your own books.");
             return;
         }
 
         try {
-            // UI Feedback
-            const originalHtml = addToListBtn.innerHTML;
-            addToListBtn.innerHTML = 'Saving...';
-            addToListBtn.disabled = true;
-
-            // Ensure coverUrl exists
-            if (!bookData.coverUrl) {
-                const titleQuery = encodeURIComponent(bookData.title);
-                const hexBg = (bookData.cover_hex_bg || '333').replace('#', '');
-                const hexText = (bookData.cover_hex_text || 'FFF').replace('#', '');
-                bookData.coverUrl = `https://placehold.co/300x450/${hexBg}/${hexText}?text=${titleQuery}&font=inter`;
-            }
-
-            // Prepare object for Firestore
-            // We do NOT save the 'firestoreId' if it happened to be in there locally
-            const { firestoreId, ...bookToSave } = bookData;
+            saveCloudBtn.innerHTML = 'Publishing...';
             
-            bookToSave.createdAt = serverTimestamp();
-            bookToSave.userId = user.uid;
+            const { firestoreId, publicId, isPublicView, isLibraryView, ...cleanData } = bookData;
+            
+            const publicBook = {
+                ...cleanData,
+                createdAt: serverTimestamp(),
+                userId: currentUser.uid,
+                authorName: currentUser.displayName || 'Anonymous',
+                ratings: {},
+                originalUserId: currentUser.uid // Ensure public record marks ownership
+            };
 
-            // Save to Firestore
-            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'books'), bookToSave);
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), publicBook);
 
-            // Success Feedback
-            addToListBtn.innerHTML = `
-                <span class="reader-save-icon"><i data-feather="check"></i></span>
-                <span class="reader-save-text">Saved to Cloud!</span>
-            `;
-            addToListBtn.classList.add('saved');
-            if (typeof feather !== 'undefined') feather.replace(); 
+            saveCloudBtn.innerHTML = `<span class="reader-save-icon"><i data-feather="globe"></i></span><span class="reader-save-text">Published!</span>`;
+            saveCloudBtn.classList.add('saved');
+            saveCloudBtn.style.backgroundColor = '#4CAF50';
+            saveCloudBtn.style.color = 'white';
+            feather.replace();
 
         } catch (error) {
-            console.error("Error saving book to list:", error);
-            alert("Error saving to cloud: " + error.message);
-            addToListBtn.disabled = false;
-            addToListBtn.innerHTML = `
-                <span class="reader-save-icon"><i data-feather="plus"></i></span>
-                <span class="reader-save-text">Try Again</span>
-            `;
-            if (typeof feather !== 'undefined') feather.replace(); 
+            console.error(error);
+            alert("Error publishing: " + error.message);
+            saveCloudBtn.innerHTML = `<span class="reader-save-icon"><i data-feather="upload-cloud"></i></span><span class="reader-save-text">Publish</span>`;
         }
     });
 }
 
-// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     if (document.body.dataset.page === 'reader') {
         initializeReader();

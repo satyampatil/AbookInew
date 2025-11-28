@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Support - abooki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="support.css">
+</head>
+<body data-page="support">
+
+    <header class="main-header">
+        <nav class="main-nav">
+            <div class="logo">ABOOKI</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
+                <li><a href="mylist.html" class="nav-link">My List</a></li>
+            </ul>
+            <div class="nav-profile"><i data-feather="user"></i></div>
+        </nav>
+    </header>
+
+    <main class="support-main">
+        <div class="secret-container">
+            <div class="icon-wrapper">
+                <i data-feather="coffee"></i>
+            </div>
+            
+            <h1>You Found The Secret Room.</h1>
+            <p class="subtitle">Since you're here (and curious), consider fueling the AI engine (and my coffee addiction).</p>
+
+            <div class="donation-options">
+                
+                <!-- OPTION 1: Bank Transfer (Copy Details) -->
+                <div class="donate-card">
+                    <div class="card-header">
+                        <h3>Direct Bank Support</h3>
+                        <span class="badge">Most Direct</span>
+                    </div>
+                    <p>Copy details to send a donation via your banking app.</p>
+                    
+                    <div class="copy-field">
+                        <span class="label">First Name:</span>
+                        <span class="value">Satyam</span>
+                    </div>
+                    <div class="copy-field">
+                        <span class="label">Last Name:</span>
+                        <span class="value">Patil</span>
+                    </div>
+                    <div class="copy-field">
+                        <span class="label">Sort Code: </span>
+                        <span class="value">04-29-09</span>
+                        <button class="copy-btn" data-copy="04-29-09" title="Copy Sort Code">
+                            <i data-feather="copy"></i>
+                        </button>
+                    </div>
+                    <div class="copy-field" id="acc-number-field">
+                        <span class="label">Account: </span>
+                        <span class="value">72939338</span>
+                        <button class="copy-btn" data-copy="72939338" title="Copy Account Number">
+                            <i data-feather="copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- OPTION 2: Buy Me A Coffee (Link) -->
+                <div class="donate-card highlight">
+                    <div class="card-header">
+                        <h3>Buy Me a Coffee</h3>
+                        <span class="badge">Popular</span>
+                    </div>
+                    <p>Quick, easy, and keeps the servers running.</p>
+                    <a href="https://buymeacoffee.com/abooki" target="_blank" class="btn btn-primary full-width">
+                        <i data-feather="heart" class="btn-icon"></i> Donate via BMC
+                    </a>
+                </div>
+
+            </div>
+
+            <p class="footer-note">Your support helps keep Abooki free and ad-free. Thank you!</p>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2025 abooki. All rights reserved.</p>
+    </footer>
+
+    <script>feather.replace()</script>
+    <script type="module" src="app.js"></script> <!-- For Nav Logic -->
+    <script src="support.js"></script>
+</body>
+</html>

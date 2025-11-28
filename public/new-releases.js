@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, updateDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-import { updateNavUser } from "./nav.js"; // --- IMPORT ---
+import { updateNavUser } from "./nav.js"; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
@@ -20,7 +20,6 @@ const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
 async function initializeNewReleases() {
-    // --- NEW: Listen to auth state to update NAV ---
     onAuthStateChanged(auth, (user) => {
         updateNavUser(user);
     });
@@ -41,7 +40,6 @@ async function initializeNewReleases() {
             publicBooks.push({ ...doc.data(), firestoreId: doc.id });
         });
 
-        // Sort: Newest First
         publicBooks.sort((a, b) => {
              const tA = a.createdAt?.seconds || 0;
              const tB = b.createdAt?.seconds || 0;
@@ -75,7 +73,6 @@ function safeEscape(obj) {
     return JSON.stringify(obj).replace(/"/g, '&quot;').replace(/'/g, "&#39;");
 }
 
-// --- ANIMATION HELPER ---
 function triggerStarAnimation(cardElement, ratingValue) {
     const overlay = document.createElement('div');
     overlay.className = 'star-celebration-overlay';
@@ -164,7 +161,10 @@ function buildHero(book) {
         heroBtn.addEventListener('click', () => {
             const json = heroBtn.getAttribute('data-book-json');
             if (json) {
-                localStorage.setItem('generatedBook', json);
+                // --- FIX: Add Flag ---
+                const bookData = JSON.parse(json);
+                bookData.isPublicView = true;
+                localStorage.setItem('generatedBook', JSON.stringify(bookData));
                 window.location.href = 'reader.html';
             }
         });
@@ -212,19 +212,22 @@ function buildShelves(container, books) {
             if (e.target.closest('.rating-container')) return;
             const json = card.getAttribute('data-book-json');
             if (json) {
-                localStorage.setItem('generatedBook', json);
+                // --- FIX: Add Flag ---
+                const bookData = JSON.parse(json);
+                bookData.isPublicView = true;
+                localStorage.setItem('generatedBook', JSON.stringify(bookData));
                 window.location.href = 'reader.html';
             }
         });
     });
 
+    // ... (Rating Logic remains same) ...
     const starContainers = container.querySelectorAll('.rating-container');
     starContainers.forEach((starContainer, idx) => {
         const book = books[idx]; 
         const stars = starContainer.querySelectorAll('.rate-star');
         const firestoreId = starContainer.dataset.firestoreId;
 
-        // --- HOVER LOGIC ---
         stars.forEach(star => {
             const starValue = parseInt(star.dataset.value);
             star.addEventListener('mouseover', () => {
@@ -256,7 +259,6 @@ function buildShelves(container, books) {
             });
         });
 
-        // Click: Submit Rating
         stars.forEach(star => {
             star.addEventListener('click', async (e) => {
                 e.stopPropagation(); 
@@ -267,7 +269,6 @@ function buildShelves(container, books) {
                 if (!book.ratings) book.ratings = {};
                 if (!Array.isArray(book.ratings)) book.ratings[user.uid] = ratingValue;
                 
-                // --- TRIGGER ANIMATION ---
                 const cardElement = starContainer.closest('.book-card');
                 if (cardElement) triggerStarAnimation(cardElement, ratingValue);
 
