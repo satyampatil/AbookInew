@@ -1,13 +1,111 @@
 /* --- MY LIST PAGE STYLES --- */
 
+.library-header {
+    padding: 0 2rem;
+    margin-bottom: 2rem;
+}
+
 .mylist-page-title {
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: var(--text-color);
-    padding: 0 2rem;
+    padding: 0; /* Reset padding as parent handles it now */
 }
 
+/* --- STATS & FILTERS --- */
+.library-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.library-stats {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    display: flex;
+    gap: 15px;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px 12px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.genre-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--text-color-secondary);
+    color: var(--text-color-secondary);
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+/* --- ENHANCED BOOK CARD INFO --- */
+.book-card-info {
+    padding: 12px;
+}
+
+.book-card-title {
+    font-size: 1rem;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* New Metadata Styles */
+.book-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.genre-badge {
+    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ddd;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.author-name {
+    font-size: 0.75rem;
+    color: #888;
+    font-style: italic;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* --- EXISTING STYLES (Keep these) --- */
 .empty-list-message {
     font-size: 1.2rem;
     color: var(--text-color-secondary);
@@ -18,52 +116,35 @@
     margin: 2rem;
 }
 
-/* Ensure container has padding so hover effects/ribbons aren't cut off */
 .book-scroll-container {
     padding: 20px 20px 40px 20px !important;
     margin: -20px;
 }
 
-/* --- BOOKMARK RIBBON STYLE --- */
 .bookmark-ribbon {
     position: absolute;
-    top: -5px;  /* Hangs slightly above the card */
-    left: 15px; /* Position from left */
+    top: -5px;
+    left: 15px;
     width: 28px;
     height: 45px;
     z-index: 60;
     cursor: pointer;
-    
-    /* Create the ribbon tail shape */
     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
-    
     transition: transform 0.2s ease, background-color 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Shadow for depth */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-/* Private State (Red) */
-.bookmark-ribbon.is-private {
-    background-color: #E50914; /* Brand Red */
-}
+.bookmark-ribbon.is-private { background-color: #E50914; }
+.bookmark-ribbon.is-public { background-color: #4CAF50; }
+.bookmark-ribbon.is-golden { background-color: #FFD700; cursor: default; }
+.bookmark-ribbon.is-golden:hover { transform: none; filter: none; }
+.bookmark-ribbon:hover { transform: translateY(-2px); filter: brightness(1.2); }
 
-/* Public State (Green) */
-.bookmark-ribbon.is-public {
-    background-color: #4CAF50; /* Green */
-}
-
-/* Hover Effect */
-.bookmark-ribbon:hover {
-    transform: translateY(-2px); /* Lift slightly */
-    filter: brightness(1.2);
-}
-
-/* --- DELETE BUTTON (Floating Top Right) --- */
 .list-delete-btn {
     position: absolute;
     top: 5px;
     right: 5px;
     z-index: 60;
-    
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -71,31 +152,19 @@
     border: 1px solid rgba(255,255,255,0.3);
     color: white;
     backdrop-filter: blur(4px);
-    
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    opacity: 0; /* Hidden by default */
+    opacity: 0;
     transform: scale(0.8);
     transition: all 0.2s ease;
     cursor: pointer;
 }
+.book-card:hover .list-delete-btn { opacity: 1; transform: scale(1); }
+.list-delete-btn:hover { background-color: #E50914; border-color: #E50914; transform: scale(1.1) !important; }
 
-/* Show Delete button on Card Hover */
-.book-card:hover .list-delete-btn {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.list-delete-btn:hover {
-    background-color: #E50914;
-    border-color: #E50914;
-    transform: scale(1.1) !important;
-}
-
-/* Mobile Support: Always show delete button */
 @media (max-width: 768px) {
-    .mylist-page-title { padding: 0 1rem; font-size: 2rem; }
+    .mylist-page-title { font-size: 2rem; }
     .list-delete-btn { opacity: 1; transform: scale(1); }
+    .library-header { padding: 0 1rem; }
 }

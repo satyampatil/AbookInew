@@ -160,7 +160,7 @@ function initializeReader() {
             saveCloudBtn.disabled = true;
         } else {
             const isPrivateCopyOwner = currentUser && (bookData.userId === currentUser.uid || !bookData.userId);
-            // --- FIX: Check Original Authorship ---
+            
             // If originalUserId exists, current user MUST match it.
             // If it doesn't exist, we assume the current user generated it or it's a legacy book.
             const isOriginalAuthor = !bookData.originalUserId || (currentUser && bookData.originalUserId === currentUser.uid);
@@ -222,15 +222,13 @@ function initializeReader() {
             } else {
                 // SAVE
                 const { firestoreId, publicId, isPublicView, isLibraryView, ...cleanData } = bookData;
+                
                 if (!cleanData.coverUrl) {
                     const titleQuery = encodeURIComponent(cleanData.title);
                     cleanData.coverUrl = `https://placehold.co/300x450/333/FFF?text=${titleQuery}&font=inter`;
                 }
 
-                // --- FIX: Track Original Author ---
-                // If the book already has an originalUserId, preserve it.
-                // If not, and it has a userId (from another author), use that.
-                // Otherwise (fresh gen), use current user.
+                // Track Original Author
                 let originId = cleanData.originalUserId;
                 if (!originId) {
                     originId = cleanData.userId || currentUser.uid;
@@ -240,8 +238,17 @@ function initializeReader() {
                     ...cleanData,
                     createdAt: serverTimestamp(),
                     userId: currentUser.uid,
-                    originalUserId: originId // Store origin
+                    originalUserId: originId 
                 };
+
+                // --- KEY FIX: Preserve Public ID Link ---
+                // If we are reading a public book (isPublicView is true), the current 'firestoreId' IS the public ID.
+                // If we are reading a local copy that has a publicId attached, preserve it.
+                if (isPublicView) {
+                    bookToSave.publicId = firestoreId;
+                } else if (publicId) {
+                    bookToSave.publicId = publicId;
+                }
 
                 const docRef = await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books'), bookToSave);
                 savedBookDocId = docRef.id; 

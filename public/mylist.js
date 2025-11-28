@@ -1,7 +1,7 @@
-// --- MY LIST PAGE LOGIC (WITH PUBLIC/PRIVATE TOGGLE) ---
+// --- MY LIST PAGE LOGIC (GENRE SORTED & INFORMATIVE) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, where, orderBy, serverTimestamp, getDoc } 
+import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, where, serverTimestamp, getDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { updateNavUser } from "./nav.js";
 
@@ -22,6 +22,7 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 let currentUser = null;
 let currentPrivateBooks = [];
 let currentCreatedBooks = [];
+let activeGenreFilter = 'all'; 
 
 function initializeMyList() {
     const container = document.getElementById('book-shelves-container');
@@ -43,6 +44,19 @@ function initializeMyList() {
     });
 
     container.addEventListener('click', handleContainerClick);
+    
+    // Setup Filter Click Listeners
+    const filterContainer = document.getElementById('genre-filters');
+    if(filterContainer) {
+        filterContainer.addEventListener('click', (e) => {
+            if(e.target.classList.contains('filter-btn')) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                const genre = e.target.dataset.filter;
+                applyGenreFilter(genre);
+            }
+        });
+    }
 }
 
 async function loadBooks() {
@@ -52,59 +66,112 @@ async function loadBooks() {
     container.innerHTML = '<p class="loading-text">Loading your library...</p>';
 
     try {
-        // 1. Fetch ALL Private Books first
+        // 1. Fetch ALL Private Books
         const privateRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books');
         const privateSnap = await getDocs(privateRef);
         
         const validPrivateBooks = [];
         const checks = [];
 
-        // 2. Filter & Cleanup Logic
-        // We need to check if "Saved" books (that aren't mine) are still public.
         for (const docSnap of privateSnap.docs) {
             const data = docSnap.data();
             const book = { ...data, firestoreId: docSnap.id, _source: 'private' };
 
-            // Logic: 
-            // If I am NOT the original author AND it has a publicId...
-            // It means I saved this from the public library.
-            // We must verify if that public book still exists.
+            // Logic: Check if saved public books are still valid
             if (book.originalUserId && book.originalUserId !== currentUser.uid && book.publicId) {
                 const checkPromise = getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.publicId))
                     .then(async (publicSnap) => {
                         if (!publicSnap.exists()) {
-                            // ORIGINAL AUTHOR UNPUBLISHED IT!
-                            // Delete my private copy (Lazy Cleanup)
                             console.log(`Removing stale book: ${book.title}`);
                             await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docSnap.id));
-                            return null; // Exclude from list
+                            return null; 
                         }
-                        return book; // Keep it
+                        return book; 
                     });
                 checks.push(checkPromise);
             } else {
-                // It's my own book or a draft, always keep.
                 checks.push(Promise.resolve(book));
             }
         }
 
-        // Wait for all verification checks
         const results = await Promise.all(checks);
         currentPrivateBooks = results.filter(b => b !== null);
 
-        // 3. Fetch "My Published Creations" (Public books by me)
+        // 2. Fetch "My Published Creations"
         const publicRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
         const qPublic = query(publicRef, where('userId', '==', currentUser.uid));
         const publicSnap = await getDocs(qPublic);
         currentCreatedBooks = [];
         publicSnap.forEach((doc) => currentCreatedBooks.push({ ...doc.data(), firestoreId: doc.id, _source: 'public' }));
 
-        renderDualShelves(container, currentPrivateBooks, currentCreatedBooks);
+        updateLibraryUI();
 
     } catch (error) {
         console.error("Error fetching books:", error);
         container.innerHTML = `<p class="error-text">Error loading library: ${error.message}</p>`;
     }
+}
+
+function updateLibraryUI() {
+    const container = document.getElementById('book-shelves-container');
+    
+    // --- UPDATED COUNT LOGIC (Fixing Duplicates) ---
+    // 1. Create a Set of all Public IDs referenced by your Private books.
+    //    (If a private book says "I am published at ID 123", we know 123 is accounted for).
+    const linkedPublicIds = new Set();
+    currentPrivateBooks.forEach(b => {
+        if (b.publicId) linkedPublicIds.add(b.publicId);
+    });
+
+    // 2. Find "Orphan" Public books (Published books where you deleted the private copy).
+    const uniquePublicBooks = currentCreatedBooks.filter(b => !linkedPublicIds.has(b.firestoreId));
+    
+    // 3. Combine Private List + Orphan Public List for the "Unique" view
+    const uniqueBooksForStats = [...currentPrivateBooks, ...uniquePublicBooks];
+    
+    // 4. Calculate Stats based on Unique List
+    const totalCount = uniqueBooksForStats.length;
+    
+    const genres = new Set();
+    uniqueBooksForStats.forEach(b => {
+        if(b.genre) genres.add(b.genre);
+    });
+
+    // Render Filters
+    const filterContainer = document.getElementById('genre-filters');
+    if (filterContainer) {
+        let filterHtml = `<button class="filter-btn active" data-filter="all">All</button>`;
+        Array.from(genres).sort().forEach(g => {
+            filterHtml += `<button class="filter-btn" data-filter="${g}">${g}</button>`;
+        });
+        filterContainer.innerHTML = filterHtml;
+    }
+
+    // Render Stats
+    const statsContainer = document.getElementById('library-stats');
+    if (statsContainer) {
+        statsContainer.innerHTML = `
+            <span class="stat-item">Books: <b>${totalCount}</b></span>
+            <span class="stat-item">Genres: <b>${genres.size}</b></span>
+        `;
+    }
+
+    // Render Grid (We still pass the raw lists to render the shelves separately)
+    renderDualShelves(container, currentPrivateBooks, currentCreatedBooks);
+}
+
+function applyGenreFilter(genre) {
+    activeGenreFilter = genre;
+    const cards = document.querySelectorAll('.book-card');
+    
+    cards.forEach(card => {
+        const cardGenre = card.dataset.genre;
+        if (genre === 'all' || cardGenre === genre) {
+            card.style.display = 'flex'; 
+        } else {
+            card.style.display = 'none'; 
+        }
+    });
 }
 
 function renderDualShelves(container, privateBooks, createdBooks) {
@@ -136,21 +203,48 @@ function renderBookGrid(books, isPrivateSection) {
     
     [...books].reverse().forEach(book => {
         const isPublic = !!book.publicId;
-        const ribbonClass = (!isPrivateSection || isPublic) ? 'is-public' : 'is-private';
-        const ribbonTitle = isPrivateSection ? (isPublic ? 'Public (Click to Unpublish)' : 'Private (Click to Publish)') : 'Published';
+        const isMyWork = !book.originalUserId || (book.originalUserId === currentUser.uid);
+
+        let ribbonClass = '';
+        let ribbonTitle = '';
+
+        if (!isMyWork) {
+            ribbonClass = 'is-golden';
+            ribbonTitle = 'Saved Community Book (Read Only)';
+        } else if (!isPrivateSection || isPublic) {
+            ribbonClass = 'is-public';
+            ribbonTitle = 'Public (Click to Unpublish)';
+        } else {
+            ribbonClass = 'is-private';
+            ribbonTitle = 'Private (Click to Publish)';
+        }
+
+        const safeGenre = book.genre || 'Unknown';
+        const displayAuthor = book.authorName || 'Me';
         
         html += `
-            <div class="book-card clickable" data-firestore-id="${book.firestoreId}" data-source="${book._source}">
+            <div class="book-card clickable" 
+                 data-firestore-id="${book.firestoreId}" 
+                 data-source="${book._source}"
+                 data-genre="${safeGenre}">
+                 
                 <img src="${book.coverUrl}" alt="${book.title}" onerror="this.src='https://placehold.co/300x450/1a1a1a/f5f5f5?text=Image+Error&font=inter'">
+                
                 <div class="book-card-info">
                     <h3 class="book-card-title">${book.title}</h3>
+                    
+                    <div class="book-meta">
+                        <span class="genre-badge">${safeGenre}</span>
+                        <span class="author-name">${isMyWork ? 'By Me' : displayAuthor}</span>
+                    </div>
                 </div>
                 
                 ${isPrivateSection ? `
                 <div class="bookmark-ribbon ${ribbonClass}" 
                      title="${ribbonTitle}"
                      data-firestore-id="${book.firestoreId}"
-                     data-public-id="${book.publicId || ''}">
+                     data-public-id="${book.publicId || ''}"
+                     data-is-mine="${isMyWork}">
                 </div>` : ''}
 
                 <button class="list-delete-btn" 
@@ -178,14 +272,12 @@ async function handleContainerClick(e) {
     // --- A. DELETE ---
     if (deleteButton) {
         if(!confirm("Are you sure you want to delete this book?")) return;
-
         const docId = deleteButton.dataset.firestoreId;
         const source = deleteButton.dataset.source; 
         const cardElement = deleteButton.closest('.book-card');
 
         try {
             cardElement.style.opacity = '0.5';
-            
             if (source === 'private') {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId));
             } else if (source === 'public') {
@@ -199,8 +291,10 @@ async function handleContainerClick(e) {
         }
     } 
     
-    // --- B. TOGGLE ---
+    // --- B. TOGGLE (RIBBON) ---
     else if (ribbonButton) {
+        if (ribbonButton.classList.contains('is-golden')) return;
+        
         if (ribbonButton.dataset.processing === "true") return;
         ribbonButton.dataset.processing = "true";
         ribbonButton.style.opacity = '0.5';
@@ -215,7 +309,6 @@ async function handleContainerClick(e) {
             return;
         }
 
-        // Check Ownership before publishing
         if (!publicId && bookData.originalUserId && bookData.originalUserId !== currentUser.uid) {
             alert("You cannot publish books created by other users.");
             ribbonButton.style.opacity = '1';
@@ -232,13 +325,11 @@ async function handleContainerClick(e) {
                      return;
                 }
                 const pubRef = doc(db, 'artifacts', appId, 'public', 'data', 'books', publicId);
-                
                 try {
                     const publicSnap = await getDoc(pubRef);
                     let ratingsToSave = {};
-                    if (publicSnap.exists()) {
-                        ratingsToSave = publicSnap.data().ratings || {};
-                    }
+                    if (publicSnap.exists()) ratingsToSave = publicSnap.data().ratings || {};
+                    
                     await deleteDoc(pubRef);
                     await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { 
                         publicId: null,
@@ -248,7 +339,6 @@ async function handleContainerClick(e) {
                 } catch(innerErr) {
                     await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { publicId: null });
                 }
-
             } else {
                 // PUBLISH
                 if(!confirm("Publish to New Releases?")) {
@@ -264,7 +354,6 @@ async function handleContainerClick(e) {
                     ratings: bookData.ratings || {},
                     originalUserId: currentUser.uid 
                 };
-                
                 delete pubData.firestoreId; 
                 delete pubData._source; 
                 delete pubData.publicId;
