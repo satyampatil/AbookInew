@@ -1,0 +1,284 @@
+/* --- LIBRARY PAGE STYLES --- */
+
+.library-container {
+    position: relative;
+    width: 100vw;
+    height: calc(100vh - 70px); /* Minus header */
+    margin-top: 70px;
+    overflow: hidden;
+    background-color: #050505; /* Fallback dark */
+}
+
+/* Background Image with Blur/Dim */
+.library-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Gradient fallback + Image */
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('image_f07d9a.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+/* Title Overlay */
+.library-overlay {
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    pointer-events: none; /* Let clicks pass through to avatars */
+}
+
+.library-overlay h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-family: 'Lora', serif;
+}
+
+.library-overlay p {
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+/* --- AVATAR PLAYGROUND --- */
+#avatar-playground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+/* The Ghost Container */
+.floating-avatar {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    pointer-events: auto; /* Enable clicks on avatars */
+    cursor: pointer;
+    will-change: top, left;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
+    z-index: 20;
+}
+
+.floating-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    animation: float-bob 3s ease-in-out infinite;
+}
+
+@keyframes float-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* --- TOOLTIP (BOOK INFO) --- */
+.avatar-tooltip {
+    position: absolute;
+    bottom: 100%; /* Above the avatar */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 12px;
+    width: 200px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    font-size: 0.9rem;
+    z-index: 30;
+}
+
+.avatar-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
+}
+
+.avatar-tooltip strong {
+    display: block;
+    color: #E50914;
+    margin-bottom: 2px;
+}
+
+.avatar-tooltip em {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* Show Tooltip on Hover */
+.floating-avatar:hover {
+    z-index: 40; /* Bring to front */
+}
+.floating-avatar:hover .avatar-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+/* --- MUSIC PLAYER WIDGET --- */
+.music-player-widget {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    border-radius: 50px;
+    
+    /* Closed State Dimensions */
+    width: 60px;
+    height: 60px;
+    padding-left: 9px;
+    padding-top: 4px;
+    overflow: hidden;
+    
+    /* Transitions */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+}
+
+.music-player-widget:hover {
+    /* Expanded State Dimensions */
+    width: 260px;
+    height: auto;
+    min-height: 120px;
+    border-radius: 20px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+/* The Header Row (Disc + Info + Controls) */
+.music-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    margin-bottom: 0;
+    transition: margin-bottom 0.3s;
+}
+.music-player-widget:hover .music-header {
+    margin-bottom: 15px;
+}
+
+.music-disc {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    /* No border or shadow needed for the SVG as it has its own */
+    animation: spin 5s linear infinite;
+    animation-play-state: paused;
+    cursor: pointer;
+}
+
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+.music-info-controls {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    opacity: 0; /* Hidden initially */
+    transform: translateX(-10px);
+    transition: all 0.6s ease;
+    white-space: nowrap;
+}
+.music-player-widget:hover .music-info-controls {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.music-song-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.music-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.music-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+}
+.music-btn:hover { color: white; }
+.music-btn svg { width: 18px; height: 18px; }
+
+/* Playlist */
+.music-playlist {
+    opacity: 0;
+    height: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 0;
+}
+
+.music-player-widget:hover .music-playlist {
+    opacity: 1;
+    height: auto;
+    pointer-events: auto;
+    padding-top: 10px;
+}
+
+.playlist-item {
+    font-size: 0.85rem;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.playlist-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+.playlist-item.active {
+    color: #E50914;
+    font-weight: bold;
+}
+
+.music-player-widget.playing .music-disc {
+    animation-play-state: running;
+}

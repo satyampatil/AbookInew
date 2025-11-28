@@ -1,7 +1,7 @@
-// --- READER PAGE LOGIC (WITH FIREBASE) ---
+// --- READER PAGE LOGIC (WITH PRESENCE SYSTEM) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, serverTimestamp, query, where, getDocs } 
+import { getFirestore, collection, addDoc, deleteDoc, doc, serverTimestamp, query, where, getDocs, setDoc, getDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { updateNavUser } from "./nav.js";
 
@@ -21,6 +21,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
+let presenceInterval = null;
+
 function initializeReader() {
     let currentUser = null;
     let savedBookDocId = null; 
@@ -29,9 +31,18 @@ function initializeReader() {
         currentUser = user;
         updateNavUser(user);
         if (user) {
-            checkIfSaved(user); 
+            checkIfSaved(user);
+            // Start broadcasting presence when user is logged in
+            startPresenceHeartbeat(user);
+        } else {
+            stopPresenceHeartbeat();
         }
         updateButtonsState(); 
+    });
+
+    // Clean up presence when leaving
+    window.addEventListener('beforeunload', () => {
+        stopPresenceHeartbeat();
     });
 
     const titleEl = document.getElementById('reader-title');
@@ -108,6 +119,50 @@ function initializeReader() {
         if(contentEl) contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
     }
 
+    // --- PRESENCE SYSTEM ---
+    async function startPresenceHeartbeat(user) {
+        if (!bookData || !user) return;
+
+        // 1. Fetch user's avatar config first
+        let avatarConfig = { color: 'blue', mood: 'happy', accessory: 'none' }; // default
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().avatarConfig) {
+                avatarConfig = userDoc.data().avatarConfig;
+            }
+        } catch (e) {
+            console.log("Could not fetch user avatar, using default");
+        }
+
+        const report = async () => {
+            try {
+                // Write to public active_readers collection
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'active_readers', user.uid), {
+                    userId: user.uid,
+                    displayName: user.displayName || 'Anonymous Reader',
+                    bookTitle: bookData.title,
+                    avatarConfig: avatarConfig,
+                    lastSeen: serverTimestamp(),
+                    page: currentPage + 1
+                });
+            } catch (err) {
+                console.error("Error reporting presence:", err);
+            }
+        };
+
+        // Report immediately, then every 60 seconds
+        report();
+        presenceInterval = setInterval(report, 60000);
+    }
+
+    function stopPresenceHeartbeat() {
+        if (presenceInterval) {
+            clearInterval(presenceInterval);
+            presenceInterval = null;
+        }
+    }
+
+
     // --- CHECK FIREBASE STATUS ---
     async function checkIfSaved(user) {
         if (!bookData) return;
@@ -160,9 +215,6 @@ function initializeReader() {
             saveCloudBtn.disabled = true;
         } else {
             const isPrivateCopyOwner = currentUser && (bookData.userId === currentUser.uid || !bookData.userId);
-            
-            // If originalUserId exists, current user MUST match it.
-            // If it doesn't exist, we assume the current user generated it or it's a legacy book.
             const isOriginalAuthor = !bookData.originalUserId || (currentUser && bookData.originalUserId === currentUser.uid);
 
             if (isPrivateCopyOwner && isOriginalAuthor) {
@@ -196,6 +248,8 @@ function initializeReader() {
         pageIndicator.textContent = `Page ${currentPage} of ${totalPages - 1}`;
         prevBtn.disabled = (currentPage === 0);
         nextBtn.disabled = (currentPage === totalPages - 1);
+        
+        // Trigger presence update on page turn if needed, or stick to interval
     }
 
     if(prevBtn) prevBtn.addEventListener('click', () => {
@@ -228,7 +282,6 @@ function initializeReader() {
                     cleanData.coverUrl = `https://placehold.co/300x450/333/FFF?text=${titleQuery}&font=inter`;
                 }
 
-                // Track Original Author
                 let originId = cleanData.originalUserId;
                 if (!originId) {
                     originId = cleanData.userId || currentUser.uid;
@@ -241,9 +294,6 @@ function initializeReader() {
                     originalUserId: originId 
                 };
 
-                // --- KEY FIX: Preserve Public ID Link ---
-                // If we are reading a public book (isPublicView is true), the current 'firestoreId' IS the public ID.
-                // If we are reading a local copy that has a publicId attached, preserve it.
                 if (isPublicView) {
                     bookToSave.publicId = firestoreId;
                 } else if (publicId) {
@@ -281,7 +331,7 @@ function initializeReader() {
                 userId: currentUser.uid,
                 authorName: currentUser.displayName || 'Anonymous',
                 ratings: {},
-                originalUserId: currentUser.uid // Ensure public record marks ownership
+                originalUserId: currentUser.uid 
             };
 
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), publicBook);
