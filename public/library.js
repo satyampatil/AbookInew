@@ -25,6 +25,10 @@ const activeGhosts = new Map();
 let unsubscribeSnapshot = null;
 let currentUser = null;
 
+// --- PERFORMANCE LIMITS ---
+// Only render this many ghosts to prevent crashing
+const MAX_VISIBLE_GHOSTS = 30; 
+
 // --- MUSIC CONFIGURATION ---
 const MUSIC_FOLDER = 'Music/';
 const PLAYLIST = [
@@ -80,25 +84,50 @@ function startLibraryListener() {
     
     unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
         const now = Date.now();
-        const activeIds = new Set();
         
-        if (snapshot.empty) {
-            console.log("No active readers found.");
-        }
-
+        // 1. Gather all valid data first
+        const allReaders = [];
+        
         snapshot.forEach((doc) => {
             const data = doc.data();
             let lastSeenTime = now;
+            
+            // Handle Latency
             if (data.lastSeen && typeof data.lastSeen.toMillis === 'function') {
                 lastSeenTime = data.lastSeen.toMillis();
             } else if (data.lastSeen === null) {
                 lastSeenTime = now; 
             }
 
-            if (now - lastSeenTime > 5 * 60 * 1000) return;
+            // Filter stale
+            if (now - lastSeenTime <= 5 * 60 * 1000) {
+                // Add sorting key
+                data.lastSeenTime = lastSeenTime;
+                allReaders.push(data);
+            }
+        });
 
-            activeIds.add(data.userId);
+        // 2. Update UI Count
+        const countEl = document.querySelector('.library-overlay p');
+        if (countEl) {
+            if (allReaders.length > 0) {
+                countEl.textContent = `${allReaders.length} Active Reader${allReaders.length === 1 ? '' : 's'}`;
+            } else {
+                countEl.textContent = "Waiting for readers...";
+            }
+        }
 
+        // 3. Sort by Recency (Newest first)
+        allReaders.sort((a, b) => b.lastSeenTime - a.lastSeenTime);
+
+        // 4. Slice to MAX limit
+        // We always want to see OURSELVES if possible, but sorting by recency usually handles that 
+        // as we just updated. 
+        const visibleReaders = allReaders.slice(0, MAX_VISIBLE_GHOSTS);
+        const visibleIds = new Set(visibleReaders.map(r => r.userId));
+
+        // 5. Render Visible
+        visibleReaders.forEach(data => {
             if (activeGhosts.has(data.userId)) {
                 updateGhost(data.userId, data);
             } else {
@@ -106,11 +135,14 @@ function startLibraryListener() {
             }
         });
 
+        // 6. Cleanup Invisible
+        // If a user is in activeGhosts but NOT in visibleIds (either stale OR pushed out by limit), remove them.
         for (const [userId, element] of activeGhosts) {
-            if (!activeIds.has(userId)) {
+            if (!visibleIds.has(userId)) {
                 removeGhost(userId);
             }
         }
+
     }, (error) => {
         console.error("Library Listener Error:", error);
     });
@@ -137,13 +169,14 @@ function startLibraryListener() {
         clearBtn.onclick = removeDummyReaders;
 
         const addBtn = document.createElement('button');
-        addBtn.innerText = "+ 5 Bots";
+        addBtn.innerText = "+ 20 Bots";
         addBtn.style.cssText = `
             padding: 8px 16px; background: #E50914; color: white;
             border: none; border-radius: 20px; cursor: pointer;
             box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3); font-weight: bold;
         `;
-        addBtn.onclick = addDummyReaders;
+        // Updated to add more bots to test the limit
+        addBtn.onclick = () => addDummyReaders(20);
 
         container.appendChild(clearBtn);
         container.appendChild(addBtn);
@@ -309,7 +342,7 @@ function initMusicPlayer() {
 }
 
 // --- DUMMY DATA GENERATOR ---
-async function addDummyReaders() {
+async function addDummyReaders(count = 5) {
     if (!currentUser) {
         alert("Waiting for connection...");
         return;
@@ -321,7 +354,7 @@ async function addDummyReaders() {
     const moods = ['happy', 'curious', 'nerdy', 'sleepy'];
     const accessories = ['none', 'hat', 'sparkles'];
 
-    for(let i=0; i<5; i++) {
+    for(let i=0; i<count; i++) {
         const uid = `dummy_${Date.now()}_${Math.floor(Math.random()*1000)}`;
         const name = names[Math.floor(Math.random() * names.length)];
         const book = books[Math.floor(Math.random() * books.length)];

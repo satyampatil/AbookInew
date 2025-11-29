@@ -338,6 +338,94 @@ main {
 
 /* ---
 // ===============================================
+//   NEW: SEARCH & DISCOVERY
+// ===============================================
+// --- */
+.discovery-section {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.home-search-container {
+    display: flex;
+    align-items: center;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.home-search-container:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+    background: #252525;
+}
+
+.search-icon-wrapper {
+    color: #666;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+#home-search-input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    width: 100%;
+    outline: none;
+}
+
+#home-search-input::placeholder {
+    color: #666;
+}
+
+/* Continue Reading Banner */
+.continue-card {
+    background: linear-gradient(90deg, #1f1f1f 0%, #1a1a1a 100%);
+    border: 1px solid #333;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.5s ease;
+}
+
+.continue-info h3 {
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
+
+.continue-info p {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.continue-btn {
+    white-space: nowrap;
+    padding: 0.6rem 1.2rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---
+// ===============================================
 //   05. BOOK SHELVES
 // ===============================================
 // --- */
