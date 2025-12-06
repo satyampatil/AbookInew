@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Reader - abooki</title>
+    <link rel="icon" href="browserIcon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
@@ -16,7 +17,11 @@
 
     <header class="main-header">
         <nav class="main-nav">
-            <div class="logo">ABOOKI</div>
+            <a href="index.html" class="logo-link">
+                <div class="logo">
+                    ABOOKI
+                </div>
+            </a>
             <ul class="nav-links">
                 <li><a href="index.html" class="nav-link">Home</a></li>
                 <li>
@@ -43,10 +48,16 @@
         <h1 id="reader-title">Loading book...</h1>
         
         <div class="reader-container">
-            <button class="reader-save-button" id="reader-save-btn" title="Add to Library">
-                <span class="reader-save-icon"><i data-feather="plus"></i></span>
-                <span class="reader-save-text">Add to Library</span>
-            </button>
+            <!-- New Menu Structure -->
+            <div class="reader-menu-container">
+                <button class="reader-menu-trigger">
+                    <i data-feather="more-vertical"></i>
+                </button>
+                <div class="reader-menu-dropdown" id="reader-actions-dropdown">
+                    <!-- Buttons will be injected here by JS -->
+                </div>
+            </div>
+
             <div id="reader-content">
                 <p>Loading page content...</p>
             </div>

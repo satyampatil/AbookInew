@@ -1,5 +1,5 @@
 /* IMPORT GOOGLE FONTS */
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inconsolata:wght@200..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Roboto+Slab:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inconsolata:wght@200..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Roboto+Slab:wght@100..900&display=swap');
 
 /* --- READER VARIABLES & THEMES --- */
 :root {
@@ -50,9 +50,8 @@
 .reader-main {
     max-width: 800px;
     margin: 0 auto;
-    /* 70px header + 3rem top padding */
     padding: calc(70px + 3rem) 2rem 4rem 2rem; 
-    min-height: calc(100vh - 85px); /* Fill height minus footer */
+    min-height: calc(100vh - 85px);
 }
 
 .reader-main h1 {
@@ -60,106 +59,142 @@
     font-weight: 700;
     text-align: center;
     margin-bottom: 2rem;
-    color: var(--text-color); /* Keeps site header color */
+    color: var(--text-color);
 }
 
 .reader-container {
-    background-color: var(--reader-bg); /* DYNAMIC BG */
-    color: var(--reader-text);         /* DYNAMIC TEXT */
+    background-color: var(--reader-bg);
+    color: var(--reader-text);
     border-radius: 8px;
     padding: 3rem 4rem;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     min-height: 50vh;
     position: relative; 
-    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* --- SAVE BUTTON STYLES --- */
-.reader-save-button {
+/* --- NEW: MENU / HAMBURGER STYLES --- */
+.reader-menu-container {
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
-    z-index: 10;
+    z-index: 100;
+}
+
+.reader-menu-trigger {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0,0,0,0.05);
+    border: none;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 42px;
-    width: 42px;
-    padding: 0;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: var(--reader-text); /* Adapt icon color to theme */
-    cursor: pointer;
-    overflow: hidden; 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: var(--reader-text);
 }
 
-/* Adjust button border for dark mode visibility */
-[data-theme="dark"] .reader-save-button {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+.reader-menu-trigger:hover {
+    background-color: rgba(0,0,0,0.1);
+    transform: rotate(90deg); /* Rotate icon on hover */
 }
 
-.reader-save-icon {
-    flex-shrink: 0;
-    display: inline-flex;
+.reader-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 180px;
+    padding: 8px 0;
+    display: none; /* Hidden by default */
+    border: 1px solid rgba(0,0,0,0.1);
+    z-index: 101; 
+    
+    /* Animation origin set to top right (where button is) */
+    transform-origin: top right; 
+}
+
+/* Dark mode menu */
+[data-theme="dark"] .reader-menu-dropdown {
+    background-color: #222;
+    border-color: #444;
+}
+
+/* Show menu on hover of container OR when .show class is present */
+.reader-menu-container:hover .reader-menu-dropdown,
+.reader-menu-dropdown.show {
+    display: block;
+    animation: menuExpand 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Morphing Animation: Expands out from the button */
+@keyframes menuExpand {
+    0% { 
+        opacity: 0; 
+        transform: scale(0.5) translateY(-20px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
+}
+
+/* --- MENU ITEMS (Buttons) --- */
+.reader-menu-btn {
+    display: flex;
     align-items: center;
-    justify-content: center;
     width: 100%;
-    height: 100%;
-    transition: transform 0.3s ease;
-}
-.reader-save-icon .feather {
-    width: 20px;
-    height: 20px;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: #333;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
 }
 
-.reader-save-text {
-    display: none; 
-    white-space: nowrap;
+[data-theme="dark"] .reader-menu-btn {
+    color: #eee;
+}
+
+.reader-menu-btn:hover {
+    background-color: #f5f5f5;
+}
+[data-theme="dark"] .reader-menu-btn:hover {
+    background-color: #333;
+}
+
+.reader-menu-icon {
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+}
+.reader-menu-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Specific Button States */
+.reader-menu-btn.speaking {
+    color: #E50914;
     font-weight: 600;
-    font-size: 0.9rem;
-    margin: 0 1rem 0 0.5rem;
 }
 
-.reader-save-button:hover {
-    width: auto;
-    padding-left: 0.75rem; 
-    border-radius: 50px; 
-    background-color: rgba(0, 0, 0, 0.08);
-}
-[data-theme="dark"] .reader-save-button:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-.reader-save-button:hover .reader-save-icon {
-    width: auto;
-    transform: rotate(90deg);
-}
-.reader-save-button:hover .reader-save-text {
-    display: block; 
-}
-
-/* Saved State */
-.reader-save-button.saved {
-    background-color: #28a745 !important; /* Green force override */
-    border-color: #28a745 !important;
-    color: #fff !important;
-    cursor: default;
-}
-.reader-save-button.saved:hover .reader-save-icon {
-    transform: rotate(0deg); 
-}
-.reader-save-button.saved .reader-save-text {
-    color: #fff;
+.reader-menu-btn.saved {
+    color: #4CAF50;
+    font-weight: 600;
 }
 
 /* --- CONTENT STYLES --- */
 #reader-content {
-    font-family: var(--reader-font);        /* DYNAMIC FONT */
-    font-size: var(--reader-base-size);     /* DYNAMIC SIZE */
-    line-height: var(--reader-line-height); /* DYNAMIC HEIGHT */
+    font-family: var(--reader-font);
+    font-size: var(--reader-base-size);
+    line-height: var(--reader-line-height);
 }
 
 #reader-content p {
