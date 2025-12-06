@@ -17,11 +17,12 @@ const auth = getAuth(app);
 document.addEventListener('DOMContentLoaded', () => {
     
     // --- 1. Auth & Navigation Logic ---
+    // (Required to keep the navbar profile working)
     onAuthStateChanged(auth, (user) => {
         updateNavUser(user);
     });
 
-    // --- 2. Interaction Logic (Toasts & Copy) ---
+    // --- 2. Interaction Logic (Your Toast & Copy Code) ---
     
     // Create Toast Element dynamically
     const toast = document.createElement('div');
@@ -75,56 +76,5 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Copy failed. Please copy manually.');
         }
         document.body.removeChild(textarea);
-    }
-
-    // --- 3. Apple Pay Integration Logic ---
-    const applePayBtn = document.getElementById('apple-pay-btn');
-    if (applePayBtn) {
-        applePayBtn.addEventListener('click', () => {
-            
-            // Check if Apple Pay is available
-            if (window.ApplePaySession) {
-                // IMPORTANT: In a real app, you need a Merchant ID and a backend server to validate the session.
-                // This code demonstrates the JS API structure.
-                
-                try {
-                    const request = {
-                        countryCode: 'US',
-                        currencyCode: 'USD',
-                        supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
-                        merchantCapabilities: ['supports3DS'],
-                        total: { label: 'Abooki Donation', amount: '5.00' },
-                    };
-
-                    const session = new ApplePaySession(3, request);
-                    
-                    // 1. Validate Merchant (Requires Server)
-                    session.onvalidatemerchant = event => {
-                        console.log("Validating merchant...", event.validationURL);
-                        // FETCH call to your backend would go here.
-                        // Since we don't have a backend:
-                        alert("Apple Pay Demo: Merchant validation requires a backend server.");
-                        session.abort();
-                    };
-
-                    // 2. Payment Authorized
-                    session.onpaymentauthorized = event => {
-                        // Process payment token here
-                        const payment = event.payment;
-                        // Determine success/fail
-                        session.completePayment(ApplePaySession.STATUS_SUCCESS);
-                        showToast("Donation successful! (Demo)");
-                    };
-
-                    session.begin();
-
-                } catch (e) {
-                    alert("Unable to start Apple Pay session: " + e.message);
-                }
-            } else {
-                // Fallback for non-Safari browsers
-                alert("Apple Pay is available on Safari on supported devices (iPhone, iPad, Mac). Please try there!");
-            }
-        });
     }
 });

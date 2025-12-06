@@ -48,7 +48,7 @@
                 </div>
                 
                 <div class="donation-options">
-                    <!-- OPTION 1: Bank Transfer + Apple Pay -->
+                    <!-- OPTION 1: Bank Transfer + PayPal -->
                     <div class="donate-card">
                         <div class="card-header">
                             <h3>Direct Bank Support</h3>
@@ -75,13 +75,26 @@
                             </button>
                         </div>
 
-                        <!-- Apple Pay Integration -->
-                        <div class="apple-pay-section">
+                        <!-- PayPal Integration (SDK) -->
+                        <div class="paypal-section">
                             <div class="divider-small"><span>OR</span></div>
-                            <button id="apple-pay-btn" class="apple-pay-button" title="Donate with Apple Pay">
-                                <!-- Fallback Logo for non-Safari browsers -->
-                                <span class="apple-logo-fallback"></span>
-                            </button>
+                            
+                            <div id="donate-button-container">
+                                <div id="donate-button"></div>
+                                <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+                                <script>
+                                    PayPal.Donation.Button({
+                                        env: 'production',
+                                        hosted_button_id: 'ENVQLQJFGP39U',
+                                        image: {
+                                            src: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg',
+                                            alt: 'Donate with PayPal button',
+                                            title: 'PayPal - The safer, easier way to pay online!',
+                                        }
+                                    }).render('#donate-button');
+                                </script>
+                            </div>
+
                         </div>
                     </div>
 
