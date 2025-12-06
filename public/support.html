@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secret Support - abooki</title>
+    <title>About & Support - abooki</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -24,64 +24,132 @@
                 <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
                 <li><a href="mylist.html" class="nav-link">My List</a></li>
             </ul>
-            <div class="nav-profile"><i data-feather="user"></i></div>
+            <div class="nav-profile">
+                <!-- Injected by nav.js -->
+                <i data-feather="user"></i>
+            </div>
         </nav>
     </header>
 
     <main class="support-main">
         <div class="secret-container">
+            
+            <!-- SECTION 1: INTRO -->
             <div class="icon-wrapper">
                 <i data-feather="coffee"></i>
             </div>
-            
-            <h1>You Found The Secret Room.</h1>
-            <p class="subtitle">Since you're here (and curious), consider fueling the AI engine (and my coffee addiction).</p>
+            <h1>Behind The Scenes</h1>
+            <p class="subtitle">Meet the project, the creator, and the coffee addiction fueling it all.</p>
 
-            <div class="donation-options">
+            <!-- SECTION 2: SUPPORT (Moved to Top) -->
+            <section class="support-section">
+                <div class="section-header-centered">
+                    <h2>Support the Server Costs</h2>
+                </div>
                 
-                <!-- OPTION 1: Bank Transfer (Copy Details) -->
-                <div class="donate-card">
-                    <div class="card-header">
-                        <h3>Direct Bank Support</h3>
-                        <span class="badge">Most Direct</span>
-                    </div>
-                    <p>Copy details to send a donation via your banking app.</p>
-                    
-                    <div class="copy-field">
-                        <span class="label">First Name:</span>
-                        <span class="value">Satyam</span>
-                    </div>
-                    <div class="copy-field">
-                        <span class="label">Last Name:</span>
-                        <span class="value">Patil</span>
-                    </div>
-                    <div class="copy-field">
-                        <span class="label">Sort Code: </span>
-                        <span class="value">04-29-09</span>
-                        <button class="copy-btn" data-copy="04-29-09" title="Copy Sort Code">
-                            <i data-feather="copy"></i>
-                        </button>
-                    </div>
-                    <div class="copy-field" id="acc-number-field">
-                        <span class="label">Account: </span>
-                        <span class="value">72939338</span>
-                        <button class="copy-btn" data-copy="72939338" title="Copy Account Number">
-                            <i data-feather="copy"></i>
-                        </button>
-                    </div>
-                </div>
+                <div class="donation-options">
+                    <!-- OPTION 1: Bank Transfer + Apple Pay -->
+                    <div class="donate-card">
+                        <div class="card-header">
+                            <h3>Direct Bank Support</h3>
+                            <span class="badge">Direct</span>
+                        </div>
+                        <p>Fuel the next feature update directly.</p>
+                        
+                        <div class="copy-field">
+                            <span class="label">Name:</span>
+                            <span class="value">Satyam Patil</span>
+                        </div>
+                        <div class="copy-field">
+                            <span class="label">Sort: </span>
+                            <span class="value">04-29-09</span>
+                            <button class="copy-btn" data-copy="04-29-09" title="Copy Sort Code">
+                                <i data-feather="copy"></i>
+                            </button>
+                        </div>
+                        <div class="copy-field">
+                            <span class="label">Acc: </span>
+                            <span class="value">72939338</span>
+                            <button class="copy-btn" data-copy="72939338" title="Copy Account Number">
+                                <i data-feather="copy"></i>
+                            </button>
+                        </div>
 
-                <!-- OPTION 2: Buy Me A Coffee (Link) -->
-                <div class="donate-card highlight">
-                    <div class="card-header">
-                        <h3>Buy Me a Coffee</h3>
-                        <span class="badge">Popular</span>
+                        <!-- Apple Pay Integration -->
+                        <div class="apple-pay-section">
+                            <div class="divider-small"><span>OR</span></div>
+                            <button id="apple-pay-btn" class="apple-pay-button" title="Donate with Apple Pay">
+                                <!-- Fallback Logo for non-Safari browsers -->
+                                <span class="apple-logo-fallback"></span>
+                            </button>
+                        </div>
                     </div>
-                    <p>Quick, easy, and keeps the servers running.</p>
-                    <a href="https://buymeacoffee.com/abooki" target="_blank" class="btn btn-primary full-width">
-                        <i data-feather="heart" class="btn-icon"></i> Donate via BMC
-                    </a>
+
+                    <!-- OPTION 2: Buy Me A Coffee -->
+                    <div class="donate-card highlight">
+                        <div class="card-header">
+                            <h3>Buy Me a Coffee</h3>
+                            <span class="badge">Popular</span>
+                        </div>
+                        <p>Quick, easy, and keeps the servers running.</p>
+                        <a href="https://buymeacoffee.com/abooki" target="_blank" class="btn btn-primary full-width">
+                            <i data-feather="heart" class="btn-icon"></i> Donate via BMC
+                        </a>
+                    </div>
                 </div>
+            </section>
+
+            <div class="section-divider">
+                <span>The Story</span>
+            </div>
+
+            <!-- GRID CONTAINER for About & Profile -->
+            <div class="about-grid">
+                
+                <!-- SECTION 3: ABOUT THE PROJECT (Left) -->
+                <section class="about-section">
+                    <div class="text-content">
+                        <h2>About Abooki</h2>
+                        <p>
+                            <strong>Abooki</strong> is an experimental platform designed to explore the intersection of 
+                            Artificial Intelligence and creative writing. It serves as a dynamic library where users can 
+                            generate, read, and share AI-crafted stories instantaneously.
+                        </p>
+                        <p>
+                            The goal isn't just to generate text, but to create a cohesive reading experience—complete with 
+                            simulated book covers, reading modes, and a community-driven library where AI creations live alongside human curation.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- SECTION 4: ABOUT ME (Right) -->
+                <section class="profile-section">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar-placeholder">
+                                <img src="my_profilepic.jpg" alt="Satyam Patil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            </div>
+                            <div class="profile-info">
+                                <h3>Satyam Patil</h3>
+                                <span class="role">Creator & Developer</span>
+                            </div>
+                        </div>
+                        <div class="profile-body">
+                            <p>
+                                Hi! I'm a passionate developer building cool things for the web. 
+                                Abooki is my playground for testing new ideas in UI/UX and full-stack development.
+                            </p>
+                            <div class="social-links">
+                                <a href="https://www.linkedin.com/in/satyampatil/" target="_blank" class="social-btn linkedin">
+                                    <i data-feather="linkedin"></i> Connect on LinkedIn
+                                </a>
+                                <a href="mailto:satyampatildurg@gmail.com?subject=Connecting%20through%20ABOOKI%20website&body=Hi%20Satyam%2C%0D%0A%0D%0A" class="social-btn email">
+                                    <i data-feather="mail"></i> Contact
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
             </div>
 
@@ -94,7 +162,6 @@
     </footer>
 
     <script>feather.replace()</script>
-    <script type="module" src="app.js"></script> <!-- For Nav Logic -->
-    <script src="support.js"></script>
+    <script type="module" src="support.js"></script>
 </body>
 </html>

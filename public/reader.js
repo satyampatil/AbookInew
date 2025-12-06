@@ -23,7 +23,40 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
 let presenceInterval = null;
 
+// --- NEW: APPLY SETTINGS ---
+function applyPreferences() {
+    const prefsJson = localStorage.getItem('abooki_reader_prefs');
+    if (!prefsJson) return; // Use defaults defined in CSS
+
+    try {
+        const prefs = JSON.parse(prefsJson);
+        const readerBody = document.body;
+        const readerRoot = document.documentElement;
+
+        // 1. Theme (sets data-theme="sepia" etc.)
+        if (prefs.theme) {
+            readerBody.setAttribute('data-theme', prefs.theme);
+        }
+
+        // 2. Font (sets data-font="inter" etc.)
+        if (prefs.font) {
+            readerBody.setAttribute('data-font', prefs.font);
+        }
+
+        // 3. Font Size (sets css variable)
+        if (prefs.fontSize) {
+            readerRoot.style.setProperty('--reader-base-size', `${prefs.fontSize}px`);
+        }
+
+    } catch (e) {
+        console.error("Error applying preferences", e);
+    }
+}
+
 function initializeReader() {
+    // Apply visual settings immediately
+    applyPreferences();
+
     let currentUser = null;
     let savedBookDocId = null; 
 
@@ -121,6 +154,16 @@ function initializeReader() {
 
     // --- PRESENCE SYSTEM ---
     async function startPresenceHeartbeat(user) {
+        // CHECK SETTINGS FOR GHOST MODE
+        const prefsJson = localStorage.getItem('abooki_reader_prefs');
+        if (prefsJson) {
+            const prefs = JSON.parse(prefsJson);
+            if (prefs.ghostMode) {
+                console.log("Ghost mode active. Not broadcasting presence.");
+                return;
+            }
+        }
+
         if (!bookData || !user) return;
 
         // 1. Fetch user's avatar config first
@@ -235,10 +278,10 @@ function initializeReader() {
 
         if (currentPage === 0) {
             contentEl.innerHTML = `
-                <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: #333;">${bookData.title}</h1>
+                <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: var(--reader-text);">${bookData.title}</h1>
                 <p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p>
-                <p style="text-align: center; font-size: 1rem; color: #555; max-width: 600px; margin: 2rem auto 0 auto;">${bookData.description}</p>
-                <p style="text-align: center; color: #555; margin-top: 6rem;">Click "Next" to begin.</p>
+                <p style="text-align: center; opacity: 0.8; max-width: 600px; margin: 2rem auto 0 auto;">${bookData.description}</p>
+                <p style="text-align: center; opacity: 0.8; margin-top: 6rem;">Click "Next" to begin.</p>
             `;
         } else {
             const pageText = bookData.pages[currentPage - 1];

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preferences - abooki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body data-page="settings">
+
+    <header class="main-header">
+        <nav class="main-nav">
+            <div class="logo">ABOOKI</div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li>
+                    <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
+                        <span class="ai-part">A</span>
+                        <span class="book-part">BOOK</span>
+                        <span class="i-part">I</span>
+                    </a>
+                </li>
+                <li><a href="library.html" class="nav-link">Central Library</a></li>
+                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
+                <li><a href="mylist.html" class="nav-link">My List</a></li>
+            </ul>
+            <div class="nav-profile">
+                <!-- Content will be injected by nav.js -->
+                <a href="login.html" class="nav-profile-link">
+                    <i data-feather="user"></i>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="settings-main">
+        <div class="settings-header">
+            <h1>Preferences</h1>
+            <p>Manage your reading experience and privacy.</p>
+        </div>
+
+        <div class="settings-grid">
+            
+            <!-- CARD 1: Reading Preferences -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <div class="header-title-group">
+                        <i data-feather="book-open" class="card-icon"></i>
+                        <h2>Reading Defaults</h2>
+                    </div>
+                    <button id="reset-defaults-btn" class="btn-reset" title="Reset to defaults">Reset</button>
+                </div>
+                <div class="card-body">
+                    <p class="section-desc">Set your preferred look for all books. These settings will apply automatically when you open a new book.</p>
+                    
+                    <!-- Theme Selector -->
+                    <div class="control-group">
+                        <label>Default Theme</label>
+                        <div class="theme-picker" id="theme-options">
+                            <div class="theme-option light" data-theme="light" title="Light Mode">
+                                <span>Aa</span>
+                            </div>
+                            <div class="theme-option sepia" data-theme="sepia" title="Sepia Mode">
+                                <span>Aa</span>
+                            </div>
+                            <div class="theme-option dark" data-theme="dark" title="Dark Mode">
+                                <span>Aa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Font Selector -->
+                    <div class="control-group">
+                        <label>Preferred Typeface</label>
+                        <select id="font-select" class="form-select">
+                            <optgroup label="Serif (Classic)">
+                                <option value="lora">Lora (Default)</option>
+                                <option value="merriweather">Merriweather</option>
+                                <option value="playfair">Playfair Display</option>
+                                <option value="roboto-slab">Roboto Slab</option>
+                                <option value="libre-baskerville">Libre Baskerville</option>
+                                <option value="eb-garamond">EB Garamond</option>
+                            </optgroup>
+                            <optgroup label="Sans-Serif (Modern)">
+                                <option value="inter">Inter (Default)</option>
+                                <option value="roboto">Roboto</option>
+                                <option value="open-sans">Open Sans</option>
+                                <option value="montserrat">Montserrat</option>
+                                <option value="lato">Lato</option>
+                                <option value="poppins">Poppins</option>
+                                <option value="nunito">Nunito</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="inconsolata">Inconsolata (Code)</option>
+                                <option value="patrick-hand">Patrick Hand (Handwritten)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                     <!-- Size Selector -->
+                     <div class="control-group">
+                        <label>Base Text Size</label>
+                        <input type="range" id="font-size-range" min="14" max="24" step="1" class="form-range">
+                        <div class="range-labels">
+                            <span style="font-size: 14px">Small</span>
+                            <span id="font-size-display">18px</span>
+                            <span style="font-size: 24px">Large</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2: Privacy & System -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <div class="header-title-group">
+                        <i data-feather="shield" class="card-icon"></i>
+                        <h2>Privacy & System</h2>
+                    </div>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Ghost Mode -->
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <label for="ghost-mode-toggle">Ghost Mode</label>
+                            <p>Hide your presence from the "Active Readers" list in the library.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="ghost-mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <hr class="divider">
+
+                    <!-- Sound Effects -->
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <label for="sfx-toggle">Sound Effects</label>
+                            <p>Play sounds when you rate books or unlock achievements.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="sfx-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <hr class="divider">
+
+                    <!-- Data Actions -->
+                     <div class="data-actions">
+                        <button class="btn btn-outline" id="clear-cache-btn">Clear Local Cache</button>
+                        <button class="btn btn-primary" id="save-prefs-btn">Save Preferences</button>
+                     </div>
+                     <p id="save-message" class="save-message"></p>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2025 abooki. All rights reserved.</p>
+    </footer>
+
+    <script>
+      feather.replace()
+    </script>
+    <script type="module" src="settings.js"></script>
+</body>
+</html>

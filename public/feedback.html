@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>abooki - Your Book Library</title>
+    <title>Community Feedback - abooki</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="feedback.css">
 </head>
-<body data-page="home">
+<body data-page="feedback">
 
     <header class="main-header">
         <nav class="main-nav">
             <div class="logo">ABOOKI</div>
             <ul class="nav-links">
-                <li><a href="index.html" class="nav-link active">Home</a></li>
-                
+                <li><a href="index.html" class="nav-link">Home</a></li>
                 <li>
                     <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
                         <span class="ai-part">A</span>
@@ -26,7 +25,6 @@
                         <span class="i-part">I</span>
                     </a>
                 </li>
-
                 <li><a href="library.html" class="nav-link">Central Library</a></li>
                 <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
                 <li><a href="mylist.html" class="nav-link">My List</a></li>
@@ -37,32 +35,36 @@
                     <i data-feather="user"></i>
                 </a>
             </div>
-            </nav>
+        </nav>
     </header>
 
-    <main>
-        <section class="hero-section">
-            <div class="hero-content">
-                </div>
-        </section>
+    <main class="feedback-main">
+        <section class="feedback-container">
+            <div class="feedback-header">
+                <h1>Community Feedback</h1>
+                <p>Help us improve abooki! Share your thoughts, bugs, or feature requests.</p>
+            </div>
 
-        <!-- NEW: Search & Continue Reading Area -->
-        <section class="discovery-section">
-            <div id="continue-reading-container"></div>
-            
-            <div class="home-search-container">
-                <div class="search-icon-wrapper">
-                    <i data-feather="search"></i>
+            <!-- Input Section -->
+            <div class="feedback-input-area">
+                <div class="current-user-avatar">
+                    <!-- Injected by JS -->
+                    <i data-feather="user"></i>
                 </div>
-                <input type="text" id="home-search-input" placeholder="Search by title, author, or genre...">
+                <div class="input-wrapper">
+                    <textarea id="feedback-text" placeholder="Add a public comment..." rows="1"></textarea>
+                    <div class="input-actions" id="input-actions" style="display: none;">
+                        <button class="btn btn-secondary" id="cancel-comment-btn">Cancel</button>
+                        <button class="btn btn-primary" id="post-comment-btn" disabled>Comment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments List -->
+            <div id="comments-list" class="comments-list">
+                <div class="loading-spinner">Loading comments...</div>
             </div>
         </section>
-
-        <section class="book-shelves">
-            <div id="book-shelves-container">
-                </div>
-        </section>
-
     </main>
 
     <footer class="main-footer">
@@ -72,6 +74,6 @@
     <script>
       feather.replace()
     </script>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="feedback.js"></script>
 </body>
 </html>

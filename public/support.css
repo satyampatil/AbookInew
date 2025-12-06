@@ -4,21 +4,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Changed from justify-content: center to flex-start to fix scroll clipping */
     justify-content: flex-start; 
     min-height: calc(100vh - 140px);
-    padding: 4rem 2rem; /* Increased top padding for better spacing from header */
+    padding: calc(70px + 3rem) 2rem 4rem 2rem;
     background: radial-gradient(circle at center, #1a1a1a 0%, #111 100%);
 }
 
 .secret-container {
-    max-width: 800px;
+    max-width: 1000px; /* Increased width to accommodate grid */
     width: 100%;
     text-align: center;
     animation: fadeIn 0.8s ease-out;
-    /* Ensure it has space to breathe */
-    margin-top: 2rem; 
-    margin-bottom: 2rem;
 }
 
 @keyframes fadeIn {
@@ -26,6 +22,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* --- HEADER ICONS --- */
 .icon-wrapper {
     width: 80px;
     height: 80px;
@@ -55,24 +52,207 @@ h1 {
 .subtitle {
     color: #888;
     font-size: 1.1rem;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.6;
+}
+
+/* --- NEW SECTIONS --- */
+section {
+    margin-bottom: 3rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-header-centered {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* --- GRID LAYOUT --- */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+    text-align: left;
+}
+
+@media (max-width: 850px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* About Project */
+.about-section h2 {
+    display: block; /* Align left inside grid */
+    margin-bottom: 1.5rem;
+}
+
+.about-section .text-content {
+    background-color: rgba(255, 255, 255, 0.03);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #333;
+    text-align: left;
+    color: #ccc;
+    line-height: 1.7;
+    height: 100%; /* Match height with profile card */
+}
+
+.about-section p {
+    margin-bottom: 1rem;
+}
+.about-section p:last-child {
+    margin-bottom: 0;
+}
+.about-section strong {
+    color: #FFD700;
+}
+
+/* --- PROFILE CARD (About Me) --- */
+.profile-card {
+    background: linear-gradient(145deg, #222, #1a1a1a);
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 1.5rem;
+}
+
+.profile-avatar-placeholder {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #E50914, #8b0000);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+    flex-shrink: 0;
+}
+
+.initials {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.profile-info h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+    color: #fff;
+}
+
+.role {
+    font-size: 0.9rem;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.profile-body p {
+    color: #aaa;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.social-btn.linkedin {
+    background-color: #0077b5;
+    color: white;
+}
+.social-btn.linkedin:hover {
+    background-color: #006097;
+    transform: translateY(-2px);
+}
+
+.social-btn.email {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+}
+.social-btn.email:hover {
+    background-color: #444;
+}
+
+.social-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+
+/* --- SUPPORT SECTION --- */
+.section-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #666;
+    margin: 3rem 0;
+}
+.section-divider::before, .section-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #333;
+}
+.section-divider span {
+    padding: 0 1rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .donation-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
+    gap: 1.5rem;
+    margin-top: 2rem;
 }
 
 .donate-card {
     background-color: rgba(255, 255, 255, 0.03);
     border: 1px solid #333;
     border-radius: 12px;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: left;
     transition: transform 0.3s ease, border-color 0.3s ease;
 }
@@ -95,7 +275,7 @@ h1 {
 }
 
 .card-header h3 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin: 0;
     color: #fff;
 }
@@ -119,30 +299,28 @@ h1 {
 .copy-field {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     background-color: rgba(0, 0, 0, 0.3);
-    padding: 0.75rem;
+    padding: 0.6rem;
     border-radius: 6px;
     margin-bottom: 0.5rem;
     border: 1px solid #333;
 }
 
-/* --- FIX OVERLAP HERE --- */
 .copy-field .label {
     color: #666;
     font-size: 0.85rem;
-    /* Increased width to fit 'Account' and 'First Name' */
-    width: 90px; 
-    flex-shrink: 0; /* Prevent label from squishing */
+    width: 60px; 
+    flex-shrink: 0;
 }
 
 .copy-field .value {
     color: #ddd;
     font-family: monospace;
-    font-size: 1rem;
+    font-size: 0.95rem;
     flex-grow: 1;
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Handle very long numbers gracefully */
+    text-overflow: ellipsis;
 }
 
 .copy-btn {
@@ -152,23 +330,80 @@ h1 {
     cursor: pointer;
     transition: color 0.2s;
     padding: 4px;
-    margin-left: 8px; /* Add some space between value and icon */
+    margin-left: 8px;
 }
+.copy-btn:hover { color: #fff; }
 
-.copy-btn:hover {
-    color: #fff;
-}
-
-.full-width {
-    width: 100%;
-}
+.full-width { width: 100%; }
 
 .footer-note {
     font-size: 0.85rem;
     color: #555;
+    margin-top: 3rem;
 }
 
-/* Toast Notification for Copy */
+/* --- APPLE PAY BUTTON STYLES --- */
+.apple-pay-section {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.divider-small {
+    display: flex;
+    align-items: center;
+    color: #555;
+    font-size: 0.8rem;
+    margin: 1rem 0;
+}
+.divider-small::before, .divider-small::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #333;
+}
+.divider-small span { padding: 0 10px; }
+
+.apple-pay-button {
+    background-color: black;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 6px;
+    width: 100%;
+    height: 48px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    
+    /* Native Apple Pay styles (Safari only) */
+    -webkit-appearance: -apple-pay-button;
+    -apple-pay-button-type: donate;
+    -apple-pay-button-style: black;
+}
+
+.apple-pay-button:hover {
+    opacity: 0.9;
+    border-color: #555;
+}
+
+/* Fallback Logo for non-Safari */
+.apple-logo-fallback {
+    /* We use a simple unicode icon or pure CSS representation for fallback to avoid external images */
+    width: 50px;
+    height: 24px;
+    background-color: white; /* Mask */
+    -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 20"><path d="M7.74 8.78c.03-1.63.85-2.6 2.3-3.32-.42-1.2-1.3-1.8-2.5-1.83-1.07-.03-2.07.62-2.63.62-.57 0-1.46-.6-2.4-.58-1.23.02-2.38.73-3 1.83-1.3 2.22-.33 5.5 1 7.4.63.92 1.38 1.95 2.37 1.92 1-.03 1.35-.63 2.53-.63 1.18 0 1.5.63 2.55.6 1.05-.03 1.7-.93 2.33-1.87.73-1.05 1.03-2.08 1.05-2.13-.02-.02-2.05-.78-2.1-3.08m2.1-4.7c.55-.65.92-1.57.82-2.48-.8.03-1.75.53-2.32 1.2-.5.58-.95 1.53-.83 2.42.88.07 1.78-.47 2.33-1.13m4.68 9.38h1.2v-2.3h2.32v-1.18h-2.33v-2.3h-1.2v2.3h-2.3v1.18h2.32v2.3z"/></svg>') no-repeat center;
+    mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 20"><path d="M7.74 8.78c.03-1.63.85-2.6 2.3-3.32-.42-1.2-1.3-1.8-2.5-1.83-1.07-.03-2.07.62-2.63.62-.57 0-1.46-.6-2.4-.58-1.23.02-2.38.73-3 1.83-1.3 2.22-.33 5.5 1 7.4.63.92 1.38 1.95 2.37 1.92 1-.03 1.35-.63 2.53-.63 1.18 0 1.5.63 2.55.6 1.05-.03 1.7-.93 2.33-1.87.73-1.05 1.03-2.08 1.05-2.13-.02-.02-2.05-.78-2.1-3.08m2.1-4.7c.55-.65.92-1.57.82-2.48-.8.03-1.75.53-2.32 1.2-.5.58-.95 1.53-.83 2.42.88.07 1.78-.47 2.33-1.13m4.68 9.38h1.2v-2.3h2.32v-1.18h-2.33v-2.3h-1.2v2.3h-2.3v1.18h2.32v2.3z"/></svg>') no-repeat center;
+    background-size: contain;
+}
+
+/* Hide fallback if native button works */
+@supports (-webkit-appearance: -apple-pay-button) {
+    .apple-logo-fallback { display: none; }
+}
+
+
+/* Toast */
 .toast {
     position: fixed;
     bottom: 30px;
@@ -184,7 +419,6 @@ h1 {
     pointer-events: none;
     z-index: 2000;
 }
-
 .toast.show {
     opacity: 1;
     transform: translateX(-50%) translateY(-10px);

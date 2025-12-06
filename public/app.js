@@ -1,8 +1,7 @@
 // --- HOME PAGE LOGIC (DYNAMIC) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, orderBy, limit } 
-    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { updateNavUser } from "./nav.js";
 
 // Firebase Config
@@ -38,11 +37,18 @@ function getRatingStats(ratings) {
     };
 }
 
+// --- HELPER: Safe JSON Escape for HTML Attributes ---
+function safeEscape(obj) {
+    return JSON.stringify(obj)
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, "&#39;");
+}
+
 // --- MAIN FETCH LOGIC ---
 async function loadHomePage() {
     const heroContent = document.querySelector('.hero-content');
-    const shelvesContainer = document.getElementById('book-shelves-container');
-
+    
+    // Initial Loading State
     if (heroContent) heroContent.innerHTML = '<h1>Curating Best Books...</h1>';
 
     try {
@@ -90,6 +96,7 @@ async function loadHomePage() {
             .slice(0, 8);
 
         // --- BUILD HERO SECTION ---
+        // Prioritize top rated, otherwise newest
         const heroBook = topRated.length > 0 ? topRated[0] : newArrivals[0];
         buildHero(heroBook);
 
@@ -187,10 +194,8 @@ function buildHero(book) {
         url('${book.coverUrl || 'https://placehold.co/1200x600/1a1a1a/FFF?text=No+Cover'}')
     `;
     
-    const safeData = JSON.stringify({
-        ...book,
-        isPublicView: true 
-    }).replace(/"/g, '&quot;');
+    // Safe Encode for HTML Attribute
+    const safeData = safeEscape(book);
 
     const stars = Math.round(book.avgRating);
     let starsHtml = '';
@@ -224,9 +229,16 @@ function buildHero(book) {
     const btn = heroContent.querySelector('.read-book-btn');
     if(btn) {
         btn.addEventListener('click', () => {
-            const data = JSON.parse(btn.getAttribute('data-book'));
-            localStorage.setItem('generatedBook', JSON.stringify(data));
-            window.location.href = 'reader.html';
+            try {
+                const data = JSON.parse(btn.getAttribute('data-book'));
+                // Force Public View flag
+                data.isPublicView = true;
+                localStorage.setItem('generatedBook', JSON.stringify(data));
+                window.location.href = 'reader.html';
+            } catch(e) {
+                console.error("Error opening book", e);
+                alert("Could not open this book.");
+            }
         });
     }
 
@@ -244,10 +256,7 @@ function buildShelves(categories) {
         let booksHtml = '';
         cat.books.forEach(book => {
             
-            const safeData = JSON.stringify({
-                ...book,
-                isPublicView: true
-            }).replace(/"/g, '&quot;');
+            const safeData = safeEscape(book);
 
             const stars = Math.round(book.avgRating);
             let starIcons = '';
@@ -285,9 +294,15 @@ function buildShelves(categories) {
     const cards = document.querySelectorAll('.read-book-card');
     cards.forEach(card => {
         card.addEventListener('click', () => {
-            const data = JSON.parse(card.getAttribute('data-book'));
-            localStorage.setItem('generatedBook', JSON.stringify(data));
-            window.location.href = 'reader.html';
+            try {
+                const data = JSON.parse(card.getAttribute('data-book'));
+                // Force Public View flag
+                data.isPublicView = true;
+                localStorage.setItem('generatedBook', JSON.stringify(data));
+                window.location.href = 'reader.html';
+            } catch(e) {
+                console.error("Error opening book", e);
+            }
         });
     });
 }

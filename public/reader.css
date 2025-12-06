@@ -1,3 +1,52 @@
+/* IMPORT GOOGLE FONTS */
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inconsolata:wght@200..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Roboto+Slab:wght@100..900&display=swap');
+
+/* --- READER VARIABLES & THEMES --- */
+:root {
+    /* Default (Light) */
+    --reader-bg: #f3f3f3;
+    --reader-text: #333333;
+    --reader-font: 'Lora', serif;
+    --reader-base-size: 18px;
+    --reader-line-height: 1.8;
+}
+
+/* Sepia Theme */
+[data-theme="sepia"] {
+    --reader-bg: #f4ecd8;
+    --reader-text: #5b4636;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --reader-bg: #1a1a1a;
+    --reader-text: #d0d0d0;
+}
+
+/* --- FONT OVERRIDES --- */
+/* Serif */
+[data-font="lora"]              { --reader-font: 'Lora', serif; }
+[data-font="merriweather"]      { --reader-font: 'Merriweather', serif; --reader-line-height: 1.85; }
+[data-font="playfair"]          { --reader-font: 'Playfair Display', serif; }
+[data-font="roboto-slab"]       { --reader-font: 'Roboto Slab', serif; }
+[data-font="libre-baskerville"] { --reader-font: 'Libre Baskerville', serif; --reader-line-height: 1.85; }
+[data-font="eb-garamond"]       { --reader-font: 'EB Garamond', serif; --reader-base-size: 20px; /* Garamond is naturally small */ }
+
+/* Sans-Serif */
+[data-font="inter"]       { --reader-font: 'Inter', sans-serif; --reader-line-height: 1.6; }
+[data-font="roboto"]      { --reader-font: 'Roboto', sans-serif; --reader-line-height: 1.6; }
+[data-font="open-sans"]   { --reader-font: 'Open Sans', sans-serif; --reader-line-height: 1.6; }
+[data-font="montserrat"]  { --reader-font: 'Montserrat', sans-serif; --reader-line-height: 1.6; }
+[data-font="lato"]        { --reader-font: 'Lato', sans-serif; --reader-line-height: 1.6; }
+[data-font="poppins"]     { --reader-font: 'Poppins', sans-serif; --reader-line-height: 1.7; }
+[data-font="nunito"]      { --reader-font: 'Nunito', sans-serif; --reader-line-height: 1.6; }
+
+/* Other */
+[data-font="inconsolata"]  { --reader-font: 'Inconsolata', monospace; --reader-base-size: 17px; }
+[data-font="patrick-hand"] { --reader-font: 'Patrick Hand', cursive; --reader-base-size: 20px; }
+
+
+/* --- MAIN LAYOUT --- */
 .reader-main {
     max-width: 800px;
     margin: 0 auto;
@@ -11,27 +60,26 @@
     font-weight: 700;
     text-align: center;
     margin-bottom: 2rem;
-    color: var(--text-color);
+    color: var(--text-color); /* Keeps site header color */
 }
 
 .reader-container {
-    background-color: #f3f3f3; /* Light paper color */
-    color: #333; /* Dark text for readability */
+    background-color: var(--reader-bg); /* DYNAMIC BG */
+    color: var(--reader-text);         /* DYNAMIC TEXT */
     border-radius: 8px;
     padding: 3rem 4rem;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     min-height: 50vh;
-    position: relative; /* IMPORTANT: For absolute positioning */
+    position: relative; 
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
 }
 
-/* --- NEW: SAVE BUTTON STYLES --- */
+/* --- SAVE BUTTON STYLES --- */
 .reader-save-button {
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
     z-index: 10;
-    
-    /* Base style (circle) */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -39,14 +87,18 @@
     width: 42px;
     padding: 0;
     border-radius: 50%;
-    
     background-color: rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(0, 0, 0, 0.1);
-    color: #333;
+    color: var(--reader-text); /* Adapt icon color to theme */
     cursor: pointer;
-    overflow: hidden; /* Hides the text */
-    
+    overflow: hidden; 
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Adjust button border for dark mode visibility */
+[data-theme="dark"] .reader-save-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .reader-save-icon {
@@ -64,7 +116,6 @@
 }
 
 .reader-save-text {
-    /* Hide text by default */
     display: none; 
     white-space: nowrap;
     font-weight: 600;
@@ -72,49 +123,50 @@
     margin: 0 1rem 0 0.5rem;
 }
 
-/* Hover Animation */
 .reader-save-button:hover {
-    width: auto; /* Expand width */
-    padding-left: 0.75rem; /* Add padding */
-    border-radius: 50px; /* Pill shape */
+    width: auto;
+    padding-left: 0.75rem; 
+    border-radius: 50px; 
     background-color: rgba(0, 0, 0, 0.08);
 }
+[data-theme="dark"] .reader-save-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
 .reader-save-button:hover .reader-save-icon {
     width: auto;
-    transform: rotate(90deg); /* Animate the '+' */
+    transform: rotate(90deg);
 }
 .reader-save-button:hover .reader-save-text {
-    display: block; /* Show the text */
+    display: block; 
 }
 
 /* Saved State */
 .reader-save-button.saved {
-    background-color: #28a745; /* Green */
-    border-color: #28a745;
-    color: #fff;
+    background-color: #28a745 !important; /* Green force override */
+    border-color: #28a745 !important;
+    color: #fff !important;
     cursor: default;
 }
-.reader-save-button.saved:hover {
-    background-color: #218838;
-}
 .reader-save-button.saved:hover .reader-save-icon {
-    transform: rotate(0deg); /* No rotate on 'check' */
+    transform: rotate(0deg); 
 }
 .reader-save-button.saved .reader-save-text {
-    /* Always show "Saved!" text on hover */
     color: #fff;
 }
-/* --- END: SAVE BUTTON STYLES --- */
 
-
+/* --- CONTENT STYLES --- */
 #reader-content {
-    font-family: 'Lora', serif; /* Use a serif font for reading */
-    font-size: 1.1rem;
-    line-height: 1.8;
+    font-family: var(--reader-font);        /* DYNAMIC FONT */
+    font-size: var(--reader-base-size);     /* DYNAMIC SIZE */
+    line-height: var(--reader-line-height); /* DYNAMIC HEIGHT */
 }
-/* ... (rest of reader-content styles) ... */
 
-/* --- UPDATED: PAGINATION STYLES --- */
+#reader-content p {
+    margin-bottom: 1.5em;
+}
+
+/* --- PAGINATION STYLES --- */
 .pagination-controls {
     display: flex;
     justify-content: space-between;
@@ -122,15 +174,14 @@
     margin-top: 2rem;
 }
 
-/* REMOVED .pagination-center */
-
 .pagination-controls span {
     font-size: 1rem;
     color: var(--text-color-secondary);
-    margin: 0 auto; /* This now centers the page indicator */
+    margin: 0 auto; 
 }
-/* ... (rest of pagination styles) ... */
 
-/* REMOVED #add-to-list-btn styles */
-
-/* ... (rest of reader.css) ... */
+@media (max-width: 768px) {
+    .reader-container {
+        padding: 2rem;
+    }
+}

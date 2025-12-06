@@ -33,15 +33,16 @@ export async function updateNavUser(user) {
         }
 
         // --- UPDATED DROPDOWN STRUCTURE ---
-        // Changed link to support.html
+        // Added Link to feedback.html
         navProfileContainer.innerHTML = `
             <a href="profile.html" class="nav-profile-link">
                 ${avatarHtml}
             </a>
             <div class="nav-dropdown">
                 <a href="profile.html" class="dropdown-item">Profile</a>
+                <a href="feedback.html" class="dropdown-item">Community Feedback</a>
                 <a href="support.html" class="dropdown-item" style="color: #FFD700;">Support Us</a>
-                <a href="#" class="dropdown-item disabled">Settings</a>
+                <a href="settings.html" class="dropdown-item">Settings</a>
                 <a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a>
             </div>
         `;
