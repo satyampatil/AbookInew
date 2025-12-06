@@ -1,7 +1,6 @@
 // --- READER PAGE LOGIC (WITH PRESENCE SYSTEM) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-// ADDED: updateDoc to imports
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, where, getDocs, setDoc, getDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { updateNavUser } from "./nav.js";
@@ -24,9 +23,15 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
 let presenceInterval = null;
 let synthesis = window.speechSynthesis;
-let utterance = null;
+// FIX: Attach to window to prevent Chrome garbage collection bug
+window.currentUtterance = null;
 let isSpeaking = false;
-let wordSpans = []; // Store references to word elements
+let activeHighlight = null; 
+let activeParagraphHighlight = null; // New: Track active paragraph for fallback
+
+// Track Reading State
+let currentParagraphIndex = 0;
+let paragraphsElements = []; // Store paragraph DOM elements
 
 // --- NEW: APPLY SETTINGS ---
 function applyPreferences() {
@@ -54,219 +59,137 @@ function initializeReader() {
     const style = document.createElement('style');
     style.innerHTML = `
         .word-highlight {
-            background-color: #FFD700;
-            color: #000;
-            border-radius: 2px;
+            background-color: #FFD700 !important;
+            color: #000 !important;
+            border-radius: 3px;
+            box-shadow: 0 0 0 2px #FFD700;
             transition: background-color 0.1s;
+            z-index: 10;
+            position: relative;
+            display: inline-block;
         }
         [data-theme="dark"] .word-highlight {
-            background-color: #E50914;
-            color: #fff;
+            background-color: #E50914 !important;
+            color: #fff !important;
+            box-shadow: 0 0 0 2px #E50914;
+        }
+        /* NEW: Fallback Paragraph Highlight */
+        .active-paragraph {
+            background-color: rgba(255, 215, 0, 0.15);
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        [data-theme="dark"] .active-paragraph {
+            background-color: rgba(255, 255, 255, 0.05);
         }
     `;
     document.head.appendChild(style);
 
     let currentUser = null;
-    let savedBookDocId = null; 
+    let savedBookDocId = null;
+    let bookData = null;
+    let currentPage = 0; 
 
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        updateNavUser(user);
-        if (user) {
-            checkIfSaved(user);
-            startPresenceHeartbeat(user);
-        } else {
-            stopPresenceHeartbeat();
-        }
-        updateButtonsState(); 
-    });
-
-    // Clean up
-    window.addEventListener('beforeunload', () => {
-        stopPresenceHeartbeat();
-        stopAudio(); // Stop talking if tab closes
-    });
-
+    // --- 1. SETUP UI ELEMENTS (Define these first so functions can use them) ---
     const titleEl = document.getElementById('reader-title');
     const contentEl = document.getElementById('reader-content');
     const pageIndicator = document.getElementById('page-indicator');
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
     
-    // Updated: Select the dropdown container
     const dropdownContainer = document.getElementById('reader-actions-dropdown');
-    // NEW: Select the trigger button
     const menuTrigger = document.querySelector('.reader-menu-trigger');
     
-    if (!dropdownContainer || !menuTrigger) {
-        console.error("Dropdown container or trigger not found!");
-        return;
-    }
+    if (!dropdownContainer || !menuTrigger) return;
 
-    // Toggle menu on click
+    // Setup Menu UI
     menuTrigger.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent closing immediately
+        e.stopPropagation();
         dropdownContainer.classList.toggle('show');
     });
 
-    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.reader-menu-container')) {
             dropdownContainer.classList.remove('show');
         }
     });
     
-    dropdownContainer.innerHTML = ''; // Clear previous
+    dropdownContainer.innerHTML = '';
 
-    // 1. Audio Button
     const audioBtn = document.createElement('button');
     audioBtn.className = 'reader-menu-btn';
     audioBtn.id = 'audio-btn';
-    audioBtn.innerHTML = `
-        <span class="reader-menu-icon"><i data-feather="headphones"></i></span>
-        <span class="reader-menu-text">Listen</span>
-    `;
+    audioBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="headphones"></i></span><span class="reader-menu-text">Listen</span>`;
 
-    // 2. Save/Remove Button
     const saveListBtn = document.createElement('button');
     saveListBtn.className = 'reader-menu-btn';
     saveListBtn.id = 'save-list-btn';
-    saveListBtn.innerHTML = `
-        <span class="reader-menu-icon"><i data-feather="bookmark"></i></span>
-        <span class="reader-menu-text">Save to List</span>
-    `;
+    saveListBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="bookmark"></i></span><span class="reader-menu-text">Save to List</span>`;
     
-    // 3. Publish Button
     const saveCloudBtn = document.createElement('button');
     saveCloudBtn.className = 'reader-menu-btn';
     saveCloudBtn.id = 'save-cloud-btn';
-    saveCloudBtn.innerHTML = `
-        <span class="reader-menu-icon"><i data-feather="cloud"></i></span>
-        <span class="reader-menu-text">Publish to Cloud</span>
-    `;
+    saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="cloud"></i></span><span class="reader-menu-text">Publish to Cloud</span>`;
 
     dropdownContainer.appendChild(audioBtn);
     dropdownContainer.appendChild(saveListBtn);
     dropdownContainer.appendChild(saveCloudBtn);
 
-    let bookData = null;
-    let currentPage = 0; 
 
-    try {
-        const bookJson = localStorage.getItem('generatedBook');
-        if (!bookJson) throw new Error("No book data found.");
-        bookData = JSON.parse(bookJson);
-        if (!bookData || !bookData.title || !bookData.pages) throw new Error("Invalid book data.");
+    // --- 2. DEFINE HELPER FUNCTIONS (Before they are called) ---
 
-        updatePage();
-        if (typeof feather !== 'undefined') feather.replace();
-
-    } catch (error) {
-        console.error("Error loading book:", error);
-        if(titleEl) titleEl.textContent = "Error";
-        if(contentEl) contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
-    }
-
-    // --- AUDIO LOGIC ---
-    function stopAudio() {
-        if (synthesis.speaking) {
-            synthesis.cancel();
-        }
-        isSpeaking = false;
-        
-        // Remove highlights
-        document.querySelectorAll('.word-highlight').forEach(el => el.classList.remove('word-highlight'));
-        
-        audioBtn.classList.remove('speaking');
-        audioBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="headphones"></i></span><span class="reader-menu-text">Listen</span>`;
-        if (typeof feather !== 'undefined') feather.replace();
-    }
-
-    function playAudio(text) {
-        stopAudio(); // clear previous
-        if (!text) return;
-
-        // Reset word spans map for highlighting logic (simple approach)
-        // Note: Exact word mapping with onboundary is complex because speech engines vary.
-        // We will try a best-effort mapping using text index.
-
-        utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        
-        const voices = synthesis.getVoices();
-        const preferredVoice = voices.find(v => v.name.includes("Google US English") || v.name.includes("Samantha"));
-        if (preferredVoice) utterance.voice = preferredVoice;
-
-        utterance.onboundary = (event) => {
-            if (event.name === 'word') {
-                highlightWordAtIndex(event.charIndex, text);
-            }
-        };
-
-        utterance.onend = () => {
-            stopAudio();
-        };
-
-        synthesis.speak(utterance);
-        isSpeaking = true;
-        
-        audioBtn.classList.add('speaking');
-        audioBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="mic-off"></i></span><span class="reader-menu-text">Stop Speaking</span>`;
-        if (typeof feather !== 'undefined') feather.replace();
-    }
-
-    function highlightWordAtIndex(charIndex, fullText) {
-        // Clear previous highlight
-        const prev = document.querySelector('.word-highlight');
-        if (prev) prev.classList.remove('word-highlight');
-
-        // Robust highlighting: Find span that starts closest to charIndex
-        let currentIdx = 0;
-        
-        for (let i = 0; i < wordSpans.length; i++) {
-            const span = wordSpans[i];
-            const word = span.textContent;
-            
-            // Advance currentIdx to match the start of this word in fullText
-            // This handles whitespace/punctuation discrepancies
-            const wordStartInText = fullText.indexOf(word, currentIdx);
-            
-            if (wordStartInText === -1) continue; // word not found? skip
-            
-            const wordEndInText = wordStartInText + word.length;
-            
-            // If the TTS charIndex falls within or right before this word
-            // We use a small tolerance because 'onboundary' sometimes fires slightly before/after
-            if (charIndex >= wordStartInText && charIndex < wordEndInText + 2) {
-                span.classList.add('word-highlight');
-                span.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return; // Found it
-            }
-            
-            // Update current index to start searching for next word after this one
-            currentIdx = wordEndInText;
-        }
-    }
-
-    audioBtn.addEventListener('click', () => {
-        if (isSpeaking) {
-            stopAudio();
+    function setSaveButtonState(isSaved) {
+        if (isSaved) {
+            saveListBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="check"></i></span><span class="reader-menu-text">In Library</span>`;
+            saveListBtn.classList.add('saved'); 
         } else {
-            // Get text from visible spans to ensure synchronization
-            let textToRead = "";
-            if (wordSpans.length > 0) {
-                textToRead = wordSpans.map(span => span.textContent).join(' ');
-            } else if (currentPage === 0) {
-                textToRead = `${bookData.title}. A ${bookData.genre || 'Story'}. ${bookData.description}`;
-            } else {
-                textToRead = bookData.pages[currentPage - 1];
-            }
-            playAudio(textToRead);
+            saveListBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="bookmark"></i></span><span class="reader-menu-text">Save to List</span>`;
+            saveListBtn.classList.remove('saved');
         }
-    });
+        if (typeof feather !== 'undefined') feather.replace();
+    }
 
-    // --- PRESENCE SYSTEM ---
+    async function checkIfSaved(user) {
+        if (!bookData) return;
+        try {
+            const q = query(
+                collection(db, 'artifacts', appId, 'users', user.uid, 'books'),
+                where('title', '==', bookData.title),
+                where('description', '==', bookData.description)
+            );
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                savedBookDocId = snapshot.docs[0].id; 
+                setSaveButtonState(true);
+            } else {
+                savedBookDocId = null;
+                setSaveButtonState(false);
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function updateButtonsState() {
+        if (!bookData) return;
+        if (bookData.isPublicView || bookData.publicId) {
+            saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="globe"></i></span><span class="reader-menu-text">Public (Cloud)</span>`;
+            saveCloudBtn.classList.add('saved');
+            saveCloudBtn.disabled = true;
+        } else {
+            const isPrivateCopyOwner = currentUser && (bookData.userId === currentUser.uid || !bookData.userId);
+            const isOriginalAuthor = !bookData.originalUserId || (currentUser && bookData.originalUserId === currentUser.uid);
+
+            if (isPrivateCopyOwner && isOriginalAuthor) {
+                saveCloudBtn.disabled = false;
+                saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="upload-cloud"></i></span><span class="reader-menu-text">Publish</span>`;
+                saveCloudBtn.style.display = 'flex';
+            } else {
+                saveCloudBtn.style.display = 'none'; 
+            }
+        }
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
     async function startPresenceHeartbeat(user) {
         const prefsJson = localStorage.getItem('abooki_reader_prefs');
         if (prefsJson) {
@@ -308,88 +231,242 @@ function initializeReader() {
         }
     }
 
-    // --- CHECK FIREBASE STATUS ---
-    async function checkIfSaved(user) {
-        if (!bookData) return;
+
+    // --- 3. AUTH LISTENER (Now safe to call functions) ---
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        updateNavUser(user);
+        if (user) {
+            checkIfSaved(user);
+            startPresenceHeartbeat(user);
+        } else {
+            stopPresenceHeartbeat();
+        }
+        updateButtonsState(); 
+    });
+
+
+    // --- 4. LOAD BOOK DATA ---
+    try {
+        const bookJson = localStorage.getItem('generatedBook');
+        if (!bookJson) throw new Error("No book data found.");
+        bookData = JSON.parse(bookJson);
+        if (!bookData || !bookData.title || !bookData.pages) throw new Error("Invalid book data.");
+
+        updatePage();
+        if (typeof feather !== 'undefined') feather.replace();
+
+    } catch (error) {
+        console.error("Error loading book:", error);
+        if(titleEl) titleEl.textContent = "Error";
+        if(contentEl) contentEl.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
+    }
+
+    // --- 5. AUDIO & PAGE LOGIC ---
+
+    if (synthesis.onvoiceschanged !== undefined) {
+        synthesis.onvoiceschanged = () => {
+             console.log("Voices loaded:", synthesis.getVoices().length);
+        };
+    }
+
+    function stopAudio() {
+        if (synthesis.speaking) {
+            synthesis.cancel();
+        }
+        isSpeaking = false;
+        currentParagraphIndex = 0; 
+        
+        if (activeHighlight) {
+            activeHighlight.classList.remove('word-highlight');
+            activeHighlight = null;
+        }
+
+        // Remove paragraph highlight
+        if (activeParagraphHighlight) {
+            activeParagraphHighlight.classList.remove('active-paragraph');
+            activeParagraphHighlight = null;
+        }
+        
+        audioBtn.classList.remove('speaking');
+        audioBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="headphones"></i></span><span class="reader-menu-text">Listen</span>`;
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    function playAudio(startFromIndex = 0) {
+        if (synthesis.speaking) synthesis.cancel();
+        
+        isSpeaking = true;
+        currentParagraphIndex = startFromIndex;
+        
+        audioBtn.classList.add('speaking');
+        audioBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="mic-off"></i></span><span class="reader-menu-text">Stop Speaking</span>`;
+        if (typeof feather !== 'undefined') feather.replace();
+
+        speakNextParagraph();
+    }
+
+    function speakNextParagraph() {
+        if (!isSpeaking) return;
+
+        if (currentParagraphIndex >= paragraphsElements.length) {
+            stopAudio();
+            return;
+        }
+
+        const p = paragraphsElements[currentParagraphIndex];
+        
+        // --- PARAGRAPH HIGHLIGHT (RESET) ---
+        // Clean up previous paragraph highlight
+        if (activeParagraphHighlight) {
+            activeParagraphHighlight.classList.remove('active-paragraph');
+            activeParagraphHighlight = null;
+        }
+
+        const spans = Array.from(p.querySelectorAll('.read-word'));
+        
+        if (spans.length === 0) {
+            currentParagraphIndex++;
+            speakNextParagraph();
+            return;
+        }
+
+        let textToRead = "";
+        const spanMap = [];
+        let cursor = 0;
+
+        // Optimized Map Builder: Trims text to ensure index matching
+        spans.forEach(span => {
+            const text = span.textContent.trim(); 
+            if (!text) return; 
+
+            if (textToRead.length > 0) {
+                textToRead += " ";
+                cursor++; 
+            }
+
+            const start = cursor;
+            const end = cursor + text.length;
+            spanMap.push({ start, end, element: span });
+            textToRead += text;
+            cursor = end;
+        });
+
+        // Use global window variable to prevent GC
+        window.currentUtterance = new SpeechSynthesisUtterance(textToRead);
+        const utterance = window.currentUtterance;
+        utterance.rate = 1.0;
+        
+        // --- VOICE SELECTION UPDATE ---
+        const voices = synthesis.getVoices();
+        let voice = null;
+        
+        // 1. Try to load user preference
         try {
-            const q = query(
-                collection(db, 'artifacts', appId, 'users', user.uid, 'books'),
-                where('title', '==', bookData.title),
-                where('description', '==', bookData.description)
-            );
-            const snapshot = await getDocs(q);
+            const prefsJson = localStorage.getItem('abooki_reader_prefs');
+            if (prefsJson) {
+                const prefs = JSON.parse(prefsJson);
+                if (prefs.voiceURI) {
+                    voice = voices.find(v => v.voiceURI === prefs.voiceURI);
+                }
+            }
+        } catch (e) { console.error("Error reading voice pref", e); }
+
+        // 2. Fallback if no preference or voice not found
+        if (!voice) {
+            voice = voices.find(v => v.name.includes("Google US English") && v.localService);
+            if (!voice) voice = voices.find(v => v.name.includes("Google US English"));
+            if (!voice) voice = voices.find(v => v.lang.startsWith("en") && v.localService);
+            if (!voice) voice = voices.find(v => v.lang.startsWith("en"));
+        }
+        
+        if (voice) {
+            utterance.voice = voice;
+            console.log("Using voice:", voice.name);
             
-            if (!snapshot.empty) {
-                savedBookDocId = snapshot.docs[0].id; 
-                setSaveButtonState(true);
-            } else {
-                savedBookDocId = null;
-                setSaveButtonState(false);
-            }
-        } catch (err) { console.error(err); }
-    }
-
-    function setSaveButtonState(isSaved) {
-        if (isSaved) {
-            saveListBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="check"></i></span><span class="reader-menu-text">In Library</span>`;
-            saveListBtn.classList.add('saved'); 
-        } else {
-            saveListBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="bookmark"></i></span><span class="reader-menu-text">Save to List</span>`;
-            saveListBtn.classList.remove('saved');
-        }
-        if (typeof feather !== 'undefined') feather.replace();
-    }
-
-    function updateButtonsState() {
-        if (!bookData) return;
-        if (bookData.isPublicView || bookData.publicId) {
-            saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="globe"></i></span><span class="reader-menu-text">Public (Cloud)</span>`;
-            saveCloudBtn.classList.add('saved');
-            saveCloudBtn.disabled = true;
-        } else {
-            const isPrivateCopyOwner = currentUser && (bookData.userId === currentUser.uid || !bookData.userId);
-            const isOriginalAuthor = !bookData.originalUserId || (currentUser && bookData.originalUserId === currentUser.uid);
-
-            if (isPrivateCopyOwner && isOriginalAuthor) {
-                saveCloudBtn.disabled = false;
-                saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="upload-cloud"></i></span><span class="reader-menu-text">Publish</span>`;
-                saveCloudBtn.style.display = 'flex';
-            } else {
-                saveCloudBtn.style.display = 'none'; 
+            // CONDITIONAL FALLBACK:
+            // Only highlight the paragraph if the voice is NOT local (Network voice)
+            if (!voice.localService) {
+                console.warn("Using Network voice. Switching to Paragraph-level highlighting.");
+                if (p) {
+                    activeParagraphHighlight = p;
+                    p.classList.add('active-paragraph');
+                }
             }
         }
-        if (typeof feather !== 'undefined') feather.replace();
+        
+        utterance.onboundary = (event) => {
+            // Check for valid boundary event
+            if (typeof event.charIndex === 'number') {
+                const charIndex = event.charIndex;
+                const match = spanMap.find(m => charIndex >= m.start && charIndex < m.end + 2);
+                
+                if (match) {
+                    highlightElement(match.element);
+                }
+            }
+        };
+
+        utterance.onend = () => {
+            if (isSpeaking) {
+                currentParagraphIndex++;
+                speakNextParagraph();
+            }
+        };
+
+        utterance.onerror = (e) => {
+            if (e.error === 'interrupted' || e.error === 'canceled') return;
+            console.error("TTS Error:", e);
+            stopAudio();
+        };
+
+        synthesis.speak(utterance);
+        
+        if (p) p.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+
+    function highlightElement(el) {
+        if (activeHighlight) {
+            activeHighlight.classList.remove('word-highlight');
+        }
+        activeHighlight = el;
+        activeHighlight.classList.add('word-highlight');
+    }
+
+    audioBtn.addEventListener('click', () => {
+        if (isSpeaking) {
+            stopAudio();
+        } else {
+            playAudio(0);
+        }
+    });
 
     function updatePage() {
-        stopAudio(); // Stop speaking when page turns
+        stopAudio(); 
 
         if (!bookData) return;
         const totalPages = bookData.pages.length + 1; 
         titleEl.textContent = bookData.title;
-        wordSpans = []; // Reset spans
+        paragraphsElements = []; 
 
         if (currentPage === 0) {
-            // We need to wrap text in spans for highlighting
             const titleHtml = wrapWords(bookData.title);
             const descHtml = wrapWords(bookData.description);
             
             contentEl.innerHTML = `
-                <h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: var(--reader-text);">${titleHtml}</h1>
-                <p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p>
-                <p style="text-align: center; opacity: 0.8; max-width: 600px; margin: 2rem auto 0 auto;">${descHtml}</p>
-                <p style="text-align: center; opacity: 0.8; margin-top: 6rem;">Click "Next" to begin.</p>
+                <div class="reader-paragraph"><h1 style="text-align: center; margin-top: 4rem; font-size: 2.5rem; color: var(--reader-text);">${titleHtml}</h1></div>
+                <div class="reader-paragraph"><p style="text-align: center; font-size: 1.2rem; font-style: italic; margin-top: 1rem;">A ${bookData.genre || 'Story'}</p></div>
+                <div class="reader-paragraph"><p style="text-align: center; opacity: 0.8; max-width: 600px; margin: 2rem auto 0 auto;">${descHtml}</p></div>
+                <div class="reader-paragraph"><p style="text-align: center; opacity: 0.8; margin-top: 6rem;">Click "Next" to begin.</p></div>
             `;
         } else {
             const pageText = bookData.pages[currentPage - 1];
-            // Split by newlines first to keep paragraph structure
-            const paragraphs = pageText.split('\n');
-            const pHTML = paragraphs.map(p => `<p>${wrapWords(p)}</p>`).join('');
+            const rawParagraphs = pageText.split('\n');
+            const pHTML = rawParagraphs.map(p => `<div class="reader-paragraph"><p>${wrapWords(p)}</p></div>`).join('');
             contentEl.innerHTML = pHTML;
         }
         
-        // Cache the span references in order
-        wordSpans = Array.from(contentEl.querySelectorAll('.read-word'));
+        paragraphsElements = Array.from(contentEl.querySelectorAll('.reader-paragraph'));
 
         pageIndicator.textContent = `Page ${currentPage} of ${totalPages - 1}`;
         prevBtn.disabled = (currentPage === 0);
@@ -398,8 +475,7 @@ function initializeReader() {
 
     function wrapWords(text) {
         if(!text) return '';
-        // Split by space but keep structure
-        return text.split(' ').map(word => `<span class="read-word">${word}</span>`).join(' ');
+        return text.split(/\s+/).filter(w => w.length > 0).map(word => `<span class="read-word">${word}</span>`).join(' ');
     }
 
     if(prevBtn) prevBtn.addEventListener('click', () => {
@@ -498,6 +574,12 @@ function initializeReader() {
             alert("Error publishing: " + error.message);
             saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="upload-cloud"></i></span><span class="reader-menu-text">Publish</span>`;
         }
+    });
+
+    // 6. --- CLEAN UP ---
+    window.addEventListener('beforeunload', () => {
+        stopPresenceHeartbeat();
+        stopAudio(); 
     });
 }
 

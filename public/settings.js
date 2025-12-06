@@ -21,6 +21,7 @@ let prefs = {
     theme: 'light',
     font: 'lora',
     fontSize: 18,
+    voiceURI: '', // Added voice preference
     ghostMode: false,
     soundEffects: true
 };
@@ -28,8 +29,9 @@ let prefs = {
 document.addEventListener('DOMContentLoaded', () => {
     initThemePicker();
     setupRangeListener();
+    initVoicePicker(); // Initialize voice dropdown
     setupCacheClear();
-    setupResetButton(); // Setup Reset Logic
+    setupResetButton(); 
 
     onAuthStateChanged(auth, async (user) => {
         updateNavUser(user);
@@ -53,6 +55,44 @@ function initThemePicker() {
             opt.classList.add('selected');
             prefs.theme = opt.dataset.theme;
         });
+    });
+}
+
+function initVoicePicker() {
+    const voiceSelect = document.getElementById('voice-select');
+    const synthesis = window.speechSynthesis;
+
+    const populateVoices = () => {
+        // Filter generally for English or device defaults, remove empty
+        let voices = synthesis.getVoices().filter(v => v.name);
+        
+        // Optional: Sort voices alphabetically
+        voices.sort((a, b) => a.name.localeCompare(b.name));
+
+        voiceSelect.innerHTML = '<option value="">Default Device Voice</option>';
+        
+        voices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.voiceURI;
+            // Show Name and Language
+            option.textContent = `${voice.name} (${voice.lang})`;
+            voiceSelect.appendChild(option);
+        });
+
+        // Set selected value if available in prefs
+        if (prefs.voiceURI) {
+            voiceSelect.value = prefs.voiceURI;
+        }
+    };
+
+    // Chrome loads voices asynchronously
+    populateVoices();
+    if (synthesis.onvoiceschanged !== undefined) {
+        synthesis.onvoiceschanged = populateVoices;
+    }
+
+    voiceSelect.addEventListener('change', (e) => {
+        prefs.voiceURI = e.target.value;
     });
 }
 
@@ -83,6 +123,7 @@ function setupResetButton() {
         prefs.theme = 'light';
         prefs.font = 'lora';
         prefs.fontSize = 18;
+        prefs.voiceURI = '';
 
         // 2. Update UI
         // Theme
@@ -92,6 +133,9 @@ function setupResetButton() {
 
         // Font
         document.getElementById('font-select').value = 'lora';
+
+        // Voice
+        document.getElementById('voice-select').value = '';
 
         // Size
         const range = document.getElementById('font-size-range');
@@ -122,7 +166,6 @@ async function loadPreferences(user) {
 
     // 2. Font
     const fontSelect = document.getElementById('font-select');
-    // Check if the saved font still exists in our options (safety check)
     if (fontSelect.querySelector(`option[value="${prefs.font}"]`)) {
         fontSelect.value = prefs.font;
     } else {
@@ -132,12 +175,18 @@ async function loadPreferences(user) {
     // 3. Size
     document.getElementById('font-size-range').value = prefs.fontSize;
     document.getElementById('font-size-display').textContent = `${prefs.fontSize}px`;
+    
+    // 4. Voice (Attempt to set if populated)
+    const voiceSelect = document.getElementById('voice-select');
+    if (voiceSelect && prefs.voiceURI) {
+        voiceSelect.value = prefs.voiceURI;
+    }
 
-    // 4. Toggles
+    // 5. Toggles
     document.getElementById('ghost-mode-toggle').checked = prefs.ghostMode;
     document.getElementById('sfx-toggle').checked = prefs.soundEffects;
 
-    // Update internal state from UI inputs (in case listeners fire)
+    // Update internal state from UI inputs
     document.getElementById('font-select').addEventListener('change', (e) => prefs.font = e.target.value);
     document.getElementById('ghost-mode-toggle').addEventListener('change', (e) => prefs.ghostMode = e.target.checked);
     document.getElementById('sfx-toggle').addEventListener('change', (e) => prefs.soundEffects = e.target.checked);
