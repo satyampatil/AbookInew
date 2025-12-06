@@ -27,11 +27,11 @@ let synthesis = window.speechSynthesis;
 window.currentUtterance = null;
 let isSpeaking = false;
 let activeHighlight = null; 
-let activeParagraphHighlight = null; // New: Track active paragraph for fallback
+let activeParagraphHighlight = null; 
 
 // Track Reading State
 let currentParagraphIndex = 0;
-let paragraphsElements = []; // Store paragraph DOM elements
+let paragraphsElements = []; 
 
 // --- NEW: APPLY SETTINGS ---
 function applyPreferences() {
@@ -73,7 +73,6 @@ function initializeReader() {
             color: #fff !important;
             box-shadow: 0 0 0 2px #E50914;
         }
-        /* NEW: Fallback Paragraph Highlight */
         .active-paragraph {
             background-color: rgba(255, 215, 0, 0.15);
             border-radius: 8px;
@@ -90,7 +89,7 @@ function initializeReader() {
     let bookData = null;
     let currentPage = 0; 
 
-    // --- 1. SETUP UI ELEMENTS (Define these first so functions can use them) ---
+    // --- 1. SETUP UI ELEMENTS ---
     const titleEl = document.getElementById('reader-title');
     const contentEl = document.getElementById('reader-content');
     const pageIndicator = document.getElementById('page-indicator');
@@ -121,6 +120,12 @@ function initializeReader() {
     audioBtn.id = 'audio-btn';
     audioBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="headphones"></i></span><span class="reader-menu-text">Listen</span>`;
 
+    // NEW: PDF Download Button
+    const pdfBtn = document.createElement('button');
+    pdfBtn.className = 'reader-menu-btn';
+    pdfBtn.id = 'pdf-btn';
+    pdfBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="download"></i></span><span class="reader-menu-text">Download PDF</span>`;
+
     const saveListBtn = document.createElement('button');
     saveListBtn.className = 'reader-menu-btn';
     saveListBtn.id = 'save-list-btn';
@@ -132,11 +137,12 @@ function initializeReader() {
     saveCloudBtn.innerHTML = `<span class="reader-menu-icon"><i data-feather="cloud"></i></span><span class="reader-menu-text">Publish to Cloud</span>`;
 
     dropdownContainer.appendChild(audioBtn);
+    dropdownContainer.appendChild(pdfBtn); // Add to menu
     dropdownContainer.appendChild(saveListBtn);
     dropdownContainer.appendChild(saveCloudBtn);
 
 
-    // --- 2. DEFINE HELPER FUNCTIONS (Before they are called) ---
+    // --- 2. HELPER FUNCTIONS ---
 
     function setSaveButtonState(isSaved) {
         if (isSaved) {
@@ -232,7 +238,7 @@ function initializeReader() {
     }
 
 
-    // --- 3. AUTH LISTENER (Now safe to call functions) ---
+    // --- 3. AUTH LISTENER ---
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         updateNavUser(user);
@@ -282,7 +288,6 @@ function initializeReader() {
             activeHighlight = null;
         }
 
-        // Remove paragraph highlight
         if (activeParagraphHighlight) {
             activeParagraphHighlight.classList.remove('active-paragraph');
             activeParagraphHighlight = null;
@@ -316,8 +321,6 @@ function initializeReader() {
 
         const p = paragraphsElements[currentParagraphIndex];
         
-        // --- PARAGRAPH HIGHLIGHT (RESET) ---
-        // Clean up previous paragraph highlight
         if (activeParagraphHighlight) {
             activeParagraphHighlight.classList.remove('active-paragraph');
             activeParagraphHighlight = null;
@@ -335,7 +338,6 @@ function initializeReader() {
         const spanMap = [];
         let cursor = 0;
 
-        // Optimized Map Builder: Trims text to ensure index matching
         spans.forEach(span => {
             const text = span.textContent.trim(); 
             if (!text) return; 
@@ -352,16 +354,13 @@ function initializeReader() {
             cursor = end;
         });
 
-        // Use global window variable to prevent GC
         window.currentUtterance = new SpeechSynthesisUtterance(textToRead);
         const utterance = window.currentUtterance;
         utterance.rate = 1.0;
         
-        // --- VOICE SELECTION UPDATE ---
         const voices = synthesis.getVoices();
         let voice = null;
         
-        // 1. Try to load user preference
         try {
             const prefsJson = localStorage.getItem('abooki_reader_prefs');
             if (prefsJson) {
@@ -372,7 +371,6 @@ function initializeReader() {
             }
         } catch (e) { console.error("Error reading voice pref", e); }
 
-        // 2. Fallback if no preference or voice not found
         if (!voice) {
             voice = voices.find(v => v.name.includes("Google US English") && v.localService);
             if (!voice) voice = voices.find(v => v.name.includes("Google US English"));
@@ -382,12 +380,8 @@ function initializeReader() {
         
         if (voice) {
             utterance.voice = voice;
-            console.log("Using voice:", voice.name);
             
-            // CONDITIONAL FALLBACK:
-            // Only highlight the paragraph if the voice is NOT local (Network voice)
             if (!voice.localService) {
-                console.warn("Using Network voice. Switching to Paragraph-level highlighting.");
                 if (p) {
                     activeParagraphHighlight = p;
                     p.classList.add('active-paragraph');
@@ -396,7 +390,6 @@ function initializeReader() {
         }
         
         utterance.onboundary = (event) => {
-            // Check for valid boundary event
             if (typeof event.charIndex === 'number') {
                 const charIndex = event.charIndex;
                 const match = spanMap.find(m => charIndex >= m.start && charIndex < m.end + 2);
@@ -440,6 +433,96 @@ function initializeReader() {
             playAudio(0);
         }
     });
+
+    // --- PDF GENERATION LOGIC ---
+    pdfBtn.addEventListener('click', () => {
+        if (!bookData) return;
+        
+        const originalText = pdfBtn.innerHTML;
+        pdfBtn.innerHTML = 'Generating...';
+        pdfBtn.disabled = true;
+
+        // 1. Create a temporary container for the full book
+        const tempContainer = document.createElement('div');
+        tempContainer.style.padding = '40px';
+        tempContainer.style.fontFamily = "'Lora', serif";
+        tempContainer.style.color = '#000';
+        tempContainer.style.background = '#fff';
+        
+        // Add Title Page
+        let htmlContent = `
+            <div style="text-align:center; page-break-after: always; padding-top: 50px;">
+                <h1 style="font-size: 3em; margin-bottom: 20px;">${bookData.title}</h1>
+                <p style="font-size: 1.2em; font-style: italic;">A ${bookData.genre || 'Story'}</p>
+                <div style="margin-top: 50px; border-top: 1px solid #ccc; width: 50%; margin-left: auto; margin-right: auto;"></div>
+                <p style="margin-top: 20px; color: #666;">Generated by: &copy; 2025 abooki</p>
+                <p style="font-size: 0.9em; margin-top: 10px;">${bookData.authorName ? 'Author: ' + bookData.authorName : ''}</p>
+            </div>
+        `;
+
+        // Add Pages
+        bookData.pages.forEach((pageText, index) => {
+            // Replace newlines with <br> or <p>
+            const formattedText = pageText.split('\n').map(p => `<p style="margin-bottom: 1em; line-height: 1.6; font-size: 14px;">${p}</p>`).join('');
+            
+            htmlContent += `
+                <div class="pdf-page" style="page-break-after: always;">
+                    <div style="font-size: 0.8em; color: #999; text-align: center; margin-bottom: 20px;">Chapter ${index + 1}</div>
+                    ${formattedText}
+                    <div style="font-size: 0.8em; color: #ccc; text-align: center; margin-top: 30px;">- ${index + 1} -</div>
+                </div>
+            `;
+        });
+
+        // Add About/Credits Page (Last Page)
+        htmlContent += `
+            <div class="pdf-page" style="padding-top: 50px; text-align: center;">
+                <h2 style="font-size: 2em; margin-bottom: 20px;">About Abooki</h2>
+                <p style="font-size: 1em; line-height: 1.6; color: #333; max-width: 80%; margin: 0 auto 30px auto;">
+                    Abooki is an experimental platform exploring the intersection of AI and creative writing. 
+                    It serves as a dynamic library where stories are generated, read, and shared instantly.
+                </p>
+                
+                <div style="margin-top: 40px; border-top: 1px solid #eee; width: 60%; margin-left: auto; margin-right: auto; padding-top: 30px;">
+                    <h3 style="font-size: 1.5em; margin-bottom: 10px;">About the Creator</h3>
+                    <p style="font-size: 1em; color: #555; margin-bottom: 5px;"><strong>Satyam Patil</strong></p>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 20px;">
+                        Passionate developer building innovative web experiences.
+                    </p>
+                    <p style="font-size: 0.9em; color: #0077b5;">
+                        LinkedIn: linkedin.com/in/satyampatil
+                    </p>
+                </div>
+                
+                <div style="margin-top: 50px; font-size: 0.8em; color: #999;">
+                    Generated on ${new Date().toLocaleDateString()}
+                </div>
+            </div>
+        `;
+
+        tempContainer.innerHTML = htmlContent;
+        
+        // Settings for html2pdf
+        const opt = {
+            margin:       1,
+            filename:     `${bookData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Generate
+        html2pdf().from(tempContainer).set(opt).save().then(() => {
+            pdfBtn.innerHTML = originalText;
+            pdfBtn.disabled = false;
+        }).catch(err => {
+            console.error("PDF Error:", err);
+            alert("Could not generate PDF.");
+            pdfBtn.innerHTML = originalText;
+            pdfBtn.disabled = false;
+        });
+    });
+
 
     function updatePage() {
         stopAudio(); 
