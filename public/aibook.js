@@ -239,7 +239,7 @@ async function initializeAIGenerator() {
 
                 await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'books'), bookToSave);
 
-                saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved to Cloud!';
+                saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved to My List!';
                 feather.replace();
 
             } catch (error) {

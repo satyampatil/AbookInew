@@ -24,6 +24,7 @@ const playground = document.getElementById('avatar-playground');
 const activeGhosts = new Map(); 
 let unsubscribeSnapshot = null;
 let currentUser = null;
+let availableBookTitles = []; // NEW: Store real book titles
 
 // --- PERFORMANCE LIMITS ---
 // Only render this many ghosts to prevent crashing
@@ -55,12 +56,14 @@ const initAuth = async () => {
 initAuth();
 
 // --- 2. MAIN LOGIC LOOP ---
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     updateNavUser(user);
     currentUser = user;
 
     if (user) {
         if (!unsubscribeSnapshot) {
+            // Load real books first, then start listener
+            await fetchPublicBooks();
             startLibraryListener();
         }
         // Initialize Music Player once we are logged in/ready
@@ -77,6 +80,22 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// --- NEW: FETCH REAL BOOKS ---
+async function fetchPublicBooks() {
+    try {
+        // Fetch up to 50 recent books to use for bots
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'books'), limit(50));
+        const snapshot = await getDocs(q);
+        availableBookTitles = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.title) availableBookTitles.push(data.title);
+        });
+        console.log(`Loaded ${availableBookTitles.length} real book titles for bots.`);
+    } catch (e) {
+        console.error("Error fetching public books:", e);
+    }
+}
 
 function startLibraryListener() {
     console.log("Authenticated. Starting library listener...");
@@ -117,12 +136,20 @@ function startLibraryListener() {
             }
         }
 
+        // --- AUTO-BOT LOGIC: Ensure 2 bots exist ---
+        // Check if we need to add bots to maintain the minimum count
+        if (allReaders.length < 2) {
+            // Add missing bots. This runs on every client, but Firebase handles concurrency reasonably well.
+            // To prevent storming, we only add if significantly low or just add 1 at a time.
+            const needed = 2 - allReaders.length;
+            console.log(`Low reader count (${allReaders.length}). Adding ${needed} bot(s)...`);
+            addDummyReaders(needed);
+        }
+
         // 3. Sort by Recency (Newest first)
         allReaders.sort((a, b) => b.lastSeenTime - a.lastSeenTime);
 
         // 4. Slice to MAX limit
-        // We always want to see OURSELVES if possible, but sorting by recency usually handles that 
-        // as we just updated. 
         const visibleReaders = allReaders.slice(0, MAX_VISIBLE_GHOSTS);
         const visibleIds = new Set(visibleReaders.map(r => r.userId));
 
@@ -136,7 +163,6 @@ function startLibraryListener() {
         });
 
         // 6. Cleanup Invisible
-        // If a user is in activeGhosts but NOT in visibleIds (either stale OR pushed out by limit), remove them.
         for (const [userId, element] of activeGhosts) {
             if (!visibleIds.has(userId)) {
                 removeGhost(userId);
@@ -169,14 +195,14 @@ function startLibraryListener() {
         clearBtn.onclick = removeDummyReaders;
 
         const addBtn = document.createElement('button');
-        addBtn.innerText = "+ 20 Bots";
+        addBtn.innerText = "+ 5 Bots"; // UPDATED
         addBtn.style.cssText = `
             padding: 8px 16px; background: #E50914; color: white;
             border: none; border-radius: 20px; cursor: pointer;
             box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3); font-weight: bold;
         `;
-        // Updated to add more bots to test the limit
-        addBtn.onclick = () => addDummyReaders(20);
+        // Updated to add 5 bots
+        addBtn.onclick = () => addDummyReaders(5);
 
         container.appendChild(clearBtn);
         container.appendChild(addBtn);
@@ -348,21 +374,30 @@ async function addDummyReaders(count = 5) {
         return;
     }
 
-    const names = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "Gandalf", "Hermione"];
-    const books = ["The Great Gatsby", "Dune", "1984", "The Hobbit", "Project Hail Mary", "Neuromancer"];
+    const names = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "Gandalf", "Hermione", "Luna", "Neo", "Frodo", "Zelda", "Mario", "Link", "Geralt"];
+    // Fallback if no real books are loaded yet
+    const fallbackBooks = ["The Great Gatsby", "Dune", "1984", "The Hobbit", "Project Hail Mary", "Neuromancer"];
+    
     const colors = ['blue', 'purple', 'green', 'pink', 'orange'];
     const moods = ['happy', 'curious', 'nerdy', 'sleepy'];
     const accessories = ['none', 'hat', 'sparkles'];
 
     for(let i=0; i<count; i++) {
-        const uid = `dummy_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+        const uid = `dummy_${Date.now()}_${Math.floor(Math.random()*10000)}`;
         const name = names[Math.floor(Math.random() * names.length)];
-        const book = books[Math.floor(Math.random() * books.length)];
+        
+        // Pick a book title: Use real public ones if available, otherwise fallback
+        let bookTitle;
+        if (availableBookTitles.length > 0) {
+            bookTitle = availableBookTitles[Math.floor(Math.random() * availableBookTitles.length)];
+        } else {
+            bookTitle = fallbackBooks[Math.floor(Math.random() * fallbackBooks.length)];
+        }
         
         const dummyData = {
             userId: uid,
             displayName: `${name} (Bot)`,
-            bookTitle: book,
+            bookTitle: bookTitle,
             avatarConfig: {
                 color: colors[Math.floor(Math.random() * colors.length)],
                 mood: moods[Math.floor(Math.random() * moods.length)],
@@ -374,7 +409,7 @@ async function addDummyReaders(count = 5) {
 
         try {
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'active_readers', uid), dummyData);
-            console.log(`Added dummy: ${name}`);
+            console.log(`Added bot: ${name} reading ${bookTitle}`);
         } catch (e) {
             console.error("Error adding dummy:", e);
         }
