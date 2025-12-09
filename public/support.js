@@ -17,12 +17,34 @@ const auth = getAuth(app);
 document.addEventListener('DOMContentLoaded', () => {
     
     // --- 1. Auth & Navigation Logic ---
-    // (Required to keep the navbar profile working)
     onAuthStateChanged(auth, (user) => {
         updateNavUser(user);
     });
 
-    // --- 2. Interaction Logic (Your Toast & Copy Code) ---
+    // --- 2. Bank Modal Logic ---
+    const bankTrigger = document.getElementById('bank-details-trigger');
+    const bankModal = document.getElementById('bank-modal');
+    const closeBankBtn = document.getElementById('close-bank-modal');
+    const doneBankBtn = document.getElementById('done-bank-btn');
+
+    function openBankModal() {
+        if(bankModal) bankModal.classList.add('open');
+    }
+
+    function closeBankModal() {
+        if(bankModal) bankModal.classList.remove('open');
+    }
+
+    if (bankTrigger) bankTrigger.addEventListener('click', openBankModal);
+    if (closeBankBtn) closeBankBtn.addEventListener('click', closeBankModal);
+    if (doneBankBtn) doneBankBtn.addEventListener('click', closeBankModal);
+
+    // Close on click outside
+    window.addEventListener('click', (e) => {
+        if (e.target === bankModal) closeBankModal();
+    });
+
+    // --- 3. Interaction Logic (Toasts & Copy) ---
     
     // Create Toast Element dynamically
     const toast = document.createElement('div');

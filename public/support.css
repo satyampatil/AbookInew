@@ -7,15 +7,18 @@
     /* Changed from justify-content: center to flex-start to fix scroll clipping */
     justify-content: flex-start; 
     min-height: calc(100vh - 140px);
-    padding: calc(70px + 3rem) 2rem 4rem 2rem;
+    padding: 4rem 2rem; /* Increased top padding for better spacing from header */
     background: radial-gradient(circle at center, #1a1a1a 0%, #111 100%);
 }
 
 .secret-container {
-    max-width: 1000px; /* Increased width to accommodate grid */
+    max-width: 1000px;
     width: 100%;
     text-align: center;
     animation: fadeIn 0.8s ease-out;
+    /* Ensure it has space to breathe */
+    margin-top: 2rem; 
+    margin-bottom: 2rem;
 }
 
 @keyframes fadeIn {
@@ -23,7 +26,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- HEADER ICONS --- */
 .icon-wrapper {
     width: 80px;
     height: 80px;
@@ -53,17 +55,15 @@ h1 {
 .subtitle {
     color: #888;
     font-size: 1.1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
     line-height: 1.6;
 }
 
-/* --- NEW SECTIONS --- */
-section {
-    margin-bottom: 3rem;
-}
+/* --- SECTIONS --- */
+section { margin-bottom: 3rem; }
 
 h2 {
     font-size: 1.5rem;
@@ -73,175 +73,9 @@ h2 {
     display: inline-block;
 }
 
-.section-header-centered {
-    text-align: center;
-    margin-bottom: 2rem;
-}
+.section-header-centered { text-align: center; margin-bottom: 2rem; }
 
-/* --- GRID LAYOUT --- */
-.about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: start;
-    text-align: left;
-}
-
-@media (max-width: 850px) {
-    .about-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* About Project */
-.about-section h2 {
-    display: block; /* Align left inside grid */
-    margin-bottom: 1.5rem;
-}
-
-.about-section .text-content {
-    background-color: rgba(255, 255, 255, 0.03);
-    padding: 2rem;
-    border-radius: 12px;
-    border: 1px solid #333;
-    text-align: left;
-    color: #ccc;
-    line-height: 1.7;
-    height: 100%; /* Match height with profile card */
-}
-
-.about-section p {
-    margin-bottom: 1rem;
-}
-.about-section p:last-child {
-    margin-bottom: 0;
-}
-.about-section strong {
-    color: #FFD700;
-}
-
-/* --- PROFILE CARD (About Me) --- */
-.profile-card {
-    background: linear-gradient(145deg, #222, #1a1a1a);
-    border: 1px solid #333;
-    border-radius: 16px;
-    padding: 2rem;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    width: 100%;
-}
-
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    border-bottom: 1px solid #333;
-    padding-bottom: 1.5rem;
-}
-
-.profile-avatar-placeholder {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(135deg, #E50914, #8b0000);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #fff;
-    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
-    flex-shrink: 0;
-}
-
-.initials {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-}
-
-.profile-info h3 {
-    font-size: 1.4rem;
-    margin-bottom: 0.25rem;
-    color: #fff;
-}
-
-.role {
-    font-size: 0.9rem;
-    color: #FFD700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-}
-
-.profile-body p {
-    color: #aaa;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-
-.social-links {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.social-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    text-decoration: none;
-}
-
-.social-btn.linkedin {
-    background-color: #0077b5;
-    color: white;
-}
-.social-btn.linkedin:hover {
-    background-color: #006097;
-    transform: translateY(-2px);
-}
-
-.social-btn.email {
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #444;
-}
-.social-btn.email:hover {
-    background-color: #444;
-}
-
-.social-btn i {
-    width: 18px;
-    height: 18px;
-}
-
-
-/* --- SUPPORT SECTION --- */
-.section-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    color: #666;
-    margin: 3rem 0;
-}
-.section-divider::before, .section-divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #333;
-}
-.section-divider span {
-    padding: 0 1rem;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
+/* --- DONATION CARDS --- */
 .donation-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -256,6 +90,8 @@ h2 {
     padding: 1.5rem;
     text-align: left;
     transition: transform 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .donate-card:hover {
@@ -275,11 +111,7 @@ h2 {
     margin-bottom: 1rem;
 }
 
-.card-header h3 {
-    font-size: 1.1rem;
-    margin: 0;
-    color: #fff;
-}
+.card-header h3 { font-size: 1.1rem; margin: 0; color: #fff; }
 
 .badge {
     font-size: 0.7rem;
@@ -296,121 +128,175 @@ h2 {
     margin-bottom: 1.5rem;
 }
 
-/* Copy Field Styles */
-.copy-field {
+/* --- NEW: BANK TRIGGER BOX --- */
+.bank-details-trigger {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 0.6rem;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+
+.bank-details-trigger:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #FFD700;
+}
+
+.trigger-content { display: flex; align-items: center; gap: 12px; }
+
+.trigger-icon {
+    width: 40px; height: 40px;
+    background-color: #222;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #FFD700;
+}
+
+.trigger-text strong { display: block; color: #fff; font-size: 0.9rem; margin-bottom: 2px; }
+.trigger-text span { display: block; color: #888; font-size: 0.8rem; }
+
+/* --- MODAL STYLES --- */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); z-index: 2000;
+    justify-content: center; align-items: center; backdrop-filter: blur(5px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal-content {
+    background: #1a1a1a; 
+    padding: 2rem; border-radius: 16px;
+    width: 90%; max-width: 400px; text-align: left;
     border: 1px solid #333;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    animation: zoomIn 0.3s ease;
 }
 
-.copy-field .label {
-    color: #666;
-    font-size: 0.85rem;
-    width: 60px; 
-    flex-shrink: 0;
+@keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-.copy-field .value {
-    color: #ddd;
-    font-family: monospace;
-    font-size: 0.95rem;
-    flex-grow: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem;
 }
+.modal-header h2 { font-size: 1.3rem; margin: 0; color: #fff; }
+
+.close-icon-btn {
+    background: none; border: none; color: #888; cursor: pointer;
+    padding: 4px; transition: color 0.2s;
+}
+.close-icon-btn:hover { color: #fff; }
+
+/* Copy Field Styles (Reused in Modal) */
+.copy-field {
+    display: flex; align-items: center; background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.8rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid #333;
+}
+
+.copy-field .label { color: #666; font-size: 0.85rem; width: 60px; flex-shrink: 0; }
+.copy-field .value { color: #ddd; font-family: monospace; font-size: 1rem; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; }
 
 .copy-btn {
-    background: none;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 4px;
-    margin-left: 8px;
+    background: none; border: none; color: #888; cursor: pointer;
+    transition: color 0.2s; padding: 4px; margin-left: 8px;
 }
 .copy-btn:hover { color: #fff; }
 
-.full-width { width: 100%; }
-
-.footer-note {
-    font-size: 0.85rem;
-    color: #555;
-    margin-top: 3rem;
+/* PayPal */
+.paypal-section { 
+    margin-top: 1.5rem; 
+    text-align: center; 
 }
 
-/* --- PAYPAL SDK STYLES --- */
-.paypal-section {
-    margin-top: 1.5rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.divider-small { 
+    display: flex; 
+    align-items: center; 
+    color: #555; 
+    font-size: 0.8rem; 
+    margin: 1rem 0; 
 }
-
-.divider-small {
-    display: flex;
-    align-items: center;
-    color: #555;
-    font-size: 0.8rem;
-    margin: 1rem 0;
-    width: 100%;
-}
-.divider-small::before, .divider-small::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #333;
-}
+.divider-small::before, .divider-small::after { content: ''; flex: 1; border-bottom: 1px solid #333; }
 .divider-small span { padding: 0 10px; }
 
-/* Ensure the SDK container is centered and takes full width */
-#donate-button-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-/* Style the auto-generated input button from PayPal SDK */
-#donate-button input[type="image"] {
-    background-color: #0070ba; /* PayPal Blue */
-    padding: 10px 0;
+/* --- UPDATED: PayPal Pill Button (Custom) --- */
+.paypal-button {
+    background-color: #0070ba; /* Official PayPal Blue */
+    color: white; 
+    border: none; 
     border-radius: 25px; /* Pill shape */
-    width: 100%;
-    height: 48px;
-    box-sizing: border-box;
-    object-fit: contain; /* Keeps logo proportional inside the button */
-    cursor: pointer;
-    transition: all 0.2s ease;
+    width: 100%; 
+    height: 48px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center;
+    justify-content: center; 
+    transition: all 0.2s; 
+    text-decoration: none; 
+    font-family: 'Inter', sans-serif;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-#donate-button input[type="image"]:hover {
-    background-color: #005ea6;
-    transform: translateY(-2px);
+.paypal-button:hover {
+    background-color: #005ea6; 
+    transform: translateY(-2px); 
     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
+/* Grid for About section */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; text-align: left; }
+@media (max-width: 850px) { .about-grid { grid-template-columns: 1fr; } }
+
+.about-section h2 { display: block; margin-bottom: 1.5rem; }
+.about-section .text-content {
+    background-color: rgba(255, 255, 255, 0.03); padding: 2rem; border-radius: 12px;
+    border: 1px solid #333; text-align: left; color: #ccc; line-height: 1.7; height: 100%;
+}
+.about-section p { margin-bottom: 1rem; }
+.about-section strong { color: #FFD700; }
+
+/* Profile Card (About Me) */
+.profile-card {
+    background: linear-gradient(145deg, #222, #1a1a1a); border: 1px solid #333; border-radius: 16px;
+    padding: 2rem; text-align: left; display: flex; flex-direction: column; gap: 1.5rem; width: 100%;
+}
+.profile-header { display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #333; padding-bottom: 1.5rem; }
+.profile-avatar-placeholder {
+    width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #fff; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); flex-shrink: 0; overflow: hidden;
+}
+.profile-info h3 { font-size: 1.4rem; margin-bottom: 0.25rem; color: #fff; }
+.role { font-size: 0.9rem; color: #FFD700; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.profile-body p { color: #aaa; line-height: 1.6; margin-bottom: 1.5rem; }
+.social-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+.social-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 0.6rem 1.2rem;
+    border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; text-decoration: none;
+}
+.social-btn.linkedin { background-color: #0077b5; color: white; }
+.social-btn.linkedin:hover { background-color: #006097; transform: translateY(-2px); }
+.social-btn.email { background-color: #333; color: #fff; border: 1px solid #444; }
+.social-btn.email:hover { background-color: #444; }
+.social-btn i { width: 18px; height: 18px; }
+
+.section-divider { display: flex; align-items: center; text-align: center; color: #666; margin: 3rem 0; }
+.section-divider::before, .section-divider::after { content: ''; flex: 1; border-bottom: 1px solid #333; }
+.section-divider span { padding: 0 1rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+
+.full-width { width: 100%; }
+.footer-note { font-size: 0.85rem; color: #555; margin-top: 3rem; }
+
 /* Toast */
 .toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none;
-    z-index: 2000;
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background-color: #4CAF50; color: white; padding: 10px 20px;
+    border-radius: 20px; font-size: 0.9rem; opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none; z-index: 2000;
 }
-.toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-10px);
-}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }

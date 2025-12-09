@@ -11,6 +11,17 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="settings.css">
+    <style>
+        /* Override grid for single column layout */
+        .settings-grid {
+            display: block;
+            max-width: 600px; /* Limit width for better readability */
+            margin: 0 auto;
+        }
+        .settings-card {
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body data-page="settings">
 
@@ -51,21 +62,22 @@
 
         <div class="settings-grid">
             
-            <!-- CARD 1: Reading Preferences -->
+            <!-- SINGLE CARD LAYOUT -->
             <div class="settings-card">
                 <div class="card-header">
                     <div class="header-title-group">
-                        <i data-feather="book-open" class="card-icon"></i>
-                        <h2>Reading Defaults</h2>
+                        <i data-feather="sliders" class="card-icon"></i>
+                        <h2>Settings</h2>
                     </div>
                     <button id="reset-defaults-btn" class="btn-reset" title="Reset to defaults">Reset</button>
                 </div>
+                
                 <div class="card-body">
-                    <p class="section-desc">Set your preferred look for all books. These settings will apply automatically when you open a new book.</p>
+                    <p class="section-desc">Customize how books appear and behave.</p>
                     
-                    <!-- Theme Selector -->
+                    <!-- 1. Theme -->
                     <div class="control-group">
-                        <label>Default Theme</label>
+                        <label>Theme</label>
                         <div class="theme-picker" id="theme-options">
                             <div class="theme-option light" data-theme="light" title="Light Mode">
                                 <span>Aa</span>
@@ -79,10 +91,10 @@
                         </div>
                     </div>
 
-                    <!-- Font Selector -->
+                    <!-- 2. Font -->
                     <div class="control-group">
                         <label>Preferred Typeface</label>
-                        <select id="font-select" class="form-select">
+                        <select id="font-select" class="form-select" autocomplete="off">
                             <optgroup label="Serif (Classic)">
                                 <option value="lora">Lora (Default)</option>
                                 <option value="merriweather">Merriweather</option>
@@ -107,69 +119,45 @@
                         </select>
                     </div>
 
-                    <!-- NEW: Voice Selector -->
+                    <!-- 3. Voice -->
                     <div class="control-group">
                         <label>Reading Voice</label>
-                        <select id="voice-select" class="form-select">
+                        <select id="voice-select" class="form-select" autocomplete="off">
                             <option value="">Default Device Voice</option>
                         </select>
                     </div>
 
-                     <!-- Size Selector -->
+                     <!-- 4. Text Size -->
                      <div class="control-group">
-                        <label>Base Text Size</label>
-                        <input type="range" id="font-size-range" min="14" max="24" step="1" class="form-range">
+                        <label>Book Text Size</label>
+                        <input type="range" id="font-size-range" min="14" max="24" step="1" class="form-range" autocomplete="off">
                         <div class="range-labels">
                             <span style="font-size: 14px">Small</span>
                             <span id="font-size-display">18px</span>
                             <span style="font-size: 24px">Large</span>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- CARD 2: Privacy & System -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <div class="header-title-group">
-                        <i data-feather="shield" class="card-icon"></i>
-                        <h2>Privacy & System</h2>
-                    </div>
-                </div>
-                <div class="card-body">
-                    
-                    <!-- Ghost Mode -->
+                    <hr class="divider">
+
+                    <!-- 5. Privacy (Ghost Mode) -->
                     <div class="toggle-group">
                         <div class="toggle-info">
                             <label for="ghost-mode-toggle">Ghost Mode</label>
                             <p>Hide your presence from the "Active Readers" list in the library.</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="ghost-mode-toggle">
+                            <input type="checkbox" id="ghost-mode-toggle" autocomplete="off">
                             <span class="slider round"></span>
                         </label>
                     </div>
 
                     <hr class="divider">
 
-                    <!-- Sound Effects -->
-                    <div class="toggle-group">
-                        <div class="toggle-info">
-                            <label for="sfx-toggle">Sound Effects</label>
-                            <p>Play sounds when you rate books or unlock achievements.</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="sfx-toggle" checked>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <hr class="divider">
-
-                    <!-- Data Actions -->
+                    <!-- Actions -->
                      <div class="data-actions">
                         <button class="btn btn-outline" id="clear-cache-btn">Clear Local Cache</button>
-                        <button class="btn btn-primary" id="save-prefs-btn">Save Preferences</button>
+                        <button class="btn btn-primary" id="save-prefs-btn">Save All Changes</button>
                      </div>
                      <p id="save-message" class="save-message"></p>
 

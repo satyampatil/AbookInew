@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About & Support - abooki</title>
-    <!-- ADDED: Favicon (Browser Icon) - CORRECTED -->
-    <link rel="icon" href="browserIcon.png" type="image/png">
+    <link rel="icon" href="main-icon.jpg?v=2" type="image/jpeg">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +20,7 @@
         <nav class="main-nav">
             <a href="index.html" class="logo-link">
                 <div class="logo">
+                    <img src="main-icon.jpg" alt="Abooki Icon" style="height: 32px; width: 32px; margin-right: 8px; vertical-align: middle; border-radius: 4px;">
                     ABOOKI
                 </div>
             </a>
@@ -32,7 +32,6 @@
                 <li><a href="mylist.html" class="nav-link">My List</a></li>
             </ul>
             <div class="nav-profile">
-                <!-- Injected by nav.js -->
                 <i data-feather="user"></i>
             </div>
         </nav>
@@ -41,21 +40,19 @@
     <main class="support-main">
         <div class="secret-container">
             
-            <!-- SECTION 1: INTRO -->
             <div class="icon-wrapper">
                 <i data-feather="coffee"></i>
             </div>
             <h1>Behind The Scenes</h1>
             <p class="subtitle">Meet the project, the creator, and the coffee addiction fueling it all.</p>
 
-            <!-- SECTION 2: SUPPORT (Moved to Top) -->
             <section class="support-section">
                 <div class="section-header-centered">
                     <h2>Support the Server Costs</h2>
                 </div>
                 
                 <div class="donation-options">
-                    <!-- OPTION 1: Bank Transfer + PayPal -->
+                    <!-- OPTION 1: Bank Transfer (Hidden Details) -->
                     <div class="donate-card">
                         <div class="card-header">
                             <h3>Direct Bank Support</h3>
@@ -63,44 +60,26 @@
                         </div>
                         <p>Fuel the next feature update directly.</p>
                         
-                        <div class="copy-field">
-                            <span class="label">Name:</span>
-                            <span class="value">Satyam Patil</span>
-                        </div>
-                        <div class="copy-field">
-                            <span class="label">Sort: </span>
-                            <span class="value">04-29-09</span>
-                            <button class="copy-btn" data-copy="04-29-09" title="Copy Sort Code">
-                                <i data-feather="copy"></i>
-                            </button>
-                        </div>
-                        <div class="copy-field">
-                            <span class="label">Acc: </span>
-                            <span class="value">72939338</span>
-                            <button class="copy-btn" data-copy="72939338" title="Copy Account Number">
-                                <i data-feather="copy"></i>
-                            </button>
+                        <!-- Clickable Trigger -->
+                        <div class="bank-details-trigger" id="bank-details-trigger">
+                            <div class="trigger-content">
+                                <div class="trigger-icon"><i data-feather="credit-card"></i></div>
+                                <div class="trigger-text">
+                                    <strong>Direct transfer to UK account</strong>
+                                    <span>Click to show details</span>
+                                </div>
+                            </div>
+                            <i data-feather="chevron-right" style="color: #666;"></i>
                         </div>
 
-                        <!-- PayPal Integration (SDK) -->
+                        <!-- PayPal Integration (Custom Link with ID) -->
                         <div class="paypal-section">
                             <div class="divider-small"><span>OR</span></div>
                             
-                            <div id="donate-button-container">
-                                <div id="donate-button"></div>
-                                <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
-                                <script>
-                                    PayPal.Donation.Button({
-                                        env: 'production',
-                                        hosted_button_id: 'ENVQLQJFGP39U',
-                                        image: {
-                                            src: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg',
-                                            alt: 'Donate with PayPal button',
-                                            title: 'PayPal - The safer, easier way to pay online!',
-                                        }
-                                    }).render('#donate-button');
-                                </script>
-                            </div>
+                            <a href="https://www.paypal.com/donate/?hosted_button_id=ENVQLQJFGP39U" target="_blank" class="paypal-button">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" style="height: 20px;">
+                                <span style="margin-left: 8px; font-weight: 600;">Send via PayPal</span>
+                            </a>
 
                         </div>
                     </div>
@@ -123,10 +102,9 @@
                 <span>The Story</span>
             </div>
 
-            <!-- GRID CONTAINER for About & Profile -->
+            <!-- GRID CONTAINER -->
             <div class="about-grid">
-                
-                <!-- SECTION 3: ABOUT THE PROJECT (Left) -->
+                <!-- About Project -->
                 <section class="about-section">
                     <div class="text-content">
                         <h2>About Abooki</h2>
@@ -142,7 +120,7 @@
                     </div>
                 </section>
 
-                <!-- SECTION 4: ABOUT ME (Right) -->
+                <!-- About Me -->
                 <section class="profile-section">
                     <div class="profile-card">
                         <div class="profile-header">
@@ -170,12 +148,43 @@
                         </div>
                     </div>
                 </section>
-
             </div>
 
             <p class="footer-note">Your support helps keep Abooki free and ad-free. Thank you!</p>
         </div>
     </main>
+
+    <!-- Bank Details Modal -->
+    <div id="bank-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bank Details</h2>
+                <button id="close-bank-modal" class="close-icon-btn"><i data-feather="x"></i></button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: #aaa;">Use these details to make a direct transfer.</p>
+            
+            <div class="copy-field">
+                <span class="label">Name:</span>
+                <span class="value">Satyam Patil</span>
+            </div>
+            <div class="copy-field">
+                <span class="label">Sort: </span>
+                <span class="value">04-29-09</span>
+                <button class="copy-btn" data-copy="04-29-09" title="Copy Sort Code">
+                    <i data-feather="copy"></i>
+                </button>
+            </div>
+            <div class="copy-field">
+                <span class="label">Acc: </span>
+                <span class="value">72939338</span>
+                <button class="copy-btn" data-copy="72939338" title="Copy Account Number">
+                    <i data-feather="copy"></i>
+                </button>
+            </div>
+            
+            <button id="done-bank-btn" class="btn btn-primary full-width" style="margin-top: 1.5rem;">Done</button>
+        </div>
+    </div>
 
     <footer class="main-footer">
         <p>&copy; 2025 abooki. All rights reserved.</p>

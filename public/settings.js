@@ -22,8 +22,7 @@ let prefs = {
     font: 'lora',
     fontSize: 18,
     voiceURI: '', // Added voice preference
-    ghostMode: false,
-    soundEffects: true
+    ghostMode: false
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -184,12 +183,10 @@ async function loadPreferences(user) {
 
     // 5. Toggles
     document.getElementById('ghost-mode-toggle').checked = prefs.ghostMode;
-    document.getElementById('sfx-toggle').checked = prefs.soundEffects;
 
     // Update internal state from UI inputs
     document.getElementById('font-select').addEventListener('change', (e) => prefs.font = e.target.value);
     document.getElementById('ghost-mode-toggle').addEventListener('change', (e) => prefs.ghostMode = e.target.checked);
-    document.getElementById('sfx-toggle').addEventListener('change', (e) => prefs.soundEffects = e.target.checked);
 }
 
 async function savePreferences() {
