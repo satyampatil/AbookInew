@@ -13,6 +13,8 @@
     --card-bg: #1a1a1a;
     --border-color: #333333;
     --font-main: 'Inter', sans-serif;
+    /* Variable for logo star rotation */
+    --logo-star-rotate: 0deg;
 }
 
 * {
@@ -83,11 +85,36 @@ main {
     padding: 0 2rem;
 }
 
+/* --- LOGO STYLING --- */
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .logo {
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--primary-color);
+    letter-spacing: 1px;
+    position: relative; /* Needed for positioning the pseudo-element */
 }
+
+/* The Star on top of 'I' */
+.logo::after {
+    content: "✦"; /* Star character */
+    position: absolute;
+    right: -0.2em; /* Position over the 'I' (adjust if font changes) */
+    top: -0.8em;   /* Position above the letter */
+    font-size: 0.6em;
+    color: #ffffff; /* Gold color */
+    
+    /* Rotation controlled by JS via CSS variable */
+    transform: rotate(var(--logo-star-rotate));
+    transition: transform 0.1s linear; /* Smooth rotation */
+}
+/* -------------------------------- */
 
 .nav-links {
     display: flex;
@@ -547,7 +574,7 @@ main {
     }
 
     .hero-description {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     .book-card {

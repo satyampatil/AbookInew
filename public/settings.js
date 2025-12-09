@@ -226,3 +226,22 @@ async function savePreferences() {
         btn.textContent = 'Save Preferences';
     }
 }
+
+// star rotation when scrolled
+let lastScrollY = window.scrollY;
+    let rotation = 0;
+
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        const delta = currentScrollY - lastScrollY;
+        
+        // Rotate 0.5 degrees per pixel scrolled
+        // Clockwise (positive) when scrolling down (delta > 0)
+        // Counter-clockwise (negative) when scrolling up (delta < 0)
+        rotation += delta * 0.5;
+
+        // Update the CSS variable on the document root
+        document.documentElement.style.setProperty('--logo-star-rotate', `${rotation}deg`);
+        
+        lastScrollY = currentScrollY;
+    });
