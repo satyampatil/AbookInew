@@ -1,19 +1,19 @@
 /* --- Profile Page Styles --- */
 
-/* 1. Main Background */
+/* 1. Main Background - Transparent (showing whatever is behind) */
 .profile-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 70px - 85px);
-    margin-top: 70px;
     padding: 2rem;
-    background-color: #ffffff00;
+    background-color: #ffffff00; /* Transparent as requested */
     position: relative; 
     z-index: 1; 
 }
 
 /* --- Background Ghost Styles --- */
+/* UPDATED: Hidden as requested */
 #background-ghost-container {
     position: fixed; 
     top: 0;
@@ -23,7 +23,7 @@
     z-index: 0; 
     pointer-events: none; 
     transition: transform 0.15s ease-out; 
-    opacity: 0.25; 
+    opacity: 0; /* Fully hidden */
     display: none; 
 }
 
@@ -39,11 +39,11 @@
     background-color: #ffffff; 
     border-radius: 30px; 
     width: 100%;
-    max-width: 500px; /* Widened slightly for badges */
+    max-width: 500px; 
     text-align: center;
     box-shadow: 0 20px 40px rgba(0,0,0,0.5); 
     position: relative;
-    overflow: hidden; 
+    /* REMOVED overflow: hidden to allow tooltips to pop out */
     padding-bottom: 3rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease; 
 }
@@ -62,6 +62,10 @@
     top: 0;
     left: 0;
     z-index: 0;
+    /* Added border radius here since we removed overflow:hidden from parent */
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    overflow: hidden; /* Keep the SVG waves inside the graphic container */
 }
 
 .profile-card-header-graphic svg {
@@ -72,15 +76,22 @@
     height: 100%; 
 }
 
+/* --- WAVE ANIMATION --- */
 @keyframes wave-drift {
     0% { transform: translateX(0) scaleY(1); }
     50% { transform: translateX(-15px) scaleY(1.02); } 
     100% { transform: translateX(0) scaleY(1); }
 }
 
-.profile-card:hover .profile-card-header-graphic svg path:nth-child(1) { animation: wave-drift 5s ease-in-out infinite; }
-.profile-card:hover .profile-card-header-graphic svg path:nth-child(2) { animation: wave-drift 4s ease-in-out infinite reverse; }
-.profile-card:hover .profile-card-header-graphic svg path:nth-child(3) { animation: wave-drift 3s ease-in-out infinite; }
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(1) {
+    animation: wave-drift 5s ease-in-out infinite;
+}
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(2) {
+    animation: wave-drift 4s ease-in-out infinite reverse;
+}
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(3) {
+    animation: wave-drift 3s ease-in-out infinite;
+}
 
 /* 4. Content Wrapper */
 .profile-content {
@@ -90,9 +101,9 @@
     padding-top: 140px; 
 }
 
-/* 5. Profile Image */
+/* 5. Profile Image - Overlapping */
 .profile-img-wrapper {
-    width: 200px; 
+    width: 200px; /* Increased size */
     height: 200px;
     margin: 0 auto 1.5rem auto;
     border-radius: 50%;
@@ -108,14 +119,19 @@
     transition: transform 0.2s;
 }
 
-.profile-img-wrapper:hover { transform: scale(1.05); }
+.profile-img-wrapper:hover {
+    transform: scale(1.05);
+}
 
 #profile-pic {
-    width: 100%; height: 100%; object-fit: contain; padding: 25px; 
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 25px; /* Adjusted padding for larger circle */
 }
 
 #profile-placeholder { color: white; }
-#profile-placeholder svg { width: 80px; height: 80px; }
+#profile-placeholder svg { width: 80px; height: 80px; } /* Adjusted icon size */
 
 .edit-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -128,12 +144,25 @@
 
 /* 6. Typography */
 #profile-name {
-    font-size: 1.8rem; font-weight: 700; color: #111; 
-    margin-bottom: 0.25rem; letter-spacing: 0.5px;
+    font-size: 1.8rem; 
+    font-weight: 700; 
+    color: #111; 
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.5px;
 }
 
 .profile-email { 
-    color: #666; font-size: 0.95rem; margin-bottom: 1.5rem;
+    color: #666; 
+    font-size: 0.95rem; 
+    margin-bottom: 1.5rem;
+}
+
+.profile-bio {
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 1.5rem 0 2.5rem 0;
+    padding: 0 1rem;
 }
 
 /* --- STATS ROW --- */
@@ -207,11 +236,14 @@
     align-items: center;
     position: relative;
     transition: all 0.2s;
+    /* No z-index here initially to allow stacking context to be clean */
 }
 
 .badge-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    /* FIX: High z-index on hover ensures tooltip isn't covered by siblings */
+    z-index: 100;
 }
 
 .badge-icon-wrapper {
@@ -229,7 +261,7 @@
 }
 
 .badge-details p {
-    display: none; /* Hide details by default, show on hover/tooltip */
+    display: none; /* Hide details by default */
 }
 
 /* Locked State */
@@ -259,28 +291,39 @@
     padding: 2px;
 }
 
-/* Tooltip on Hover */
-.badge-card:hover::after {
-    content: attr(title);
-    /* Simple tooltip logic would require JS or 'title' attr, 
-       but for custom HTML tooltip we use .badge-details p logic below */
-}
-
+/* Tooltip on Hover - UPDATED */
 .badge-card:hover .badge-details p {
     display: block;
     position: absolute;
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: #333;
+    background: #222; /* Darker bg for better contrast */
     color: white;
-    font-size: 0.7rem;
-    padding: 5px 10px;
-    border-radius: 4px;
-    width: 120px;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    
+    /* FIX: Auto width prevents weird wrapping */
+    width: max-content; 
+    max-width: 180px; /* Safety cap */
+    
     pointer-events: none;
-    z-index: 10;
+    z-index: 200; /* Ensure tooltip is above card */
     margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Optional: Tooltip Arrow */
+.badge-card:hover .badge-details p::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #222 transparent transparent transparent;
 }
 
 

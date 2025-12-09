@@ -1,7 +1,8 @@
-// --- MY LIST PAGE LOGIC (GENRE SORTED & INFORMATIVE) ---
+// --- MY LIST PAGE LOGIC (GENRE SORTED & INFORMATIVE & REAL-TIME & GAMIFICATION) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, where, serverTimestamp, getDoc } 
+// Added imports for Gamification (increment, arrayUnion, setDoc)
+import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, where, serverTimestamp, getDoc, onSnapshot, increment, arrayUnion, setDoc } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { updateNavUser } from "./nav.js";
 
@@ -23,6 +24,16 @@ let currentUser = null;
 let currentPrivateBooks = [];
 let currentCreatedBooks = [];
 let activeGenreFilter = 'all'; 
+let privateUnsubscribe = null; 
+
+// --- GAMIFICATION CONFIG ---
+const BADGES = {
+    books_published: {
+        1: { id: 'author_1', name: 'Debut Author', icon: '✍️', desc: 'Publish your first book' },
+        5: { id: 'author_5', name: 'Storyteller', icon: '🌟', desc: 'Publish 5 books' },
+        20: { id: 'author_20', name: 'Bestseller', icon: '🏆', desc: 'Publish 20 books' }
+    }
+};
 
 function initializeMyList() {
     const container = document.getElementById('book-shelves-container');
@@ -33,6 +44,7 @@ function initializeMyList() {
         updateNavUser(user);
 
         if (!user) {
+            if(privateUnsubscribe) privateUnsubscribe();
             container.innerHTML = `
                 <div class="empty-list-message" style="text-align:center; padding: 2rem;">
                     <p>Please log in to view your cloud library.</p>
@@ -40,12 +52,11 @@ function initializeMyList() {
                 </div>`;
             return;
         }
-        loadBooks();
+        setupRealtimeListeners();
     });
 
     container.addEventListener('click', handleContainerClick);
     
-    // Setup Filter Click Listeners
     const filterContainer = document.getElementById('genre-filters');
     if(filterContainer) {
         filterContainer.addEventListener('click', (e) => {
@@ -59,77 +70,60 @@ function initializeMyList() {
     }
 }
 
-async function loadBooks() {
+function setupRealtimeListeners() {
     const container = document.getElementById('book-shelves-container');
-    if (!currentUser || !container) return;
+    if (!currentUser) return;
 
     container.innerHTML = '<p class="loading-text">Loading your library...</p>';
 
-    try {
-        // 1. Fetch ALL Private Books
-        const privateRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books');
-        const privateSnap = await getDocs(privateRef);
-        
-        const validPrivateBooks = [];
-        const checks = [];
+    const privateRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books');
+    
+    if (privateUnsubscribe) privateUnsubscribe(); 
 
-        for (const docSnap of privateSnap.docs) {
+    privateUnsubscribe = onSnapshot(privateRef, async (snapshot) => {
+        const validPrivateBooks = [];
+        for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const book = { ...data, firestoreId: docSnap.id, _source: 'private' };
-
-            // Logic: Check if saved public books are still valid
-            if (book.originalUserId && book.originalUserId !== currentUser.uid && book.publicId) {
-                const checkPromise = getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', book.publicId))
-                    .then(async (publicSnap) => {
-                        if (!publicSnap.exists()) {
-                            console.log(`Removing stale book: ${book.title}`);
-                            await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docSnap.id));
-                            return null; 
-                        }
-                        return book; 
-                    });
-                checks.push(checkPromise);
-            } else {
-                checks.push(Promise.resolve(book));
-            }
+            validPrivateBooks.push(book);
         }
 
-        const results = await Promise.all(checks);
-        currentPrivateBooks = results.filter(b => b !== null);
+        currentPrivateBooks = validPrivateBooks;
+        await refreshPublicBooks(); 
+        updateLibraryUI();
+        
+    }, (error) => {
+        console.error("Error fetching private books:", error);
+        container.innerHTML = `<p class="error-text">Error loading library: ${error.message}</p>`;
+    });
+}
 
-        // 2. Fetch "My Published Creations"
+async function refreshPublicBooks() {
+    try {
         const publicRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
         const qPublic = query(publicRef, where('userId', '==', currentUser.uid));
         const publicSnap = await getDocs(qPublic);
+        
         currentCreatedBooks = [];
-        publicSnap.forEach((doc) => currentCreatedBooks.push({ ...doc.data(), firestoreId: doc.id, _source: 'public' }));
-
-        updateLibraryUI();
-
-    } catch (error) {
-        console.error("Error fetching books:", error);
-        container.innerHTML = `<p class="error-text">Error loading library: ${error.message}</p>`;
+        publicSnap.forEach((doc) => {
+            currentCreatedBooks.push({ ...doc.data(), firestoreId: doc.id, _source: 'public' });
+        });
+    } catch (e) {
+        console.error("Error loading created books", e);
     }
 }
 
 function updateLibraryUI() {
     const container = document.getElementById('book-shelves-container');
     
-    // --- UPDATED COUNT LOGIC (Fixing Duplicates) ---
-    // 1. Create a Set of all Public IDs referenced by your Private books.
-    //    (If a private book says "I am published at ID 123", we know 123 is accounted for).
     const linkedPublicIds = new Set();
     currentPrivateBooks.forEach(b => {
         if (b.publicId) linkedPublicIds.add(b.publicId);
     });
 
-    // 2. Find "Orphan" Public books (Published books where you deleted the private copy).
     const uniquePublicBooks = currentCreatedBooks.filter(b => !linkedPublicIds.has(b.firestoreId));
-    
-    // 3. Combine Private List + Orphan Public List for the "Unique" view
     const uniqueBooksForStats = [...currentPrivateBooks, ...uniquePublicBooks];
     
-    // 4. Calculate Stats based on Unique List
     const totalCount = uniqueBooksForStats.length;
     
     const genres = new Set();
@@ -137,7 +131,6 @@ function updateLibraryUI() {
         if(b.genre) genres.add(b.genre);
     });
 
-    // Render Filters
     const filterContainer = document.getElementById('genre-filters');
     if (filterContainer) {
         let filterHtml = `<button class="filter-btn active" data-filter="all">All</button>`;
@@ -147,7 +140,6 @@ function updateLibraryUI() {
         filterContainer.innerHTML = filterHtml;
     }
 
-    // Render Stats
     const statsContainer = document.getElementById('library-stats');
     if (statsContainer) {
         statsContainer.innerHTML = `
@@ -156,14 +148,20 @@ function updateLibraryUI() {
         `;
     }
 
-    // Render Grid (We still pass the raw lists to render the shelves separately)
     renderDualShelves(container, currentPrivateBooks, currentCreatedBooks);
+    
+    if (activeGenreFilter !== 'all') {
+        applyGenreFilter(activeGenreFilter);
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            if (btn.dataset.filter === activeGenreFilter) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
 }
 
 function applyGenreFilter(genre) {
     activeGenreFilter = genre;
     const cards = document.querySelectorAll('.book-card');
-    
     cards.forEach(card => {
         const cardGenre = card.dataset.genre;
         if (genre === 'all' || cardGenre === genre) {
@@ -201,7 +199,13 @@ function renderBookGrid(books, isPrivateSection) {
 
     let html = '<div class="book-scroll-container">';
     
-    [...books].reverse().forEach(book => {
+    const sortedBooks = [...books].sort((a, b) => {
+        const ta = a.createdAt ? a.createdAt.seconds : 0;
+        const tb = b.createdAt ? b.createdAt.seconds : 0;
+        return tb - ta; 
+    });
+
+    sortedBooks.forEach(book => {
         const isPublic = !!book.publicId;
         const isMyWork = !book.originalUserId || (book.originalUserId === currentUser.uid);
 
@@ -260,6 +264,102 @@ function renderBookGrid(books, isPrivateSection) {
     return html;
 }
 
+// --- GAMIFICATION HELPERS ---
+async function trackGamificationAction(actionType, changeAmount = 1) {
+    if (!currentUser) return;
+
+    try {
+        const statsRef = doc(db, "users", currentUser.uid, "gamification", "stats");
+        
+        await setDoc(statsRef, {
+            [actionType]: increment(changeAmount),
+            lastUpdated: serverTimestamp()
+        }, { merge: true });
+
+        // Fetch new total
+        const statsSnap = await getDoc(statsRef);
+        const currentCount = statsSnap.data()[actionType] || 0;
+
+        // Sync Badges (Lock/Unlock based on count)
+        await syncBadges(actionType, currentCount);
+
+    } catch (e) {
+        console.error("Gamification Error:", e);
+    }
+}
+
+async function syncBadges(actionType, currentCount) {
+    const userRef = doc(db, "users", currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    let currentBadges = userSnap.data().badges || [];
+    
+    const badgeMap = BADGES[actionType];
+    if (!badgeMap) return;
+
+    let badgesChanged = false;
+    const earnedBadgeIds = new Set(currentBadges.map(b => b.id));
+
+    // 1. Check for Unlocks (Count >= Threshold)
+    for (const [threshold, badgeDef] of Object.entries(badgeMap)) {
+        if (currentCount >= parseInt(threshold)) {
+            if (!earnedBadgeIds.has(badgeDef.id)) {
+                // Award Badge
+                currentBadges.push({
+                    id: badgeDef.id,
+                    name: badgeDef.name,
+                    icon: badgeDef.icon,
+                    desc: badgeDef.desc,
+                    dateEarned: new Date().toISOString()
+                });
+                earnedBadgeIds.add(badgeDef.id);
+                badgesChanged = true;
+                showBadgeNotification(badgeDef); // Show popup for new unlock
+            }
+        } else {
+            // 2. Check for Locks (Count < Threshold)
+            // If they have the badge but count dropped below threshold -> Remove it
+            if (earnedBadgeIds.has(badgeDef.id)) {
+                currentBadges = currentBadges.filter(b => b.id !== badgeDef.id);
+                earnedBadgeIds.delete(badgeDef.id);
+                badgesChanged = true;
+                console.log(`Badge Locked: ${badgeDef.name}`);
+            }
+        }
+    }
+
+    if (badgesChanged) {
+        await updateDoc(userRef, { badges: currentBadges });
+    }
+}
+
+async function unlockBadge(badge) {
+    // ... existing code ... (This function is replaced by syncBadges logic but kept if needed by other files, though trackGamificationAction now uses syncBadges)
+    // For safety, we can keep it or remove it. trackGamificationAction calls syncBadges now.
+    // I will remove the old unlockBadge call inside trackGamificationAction and use syncBadges instead.
+}
+
+function showBadgeNotification(badge) {
+    const div = document.createElement('div');
+    div.className = 'badge-toast';
+    div.innerHTML = `
+        <div class="badge-icon">${badge.icon}</div>
+        <div class="badge-info">
+            <h4>Badge Unlocked!</h4>
+            <h3>${badge.name}</h3>
+            <p>${badge.desc}</p>
+        </div>
+    `;
+    document.body.appendChild(div);
+
+    requestAnimationFrame(() => div.classList.add('show'));
+
+    setTimeout(() => {
+        div.classList.remove('show');
+        setTimeout(() => div.remove(), 500);
+    }, 4000);
+}
+
+
 async function handleContainerClick(e) {
     if (!currentUser) return;
 
@@ -282,8 +382,8 @@ async function handleContainerClick(e) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId));
             } else if (source === 'public') {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', docId));
+                refreshPublicBooks().then(updateLibraryUI);
             }
-            loadBooks(); 
         } catch (err) {
             console.error(err);
             alert("Delete failed: " + err.message);
@@ -318,7 +418,7 @@ async function handleContainerClick(e) {
 
         try {
             if (publicId) {
-                // UNPUBLISH
+                // UNPUBLISH logic...
                 if(!confirm("Unpublish this book? It will be removed from New Releases.")) {
                      ribbonButton.style.opacity = '1'; 
                      ribbonButton.dataset.processing = "false";
@@ -335,6 +435,11 @@ async function handleContainerClick(e) {
                         publicId: null,
                         ratings: ratingsToSave 
                     });
+                    
+                    // --- NEW: DECREMENT GAMIFICATION ---
+                    await trackGamificationAction('books_published', -1);
+
+                    await refreshPublicBooks();
                     alert("Unpublished.");
                 } catch(innerErr) {
                     await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { publicId: null });
@@ -360,9 +465,13 @@ async function handleContainerClick(e) {
 
                 const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), pubData);
                 await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { publicId: ref.id });
+                
+                // --- NEW: TRIGGER GAMIFICATION ---
+                await trackGamificationAction('books_published', 1);
+
+                await refreshPublicBooks();
                 alert("Published!");
             }
-            loadBooks(); 
         } catch (err) {
             console.error(err);
             alert("Action failed: " + err.message);

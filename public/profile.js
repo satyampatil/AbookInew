@@ -111,7 +111,7 @@ async function loadProfileData(user) {
 
 // --- GAMIFICATION: LOGIN STREAK ---
 async function handleLoginStreak(user) {
-    const today = new Date().toDateString(); // "Fri Dec 06 2025"
+    const today = new Date().toDateString(); 
     const trackingRef = doc(db, "users", user.uid, "gamification", "login_tracking");
     const statsRef = doc(db, "users", user.uid, "gamification", "stats");
 
@@ -126,12 +126,10 @@ async function handleLoginStreak(user) {
             currentStreak = data.currentStreak || 0;
         }
 
-        // Check if already logged in today
         if (lastLogin === today) {
-            return; // Already tracked today
+            return; 
         }
 
-        // Logic for Streak
         let newStreak = 1;
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -140,50 +138,26 @@ async function handleLoginStreak(user) {
             newStreak = currentStreak + 1;
         }
 
-        // Update Tracking
         await setDoc(trackingRef, {
             lastLoginDate: today,
             currentStreak: newStreak
         }, { merge: true });
 
-        // Update Public Stats
         await setDoc(statsRef, {
             login_streak: newStreak,
             total_days_logged_in: increment(1)
         }, { merge: true });
-
-        // Check for Streak Badges immediately
-        checkBadgeMilestone('login_streak', newStreak);
-        // Note: total_days check happens in loadGamification for simplicity
 
     } catch (e) {
         console.error("Streak Error:", e);
     }
 }
 
-async function checkBadgeMilestone(statKey, value) {
-    const badge = ALL_BADGES.find(b => b.stat === statKey && b.threshold === value);
-    if (badge) {
-        // Award Badge
-        const userRef = doc(db, "users", currentUser.uid);
-        await setDoc(userRef, {
-            badges: arrayUnion({
-                id: badge.id,
-                name: badge.name,
-                icon: badge.icon,
-                desc: badge.desc,
-                dateEarned: new Date().toISOString()
-            })
-        }, { merge: true });
-    }
-}
-
-// --- GAMIFICATION: RENDER ---
+// --- GAMIFICATION: RENDER & SYNC ---
 async function loadGamification(user) {
     const statsRef = doc(db, "users", user.uid, "gamification", "stats");
     const userRef = doc(db, "users", user.uid);
 
-    // Get Elements inside function to ensure they exist (or fail gracefully)
     const statReadEl = document.getElementById('stat-read');
     const statPubEl = document.getElementById('stat-published');
     const statStreakEl = document.getElementById('stat-streak');
@@ -193,8 +167,18 @@ async function loadGamification(user) {
         const [statsSnap, userSnap] = await Promise.all([getDoc(statsRef), getDoc(userRef)]);
         
         const stats = statsSnap.exists() ? statsSnap.data() : {};
-        const userData = userSnap.exists() ? userSnap.data() : {};
-        const unlockedBadges = userData.badges || []; // Array of badge objects
+        let userData = userSnap.exists() ? userSnap.data() : {};
+        let unlockedBadges = userData.badges || []; 
+
+        // --- NEW: SYNC LOGIC ---
+        // Verify current stats against existing badges and update if mismatched
+        const { updatedBadges, hasChanges } = reconcileBadges(stats, unlockedBadges);
+        
+        if (hasChanges) {
+            console.log("Syncing badges due to stat changes...");
+            await updateDoc(userRef, { badges: updatedBadges });
+            unlockedBadges = updatedBadges;
+        }
 
         // 1. Update Top Stats
         if(statReadEl) statReadEl.innerText = stats.books_read || 0;
@@ -209,6 +193,43 @@ async function loadGamification(user) {
     }
 }
 
+// Helper: Compares stats vs badges and returns corrected array
+function reconcileBadges(stats, currentBadges) {
+    let hasChanges = false;
+    // Map existing badges by ID for easy lookup
+    const existingBadgeIds = new Set(currentBadges.map(b => b.id));
+    let newBadges = [...currentBadges];
+
+    ALL_BADGES.forEach(def => {
+        const currentStatValue = stats[def.stat] || 0;
+        const hasBadge = existingBadgeIds.has(def.id);
+
+        if (currentStatValue >= def.threshold) {
+            // Should have badge
+            if (!hasBadge) {
+                // UNLOCK: Add it
+                newBadges.push({
+                    id: def.id,
+                    name: def.name,
+                    icon: def.icon,
+                    desc: def.desc,
+                    dateEarned: new Date().toISOString()
+                });
+                hasChanges = true;
+            }
+        } else {
+            // Should NOT have badge (Lock it)
+            if (hasBadge) {
+                // LOCK: Remove it
+                newBadges = newBadges.filter(b => b.id !== def.id);
+                hasChanges = true;
+            }
+        }
+    });
+
+    return { updatedBadges: newBadges, hasChanges };
+}
+
 function renderBadges(unlockedList, container) {
     container.innerHTML = '';
     
@@ -219,6 +240,7 @@ function renderBadges(unlockedList, container) {
         const isUnlocked = unlockedIds.has(badge.id);
         const card = document.createElement('div');
         card.className = `badge-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+        card.title = isUnlocked ? `Unlocked: ${badge.desc}` : `Locked: ${badge.desc}`;
         
         card.innerHTML = `
             <div class="badge-icon-wrapper">
@@ -312,9 +334,11 @@ async function saveAvatar() {
         }, { merge: true });
 
         const newCardAvatar = generateGhostAvatar(avatarConfig);
-        picEl.src = newCardAvatar;
-        picEl.style.display = 'block';
-        placeholderEl.style.display = 'none';
+        if(picEl) {
+            picEl.src = newCardAvatar;
+            picEl.style.display = 'block';
+        }
+        if(placeholderEl) placeholderEl.style.display = 'none';
         
         updateBackgroundGhost(avatarConfig);
         closeModal();

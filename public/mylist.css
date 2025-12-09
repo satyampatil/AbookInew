@@ -168,3 +168,55 @@
     .list-delete-btn { opacity: 1; transform: scale(1); }
     .library-header { padding: 0 1rem; }
 }
+
+/* --- BADGE NOTIFICATION TOAST --- */
+.badge-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, #1a1a1a, #333);
+    border: 1px solid #FFD700;
+    border-radius: 12px;
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.badge-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.badge-icon {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+.badge-info h4 {
+    margin: 0;
+    color: #FFD700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.badge-info h3 {
+    margin: 2px 0 0 0;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.badge-info p {
+    margin: 2px 0 0 0;
+    color: #ccc;
+    font-size: 0.85rem;
+}
