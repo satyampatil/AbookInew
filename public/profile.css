@@ -1,6 +1,6 @@
 /* --- Profile Page Styles --- */
 
-/* 1. Main Background - Transparent (showing whatever is behind) */
+/* 1. Main Background */
 .profile-container {
     display: flex;
     justify-content: center;
@@ -8,7 +8,7 @@
     min-height: calc(100vh - 70px - 85px);
     margin-top: 70px;
     padding: 2rem;
-    background-color: #ffffff00; /* Transparent as requested */
+    background-color: #ffffff00;
     position: relative; 
     z-index: 1; 
 }
@@ -22,8 +22,8 @@
     height: 100px;
     z-index: 0; 
     pointer-events: none; 
-    transition: transform 0.15s ease-out; /* Slightly smoother transition */
-    opacity: 0.25; /* Made slightly more visible */
+    transition: transform 0.15s ease-out; 
+    opacity: 0.25; 
     display: none; 
 }
 
@@ -39,7 +39,7 @@
     background-color: #ffffff; 
     border-radius: 30px; 
     width: 100%;
-    max-width: 450px; 
+    max-width: 500px; /* Widened slightly for badges */
     text-align: center;
     box-shadow: 0 20px 40px rgba(0,0,0,0.5); 
     position: relative;
@@ -57,7 +57,6 @@
 .profile-card-header-graphic {
     width: 100%;
     height: 220px; 
-    /* Updated Gradient: Bottom-to-Top White to Red */
     background: linear-gradient(0deg, #ffffff 20%, #E50914 100%);
     position: absolute;
     top: 0;
@@ -73,22 +72,15 @@
     height: 100%; 
 }
 
-/* --- WAVE ANIMATION --- */
 @keyframes wave-drift {
     0% { transform: translateX(0) scaleY(1); }
     50% { transform: translateX(-15px) scaleY(1.02); } 
     100% { transform: translateX(0) scaleY(1); }
 }
 
-.profile-card:hover .profile-card-header-graphic svg path:nth-child(1) {
-    animation: wave-drift 5s ease-in-out infinite;
-}
-.profile-card:hover .profile-card-header-graphic svg path:nth-child(2) {
-    animation: wave-drift 4s ease-in-out infinite reverse;
-}
-.profile-card:hover .profile-card-header-graphic svg path:nth-child(3) {
-    animation: wave-drift 3s ease-in-out infinite;
-}
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(1) { animation: wave-drift 5s ease-in-out infinite; }
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(2) { animation: wave-drift 4s ease-in-out infinite reverse; }
+.profile-card:hover .profile-card-header-graphic svg path:nth-child(3) { animation: wave-drift 3s ease-in-out infinite; }
 
 /* 4. Content Wrapper */
 .profile-content {
@@ -98,9 +90,9 @@
     padding-top: 140px; 
 }
 
-/* 5. Profile Image - Overlapping */
+/* 5. Profile Image */
 .profile-img-wrapper {
-    width: 200px; /* Increased size */
+    width: 200px; 
     height: 200px;
     margin: 0 auto 1.5rem auto;
     border-radius: 50%;
@@ -116,19 +108,14 @@
     transition: transform 0.2s;
 }
 
-.profile-img-wrapper:hover {
-    transform: scale(1.05);
-}
+.profile-img-wrapper:hover { transform: scale(1.05); }
 
 #profile-pic {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 25px; /* Adjusted padding for larger circle */
+    width: 100%; height: 100%; object-fit: contain; padding: 25px; 
 }
 
 #profile-placeholder { color: white; }
-#profile-placeholder svg { width: 80px; height: 80px; } /* Adjusted icon size */
+#profile-placeholder svg { width: 80px; height: 80px; }
 
 .edit-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -141,26 +128,161 @@
 
 /* 6. Typography */
 #profile-name {
-    font-size: 1.8rem; 
-    font-weight: 700; 
-    color: #111; 
-    margin-bottom: 0.25rem;
-    letter-spacing: 0.5px;
+    font-size: 1.8rem; font-weight: 700; color: #111; 
+    margin-bottom: 0.25rem; letter-spacing: 0.5px;
 }
 
 .profile-email { 
-    color: #666; 
-    font-size: 0.95rem; 
-    margin-bottom: 1.5rem;
+    color: #666; font-size: 0.95rem; margin-bottom: 1.5rem;
 }
 
-.profile-bio {
-    color: #444;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    margin: 1.5rem 0 2.5rem 0;
-    padding: 0 1rem;
+/* --- STATS ROW --- */
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid #eee;
 }
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #E50914;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.profile-divider {
+    height: 1px;
+    background: #eee;
+    margin: 2rem 0;
+    width: 100%;
+}
+
+/* --- BADGES SECTION --- */
+.badges-section {
+    text-align: left;
+    margin-bottom: 2rem;
+}
+
+.badges-section h3 {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    border-left: 4px solid #E50914;
+    padding-left: 10px;
+}
+
+.badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 15px;
+}
+
+.badge-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.badge-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.badge-icon-wrapper {
+    font-size: 2rem;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.badge-details h4 {
+    font-size: 0.7rem;
+    margin: 0;
+    color: #333;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.badge-details p {
+    display: none; /* Hide details by default, show on hover/tooltip */
+}
+
+/* Locked State */
+.badge-card.locked {
+    background: #f9f9f9;
+    opacity: 0.6;
+}
+
+.badge-card.locked .badge-emoji {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+.badge-card.locked .badge-details h4 {
+    color: #999;
+}
+
+.lock-overlay {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 14px;
+    height: 14px;
+    color: #666;
+    background: #eee;
+    border-radius: 50%;
+    padding: 2px;
+}
+
+/* Tooltip on Hover */
+.badge-card:hover::after {
+    content: attr(title);
+    /* Simple tooltip logic would require JS or 'title' attr, 
+       but for custom HTML tooltip we use .badge-details p logic below */
+}
+
+.badge-card:hover .badge-details p {
+    display: block;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    font-size: 0.7rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    width: 120px;
+    pointer-events: none;
+    z-index: 10;
+    margin-bottom: 10px;
+}
+
 
 /* 7. Action Buttons */
 .profile-actions {

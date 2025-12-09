@@ -47,16 +47,11 @@
         <div class="profile-container">
             <div class="profile-card">
                 
-                <!-- UPDATED: 3-Layer Wavy Header -->
+                <!-- Wavy Header -->
                 <div class="profile-card-header-graphic">
                     <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
-                        <!-- Back Wave (Lightest Red) -->
                         <path fill="#ef5350" fill-opacity="0.3" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,112C672,107,768,149,864,165.3C960,181,1056,171,1152,154.7C1248,139,1344,117,1392,106.7L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-                        
-                        <!-- Middle Wave (Medium Red) -->
                         <path fill="#d32f2f" fill-opacity="0.6" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,208C1248,224,1344,192,1392,176L1440,160L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-                        
-                        <!-- Front Wave (Darkest Brand Red) -->
                         <path fill="#E50914" fill-opacity="1" d="M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,181.3C672,192,768,160,864,138.7C960,117,1056,107,1152,112C1248,117,1344,139,1392,149.3L1440,160L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
                     </svg>
                 </div>
@@ -77,10 +72,32 @@
                     <h1 id="profile-name">Loading...</h1>
                     <p id="profile-email" class="profile-email">...</p>
 
-                    <p class="profile-bio">
-                        Member of the Abooki library. <br>
-                        Crafting stories and exploring AI-generated worlds.
-                    </p>
+                    <!-- ADDED: Stats Row -->
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <span class="stat-value" id="stat-read">0</span>
+                            <span class="stat-label">Read</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="stat-published">0</span>
+                            <span class="stat-label">Published</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="stat-streak">0</span>
+                            <span class="stat-label">Streak</span>
+                        </div>
+                    </div>
+
+                    <!-- ADDED: Badges Section -->
+                    <div class="badges-section">
+                        <h3>Achievements</h3>
+                        <div class="badges-grid" id="badges-container">
+                            <!-- Badges injected by JS -->
+                            <p style="font-size:0.8rem; color:#888; grid-column:1/-1; text-align:center;">Loading badges...</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider"></div>
 
                     <!-- Actions -->
                     <div class="profile-actions">
