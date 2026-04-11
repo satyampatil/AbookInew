@@ -3,35 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Book Generator - abooki</title>
-    <link rel="icon" href="browserIcon.png" type="image/png">
+    <title>abooki - Your Book Library</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="aibook.css">
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9656742927015142"
+     crossorigin="anonymous"></script>
+
 </head>
-<body data-page="aibook">
+<body data-page="home">
 
     <header class="main-header">
         <nav class="main-nav">
+            <!-- REVERTED LOGO STRUCTURE -->
             <a href="index.html" class="logo-link">
-                <div class="logo">
-                    ABOOKI
-                </div>
+                <div class="logo">ABOOKI</div>
             </a>
+            
             <ul class="nav-links">
-                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="index.html" class="nav-link active">Home</a></li>
                 
                 <li>
-                    <a href="aibook.html" class="nav-link nav-link-anim active" id="aibook-link">
+                    <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
                         <span class="ai-part">A</span>
                         <span class="book-part">BOOK</span>
                         <span class="i-part">I</span>
                     </a>
                 </li>
+
                 <li><a href="library.html" class="nav-link">Central Library</a></li>
                 <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
                 <li><a href="mylist.html" class="nav-link">My List</a></li>
@@ -42,89 +44,32 @@
                     <i data-feather="user"></i>
                 </a>
             </div>
-        </nav>
+            </nav>
     </header>
- 
+
     <main>
-        <section class="generator-container">
-            
-            <div class="generator-section" id="generator-form-section">
-                <div class="generator-header">
-                    <h1>Create a Mini-Book</h1>
-                    <p>Pick a genre and add a spark.</p>
+        <section class="hero-section">
+            <div class="hero-content">
                 </div>
-
-                <form class="generator-form" id="generator-form">
-                    
-                    <fieldset>
-                        <legend>Step 1: The Idea</legend>
-                        
-                        <label>What's your genre?</label>
-                        <div class="genre-tags">
-                            <span class="tag" data-genre="Fantasy">Fantasy</span>
-                            <span class="tag" data-genre="Sci-Fi">Sci-Fi</span>
-                            <span class="tag" data-genre="Mystery">Mystery</span>
-                            <span class="tag" data-genre="Romance">Romance</span>
-                            <span class="tag" data-genre="Children's">Children's</span>
-                        </div>
-                        <input type="hidden" id="genre" name="genre">
-
-                        <label for="title">Give your story a title (optional)</label>
-                        <input type="text" id="title" name="title" placeholder="e.g., The Lunar Detective">
-
-                        <label for="idea">Write your big idea (optional)</label>
-                        <textarea id="idea" name="idea" rows="4" placeholder="e.g., 'A detective solves mysteries on the moon'"></textarea>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Step 2: Generate!</legend>
-                        <button type="submit" class="btn btn-primary btn-generate">
-                            <i data-feather="play" class="btn-icon"></i>
-                            Generate My Book
-                        </button>
-                    </fieldset>
-                </form>
-            </div>
-
-            <div class="generator-section" id="loading-section" style="display: none;">
-                <div class="loading-animation">
-                    <div class="loader"></div>
-                </div>
-                <h2>Writing your story...</h2>
-                <p>This may take up to 60 seconds.</p>
-            </div>
-
-            <div class="generator-section" id="reveal-section" style="display: none;">
-                
-                <p class="reveal-subtitle">Your new book is ready!</p>
-
-                <div class="reveal-layout">
-                    <div class="reveal-cover">
-                        <img id="new-book-cover" src="https://placehold.co/300x450/1a1a1a/f5f5f5?text=Cover" alt="New book cover">
-                    </div>
-
-                    <div class="reveal-details">
-                        <h1 id="new-book-title">Book Title</h1>
-                        <p id="new-book-description">A short, compelling description of the book goes here...</p>
-                        
-                        <div class="hero-buttons-stacked">
-                            <a href="reader.html" class="btn btn-primary" id="read-new-book-btn">
-                                <i data-feather="book-open" class="btn-icon"></i> Read Now
-                            </a>
-                            <button class="btn btn-secondary" id="save-new-book-btn">
-                                <i data-feather="plus" class="btn-icon"></i> Save to My Library
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="btn-link" id="create-new-btn">
-                    <i data-feather="arrow-left" class="btn-icon"></i>
-                    Start a New Book
-                </button>
-            </div>
-
         </section>
+
+        <!-- NEW: Search & Continue Reading Area -->
+        <section class="discovery-section">
+            <div id="continue-reading-container"></div>
+            
+            <div class="home-search-container">
+                <div class="search-icon-wrapper">
+                    <i data-feather="search"></i>
+                </div>
+                <input type="text" id="home-search-input" placeholder="Search by title, author, or genre...">
+            </div>
+        </section>
+
+        <section class="book-shelves">
+            <div id="book-shelves-container">
+                </div>
+        </section>
+
     </main>
 
     <footer class="main-footer">
@@ -134,6 +79,6 @@
     <script>
       feather.replace()
     </script>
-    <script type="module" src="aibook.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
