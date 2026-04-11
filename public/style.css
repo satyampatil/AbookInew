@@ -4,14 +4,21 @@
 // ===============================================
 // --- */
 :root {
-    --bg-color: #111111;
-    --bg-color-rgb: 17, 17, 17; /* For gradient transparency */
-    --text-color: #f5f5f5;
-    --text-color-secondary: #aaaaaa;
-    --primary-color: #E50914;
-    --hover-color: #F6121D;
-    --card-bg: #1a1a1a;
-    --border-color: #333333;
+    --bg-color: #141313;
+    --bg-color-rgb: 20, 19, 19; /* For gradient transparency */
+    --text-color: #fbf8f1;
+    --text-color-secondary: #bdb5a7;
+    --primary-color: #e94f37;
+    --hover-color: #ff6f59;
+    --accent-green: #35d0a2;
+    --accent-gold: #f5c542;
+    --accent-cyan: #63d2ff;
+    --card-bg: #201d1c;
+    --surface-clay: #2a2422;
+    --surface-clay-soft: #332b27;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --clay-shadow: 14px 14px 28px rgba(0, 0, 0, 0.34), -10px -10px 22px rgba(255, 255, 255, 0.04);
+    --clay-inset: inset 7px 7px 14px rgba(0, 0, 0, 0.22), inset -7px -7px 14px rgba(255, 255, 255, 0.05);
     --font-main: 'Inter', sans-serif;
     /* Variable for logo star rotation */
     --logo-star-rotate: 0deg;
@@ -25,6 +32,10 @@
 
 /* UPDATED BODY STYLES FOR STICKY FOOTER */
 body {
+    background:
+        linear-gradient(135deg, rgba(233, 79, 55, 0.16) 0%, rgba(20, 19, 19, 0) 28%),
+        linear-gradient(225deg, rgba(53, 208, 162, 0.11) 0%, rgba(20, 19, 19, 0) 32%),
+        linear-gradient(180deg, #141313 0%, #191716 48%, #121110 100%);
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: var(--font-main);
@@ -34,6 +45,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 a {
@@ -67,12 +79,14 @@ main {
 .main-header {
     width: 100%;
     height: 70px;
-    background-color: var(--bg-color);
+    background: rgba(20, 19, 19, 0.78);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
 }
 
 .main-nav {
@@ -96,19 +110,20 @@ main {
 .logo {
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--primary-color);
-    letter-spacing: 1px;
+    color: var(--text-color);
+    letter-spacing: 0;
     position: relative; /* Needed for positioning the pseudo-element */
+    text-shadow: 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(233,79,55,0.18);
 }
 
 /* The Star on top of 'I' */
 .logo::after {
-    content: "✦"; /* Star character */
+    content: "*"; /* Star character */
     position: absolute;
     right: -0.2em; /* Position over the 'I' (adjust if font changes) */
     top: -0.8em;   /* Position above the letter */
     font-size: 0.6em;
-    color: #ffffff; /* Gold color */
+    color: var(--accent-gold); /* Gold color */
     
     /* Rotation controlled by JS via CSS variable */
     transform: rotate(var(--logo-star-rotate));
@@ -126,16 +141,21 @@ main {
     font-size: 1rem;
     font-weight: 500;
     color: var(--text-color-secondary);
-    transition: color 0.2s ease;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .nav-link:hover {
     color: var(--text-color);
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateY(-1px);
 }
 
 .nav-link.active {
     color: var(--text-color);
     font-weight: 700;
+    background: rgba(233, 79, 55, 0.16);
 }
 
 .nav-profile {
@@ -172,10 +192,10 @@ main {
     position: absolute;
     top: 100%; /* Directly below header */
     right: 0;
-    background-color: rgba(20, 20, 20, 0.95);
+    background-color: rgba(35, 31, 29, 0.95);
     min-width: 160px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     z-index: 1001;
     padding: 0.5rem 0;
@@ -308,11 +328,12 @@ main {
     justify-content: center;
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+    box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.28), -6px -6px 14px rgba(255, 255, 255, 0.05);
 }
 
 .btn-icon {
@@ -320,21 +341,25 @@ main {
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--hover-color));
     color: var(--text-color);
 }
 
 .btn-primary:hover {
-    background-color: var(--hover-color);
+    background: linear-gradient(135deg, var(--hover-color), #ff8a70);
+    transform: translateY(-2px);
+    box-shadow: 12px 14px 26px rgba(233, 79, 55, 0.24), -6px -6px 14px rgba(255, 255, 255, 0.05);
 }
 
 .btn-secondary {
-    background-color: rgba(109, 109, 110, 0.7);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-    background-color: rgba(109, 109, 110, 0.4);
+    background-color: rgba(255, 255, 255, 0.16);
+    transform: translateY(-2px);
 }
 
 /* NEW: Helper class for round icon buttons */
@@ -380,18 +405,19 @@ main {
 .home-search-container {
     display: flex;
     align-items: center;
-    background: #1f1f1f;
-    border: 1px solid #333;
+    background: rgba(42, 36, 34, 0.92);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 0.8rem 1.2rem;
     width: 100%;
     transition: all 0.2s;
+    box-shadow: var(--clay-inset);
 }
 
 .home-search-container:focus-within {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
-    background: #252525;
+    border-color: rgba(53, 208, 162, 0.55);
+    box-shadow: 0 0 0 3px rgba(53, 208, 162, 0.16), var(--clay-inset);
+    background: rgba(50, 43, 39, 0.96);
 }
 
 .search-icon-wrapper {
@@ -416,8 +442,8 @@ main {
 
 /* Continue Reading Banner */
 .continue-card {
-    background: linear-gradient(90deg, #1f1f1f 0%, #1a1a1a 100%);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(42, 36, 34, 0.98), rgba(29, 26, 24, 0.98));
+    border: 1px solid var(--border-color);
     border-left: 4px solid var(--primary-color);
     border-radius: 8px;
     padding: 1.5rem;
@@ -426,6 +452,7 @@ main {
     justify-content: space-between;
     margin-bottom: 1rem;
     animation: fadeIn 0.5s ease;
+    box-shadow: var(--clay-shadow);
 }
 
 .continue-info h3 {
@@ -490,11 +517,13 @@ main {
 .book-card {
     flex: 0 0 auto;
     width: 200px; /* Width of the book card */
-    background-color: var(--card-bg);
+    background: var(--surface-clay);
     border-radius: 8px;
     overflow: hidden;
     position: relative;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--clay-shadow);
+    border: 1px solid var(--border-color);
 }
 
 .book-card.clickable {
@@ -527,8 +556,8 @@ main {
 }
 
 .book-card.clickable:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 18px 22px 34px rgba(0,0,0,0.45), -8px -8px 18px rgba(255,255,255,0.05);
 }
 
 .book-card.clickable:hover .book-card-info {
@@ -552,6 +581,39 @@ main {
     
     /* NEW: Prevent footer from growing or shrinking */
     flex-shrink: 0;
+    background: rgba(20, 19, 19, 0.76);
+    backdrop-filter: blur(10px);
+}
+
+.site-toast {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 3000;
+    max-width: min(420px, calc(100vw - 2.5rem));
+    padding: 1rem 1.15rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(42, 36, 34, 0.98), rgba(31, 28, 26, 0.98));
+    color: var(--text-color);
+    box-shadow: 16px 18px 36px rgba(0, 0, 0, 0.38), -8px -8px 18px rgba(255, 255, 255, 0.05);
+    transform: translateY(18px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.site-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.site-toast.success {
+    border-color: rgba(53, 208, 162, 0.58);
+}
+
+.site-toast.error {
+    border-color: rgba(233, 79, 55, 0.68);
 }
 
 /* ---

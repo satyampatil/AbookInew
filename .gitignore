@@ -11,6 +11,8 @@ firebase-debug.*.log*
 .firebase/
 .firebase-config/
 firebase.cmd
+.chrome-*/
+*-check.png
 
 # Firebase config
 

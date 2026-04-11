@@ -25,6 +25,27 @@ const db = getFirestore(app);
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
 
+function showSiteNotice(message, type = 'info') {
+    let toast = document.getElementById('site-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'site-toast';
+        toast.className = 'site-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+    }
+
+    toast.className = `site-toast ${type}`;
+    toast.textContent = message;
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    clearTimeout(toast.hideTimer);
+    toast.hideTimer = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 4600);
+}
+
 async function initializeAIGenerator() {
     // --- NEW: LISTEN FOR AUTH ---
     onAuthStateChanged(auth, (user) => {
@@ -145,9 +166,9 @@ async function initializeAIGenerator() {
             console.error("Error generating book:", error);
             
             if (error.message.includes("not configured")) {
-                alert("AI generation is not configured on the server yet.");
+                showSiteNotice("AI generation is not configured on the server yet.", "error");
             } else {
-                alert("Sorry, something went wrong while generating the book: " + error.message);
+                showSiteNotice("Sorry, something went wrong while generating the book: " + error.message, "error");
             }
 
             formSection.style.display = 'block';
@@ -175,7 +196,7 @@ async function initializeAIGenerator() {
             const user = auth.currentUser;
             
             if (!user) {
-                alert("You must be logged in to save books to the cloud library!");
+                showSiteNotice("Log in to save books to your cloud library.", "error");
                 return;
             }
 
@@ -193,10 +214,11 @@ async function initializeAIGenerator() {
 
                 saveNewBookBtn.innerHTML = '<i data-feather="check" class="btn-icon"></i> Saved to My List!';
                 feather.replace();
+                showSiteNotice("Saved to My List.", "success");
 
             } catch (error) {
                 console.error("Error saving book to Firebase:", error);
-                alert("There was an error saving your book to the cloud: " + error.message);
+                showSiteNotice("There was an error saving your book to the cloud: " + error.message, "error");
                 saveNewBookBtn.disabled = false;
                 saveNewBookBtn.innerHTML = '<i data-feather="plus" class="btn-icon"></i> Try Again';
                 feather.replace();
