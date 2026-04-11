@@ -813,7 +813,6 @@
 
     <!-- Combined Scripts -->
     <script type="module">
-
         // --- RELIABLE DOM READY HELPER ---
         // Guaranteed to run immediately if DOM is parsed, preventing top-level await race conditions.
         const onDOMReady = (callback) => {
@@ -934,7 +933,7 @@
         }
 
         // --- AWWWARDS LOADER LOGIC ---
-        document.addEventListener("DOMContentLoaded", () => {
+        onDOMReady(() => {
             const counterEl = document.getElementById('loader-counter');
             const progressEl = document.getElementById('loader-progress');
             const overlay = document.getElementById('loader-overlay');
@@ -1435,6 +1434,8 @@
         onDOMReady(() => {
             if (page === 'home') {
                 initAuthAndLoad();
+            } else {
+                onAuthStateChanged(auth, (user) => { updateNavUser(user); });
             }
         });
 
