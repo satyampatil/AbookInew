@@ -757,8 +757,8 @@
                 <!-- Text Injected Here -->
                 <div class="hero-text-col" id="hero-text-container"></div>
                 
-                <!-- Pure CSS 3D Book Injected Here -->
-                <div class="hero-visual-col fade-up" id="hero-3d-book"></div>
+                <!-- 3D WebGL Injected Here -->
+                <div class="hero-visual-col" id="hero-3d-book" style="opacity: 0; transform: translateY(20px); transition: opacity 1s ease, transform 1s ease;"></div>
             </div>
         </section>
 
@@ -936,6 +936,8 @@
         }
 
         // --- AWWWARDS LOADER LOGIC ---
+        window.isLoaderFinished = false; // Add global flag
+
         onDOMReady(() => {
             const counterEl = document.getElementById('loader-counter');
             const progressEl = document.getElementById('loader-progress');
@@ -956,7 +958,12 @@
                 } else {
                     setTimeout(() => {
                         overlay.classList.add('hide-loader');
-                        setTimeout(() => { overlay.remove(); }, 1400); 
+                        setTimeout(() => { 
+                            overlay.remove(); 
+                            // Dispatch an event to tell the 3D book that it's safe to measure and render
+                            window.isLoaderFinished = true;
+                            document.dispatchEvent(new Event('loaderComplete'));
+                        }, 1400); 
                     }, 400); 
                 }
             };
@@ -969,8 +976,15 @@
         let coverMaterial;
         let targetRotationY = -0.4;
         let targetRotationX = 0.1;
+        window.threeJSInitialized = false;
 
         function initThreeJS() {
+            if (window.threeJSInitialized) return;
+            if (typeof THREE === 'undefined') {
+                console.warn("THREE.js failed to load via CDN.");
+                return;
+            }
+
             const container = document.getElementById('hero-3d-book');
             if (!container) return;
 
@@ -1067,6 +1081,11 @@
                 renderer.render(scene, camera);
             }
             animate();
+
+            window.threeJSInitialized = true;
+            // Fade in the container elegantly now that it's safely rendered
+            container.style.opacity = '1';
+            container.style.transform = 'translateY(0)';
         }
 
         // Texture updater
@@ -1082,6 +1101,16 @@
                 coverMaterial.needsUpdate = true;
             });
         }
+
+        // Wait to init 3D scene until the loader overlay finishes to ensure valid width/height
+        document.addEventListener('loaderComplete', () => {
+            if (document.body.dataset.page === 'home' && window.featuredBookCover) {
+                initThreeJS();
+                updateThreeJSBookTexture(window.featuredBookCover);
+            } else if (document.body.dataset.page === 'home') {
+                initThreeJS(); // Fallback empty book render
+            }
+        });
 
 
         // --- HOME PAGE LOGIC (DYNAMIC) ---
@@ -1192,8 +1221,6 @@
         async function loadHomePage() {
             const heroTextContainer = document.getElementById('hero-text-container');
             if (heroTextContainer) heroTextContainer.innerHTML = `<h1 class="hero-title fade-up">Curating the Archive...</h1>`;
-
-            initThreeJS();
 
             try {
                 const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
@@ -1325,9 +1352,13 @@
                 </div>
             `;
             
-            // Push texture to 3D Canvas
-            if(book.coverUrl) {
-                 updateThreeJSBookTexture(book.coverUrl);
+            // Set global cover for Three.js
+            window.featuredBookCover = book.coverUrl;
+            
+            // If the loader is already done, render immediately
+            if (window.isLoaderFinished) {
+                initThreeJS();
+                if(book.coverUrl) updateThreeJSBookTexture(book.coverUrl);
             }
 
             const btn = textContainer.querySelector('.read-book-btn');
