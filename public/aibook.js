@@ -86,76 +86,28 @@ async function initializeAIGenerator() {
         loadingSection.style.display = 'block';
         revealSection.style.display = 'none';
 
-        // --- REAL AI GENERATION ---
-        const apiKey = "AIzaSyDKxGmrH-QUaP9eWDglJYF1ZgsiRFzLJf8"; // Fixed: Use empty string for secure environment injection
-        
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        const textPrompt = `You are a creative author. Write a 10-page mini-book based on these details. Return ONLY JSON.
-        Genre: ${formData.genre}
-        Title: ${formData.title}
-        Core Idea: ${formData.idea}
-        
-        You must return ONLY a single JSON object matching this schema:
-        {
-          "title": "The Book Title",
-          "genre": "${formData.genre}",
-          "description": "A short, one-sentence compelling logline or description for the book.",
-          "image_prompt": "A detailed, vivid 5-10 word prompt for an image generator (e.g., 'A detective on the moon, film noir, digital art').",
-          "cover_hex_bg": "A 6-digit hex color code (no '#') for the book cover background, based on the theme.",
-          "cover_hex_text": "A 6-digit hex color code (no '#') for the text that contrasts well with the background color.",
-          "pages": [
-            "Page 1 text...",
-            "Page 2 text...",
-            "Page 3 text...",
-            "Page 4 text...",
-            "Page 5 text...",
-            "Page 6 text...",
-            "Page 7 text...",
-            "Page 8 text...",
-            "Page 9 text...",
-            "Page 10 text..."
-          ]
-        }`;
-    
-        const textPayload = {
-          contents: [{ parts: [{ text: textPrompt }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: "OBJECT",
-                properties: {
-                    title: { type: "STRING" },
-                    genre: { type: "STRING" },
-                    description: { type: "STRING" },
-                    image_prompt: { type: "STRING" },
-                    cover_hex_bg: { type: "STRING" }, 
-                    cover_hex_text: { type: "STRING" }, 
-                    pages: {
-                        type: "ARRAY",
-                        items: { type: "STRING" }
-                    }
-                },
-                required: [
-                    "title", "genre", "description", "image_prompt", 
-                    "cover_hex_bg", "cover_hex_text", "pages"
-                ]
-            }
-          }
-        };
-
         try {
-            const response = await fetch(apiUrl, {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("Please log in before generating a book.");
+            }
+
+            const idToken = await user.getIdToken();
+
+            const response = await fetch('/api/generateBook', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(textPayload)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify(formData)
             });
 
             if (!response.ok) {
                 let errorMsg = "An unknown error occurred.";
                 try {
                     const errorBody = await response.json();
-                    errorMsg = errorBody.error.message;
+                    errorMsg = errorBody.error?.message || errorBody.error || errorMsg;
                 } catch (e) {
                     errorMsg = `API request failed with status: ${response.status}`;
                 }
@@ -192,8 +144,8 @@ async function initializeAIGenerator() {
         } catch (error) {
             console.error("Error generating book:", error);
             
-            if (error.message.includes("blocked") || error.message.includes("referer")) {
-                alert("API KEY ERROR: Check referer restrictions.");
+            if (error.message.includes("not configured")) {
+                alert("AI generation is not configured on the server yet.");
             } else {
                 alert("Sorry, something went wrong while generating the book: " + error.message);
             }
