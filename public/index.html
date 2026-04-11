@@ -9,6 +9,11 @@
     <!-- Combined Font Import: Inter for UI, Playfair Display for Editorial Headings -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    
+    <!-- CSP-COMPLIANT THREE.JS SOURCE -->
+    <!-- Loaded via jsdelivr to satisfy your server's strict Content Security Policy -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+
     <!-- AdSense Script commented out temporarily to prevent CSP console warnings -->
     <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9656742927015142" crossorigin="anonymous"></script> -->
 
@@ -436,7 +441,7 @@
 
         /* ---
         // ===============================================
-        //   03. EDITORIAL HERO SECTION (PURE CSS 3D)
+        //   03. EDITORIAL HERO SECTION & THREE.JS
         // ===============================================
         // --- */
         .hero-section {
@@ -500,37 +505,12 @@
         .btn-editorial:hover { color: var(--bg-color); border-color: var(--text-main); }
         .btn-editorial:hover::before { transform: translate(-50%, -50%); }
 
-        /* Container for Pure CSS 3D Book */
+        /* Container for Three.js Canvas */
         .hero-visual-col {
             flex: 1; display: flex; justify-content: center; align-items: center;
-            width: 100%; perspective: 1000px; padding: 2rem;
+            width: 100%; height: 600px; position: relative;
         }
-        
-        .book-presentation {
-            position: relative; width: 100%; max-width: 360px;
-            transform-style: preserve-3d; transform: rotateY(-15deg) rotateX(5deg);
-            transition: transform 0.5s ease;
-        }
-        
-        .book-presentation:hover { transform: rotateY(-5deg) rotateX(2deg); }
-        
-        .book-presentation img {
-            width: 100%; height: auto; border-radius: 4px;
-            box-shadow: -20px 20px 40px rgba(0,0,0,0.8), inset 2px 0 5px rgba(255,255,255,0.2);
-            position: relative; z-index: 2;
-        }
-        
-        .book-presentation::before {
-            content: ''; position: absolute; top: 2%; right: -5%; width: 10%; height: 96%;
-            background: #e6e6e6; border-radius: 0 4px 4px 0;
-            transform: rotateY(90deg); transform-origin: left; z-index: 1;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        @media (max-width: 900px) { 
-            .hero-visual-col { margin-top: 0; padding: 0; }
-            .book-presentation { max-width: 280px; margin: 0 auto; }
-        }
+        @media (max-width: 900px) { .hero-visual-col { height: 400px; margin-top: -2rem;} }
 
         /* ---
         // ===============================================
@@ -778,7 +758,7 @@
                 <div class="hero-text-col" id="hero-text-container"></div>
                 
                 <!-- Pure CSS 3D Book Injected Here -->
-                <div class="hero-visual-col fade-up" id="hero-visual-container"></div>
+                <div class="hero-visual-col fade-up" id="hero-3d-book"></div>
             </div>
         </section>
 
@@ -984,6 +964,126 @@
             observeScrollElements(); // Observe initial static fade-up elements
         });
 
+        // --- THREE.JS 3D BOOK LOGIC ---
+        let scene, camera, renderer, bookGroup;
+        let coverMaterial;
+        let targetRotationY = -0.4;
+        let targetRotationX = 0.1;
+
+        function initThreeJS() {
+            const container = document.getElementById('hero-3d-book');
+            if (!container) return;
+
+            // Clear any existing content
+            container.innerHTML = '';
+
+            scene = new THREE.Scene();
+
+            // Camera Setup
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.z = 8;
+
+            // Renderer Setup (Transparent background)
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Lighting setup for Premium Editorial Vibe
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const spotLight = new THREE.SpotLight(0xffffff, 1.2);
+            spotLight.position.set(5, 5, 5);
+            spotLight.angle = Math.PI / 6;
+            scene.add(spotLight);
+
+            // Golden rim light
+            const rimLight = new THREE.PointLight(0xc9a05b, 1.5, 20);
+            rimLight.position.set(-3, 2, -2);
+            scene.add(rimLight);
+
+            // Geometry: Width, Height, Depth
+            const geometry = new THREE.BoxGeometry(3.2, 4.8, 0.45);
+
+            // Materials
+            const pageMaterial = new THREE.MeshStandardMaterial({ color: 0xeae6dc, roughness: 0.9 });
+            const spineMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 });
+            const backMaterial = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.7 });
+            coverMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.3 }); // Placeholder dark cover
+
+            // Assign materials to faces: right, left, top, bottom, front, back
+            const materials = [
+                pageMaterial,  // Right (Pages)
+                spineMaterial, // Left (Spine)
+                pageMaterial,  // Top (Pages)
+                pageMaterial,  // Bottom (Pages)
+                coverMaterial, // Front (Cover)
+                backMaterial   // Back
+            ];
+
+            const book = new THREE.Mesh(geometry, materials);
+
+            bookGroup = new THREE.Group();
+            bookGroup.add(book);
+            scene.add(bookGroup);
+
+            // Set initial rotation
+            bookGroup.rotation.y = targetRotationY;
+            bookGroup.rotation.x = targetRotationX;
+
+            // Mouse interaction
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                targetRotationY = -0.4 + (x * 0.3); // Gentle horizontal swing
+                targetRotationX = 0.1 - (y * 0.2);  // Gentle vertical swing
+            });
+
+            // Window resize handler
+            window.addEventListener('resize', () => {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                renderer.setSize(width, height);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            });
+
+            // Animation Loop
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Smooth rotation interpolation
+                bookGroup.rotation.y += (targetRotationY - bookGroup.rotation.y) * 0.05;
+                bookGroup.rotation.x += (targetRotationX - bookGroup.rotation.x) * 0.05;
+
+                // Gentle floating animation
+                const time = clock.getElapsedTime();
+                bookGroup.position.y = Math.sin(time * 1.5) * 0.15;
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // Texture updater
+        function updateThreeJSBookTexture(imageUrl) {
+            if (!coverMaterial) return;
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.setCrossOrigin('anonymous');
+
+            textureLoader.load(imageUrl, (texture) => {
+                texture.colorSpace = THREE.SRGBColorSpace;
+                coverMaterial.map = texture;
+                coverMaterial.color.setHex(0xffffff); // Remove dark placeholder tint
+                coverMaterial.needsUpdate = true;
+            });
+        }
+
+
         // --- HOME PAGE LOGIC (DYNAMIC) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -1093,6 +1193,8 @@
             const heroTextContainer = document.getElementById('hero-text-container');
             if (heroTextContainer) heroTextContainer.innerHTML = `<h1 class="hero-title fade-up">Curating the Archive...</h1>`;
 
+            initThreeJS();
+
             try {
                 const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
                 const querySnapshot = await getDocs(booksRef);
@@ -1197,8 +1299,7 @@
         // --- NEW EDITORIAL HERO RENDERER ---
         function buildHero(book) {
             const textContainer = document.getElementById('hero-text-container');
-            const visualContainer = document.getElementById('hero-visual-container');
-            if (!textContainer || !visualContainer) return; 
+            if (!textContainer) return; 
 
             const safeData = safeEscape(book);
             const stars = Math.round(book.avgRating);
@@ -1224,12 +1325,10 @@
                 </div>
             `;
             
-            // Revert back to the Pure CSS 3D Presentation to fix the CSP/Three.js issue
-            visualContainer.innerHTML = `
-                <div class="book-presentation magnetic">
-                    <img src="${book.coverUrl || 'https://placehold.co/800x1200/1a1a1a/FFF?text=No+Cover'}" alt="${book.title} Cover">
-                </div>
-            `;
+            // Push texture to 3D Canvas
+            if(book.coverUrl) {
+                 updateThreeJSBookTexture(book.coverUrl);
+            }
 
             const btn = textContainer.querySelector('.read-book-btn');
             if(btn) {
@@ -1244,7 +1343,7 @@
             }
 
             if (typeof feather !== 'undefined') feather.replace();
-            initMagneticElements(); // re-initialize for dynamically added buttons and the book cover
+            initMagneticElements(); // re-initialize for dynamically added buttons
             observeScrollElements(); // re-trigger intersection observer
         }
 
