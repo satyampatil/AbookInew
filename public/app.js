@@ -49,7 +49,10 @@ async function loadHomePage() {
     const heroContent = document.querySelector('.hero-content');
     
     // Initial Loading State
-    if (heroContent) heroContent.innerHTML = '<h1>Curating Best Books...</h1>';
+    if (heroContent) heroContent.innerHTML = `
+        <span class="hero-kicker">Live Library</span>
+        <h1 class="hero-title">Curating Best Books...</h1>
+    `;
 
     try {
         const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
@@ -70,6 +73,7 @@ async function loadHomePage() {
 
         if (allBooksCache.length === 0) {
             if (heroContent) heroContent.innerHTML = `
+                <span class="hero-kicker">First Edition</span>
                 <h1 class="hero-title">Welcome to Abooki</h1>
                 <p class="hero-description">The library is empty. Be the first to write history!</p>
                 <div class="hero-buttons">
@@ -102,9 +106,9 @@ async function loadHomePage() {
 
         // --- PREPARE DEFAULT SHELVES ---
         defaultShelvesData = [];
-        if (topRated.length > 0) defaultShelvesData.push({ category: "⭐ 5-Star Masterpieces", books: topRated.slice(0, 8) });
-        if (mostPopular.length > 0) defaultShelvesData.push({ category: "🔥 Community Hits", books: mostPopular });
-        if (newArrivals.length > 0) defaultShelvesData.push({ category: "✨ Fresh Arrivals", books: newArrivals });
+        if (topRated.length > 0) defaultShelvesData.push({ category: "Critic Shelf", books: topRated.slice(0, 8) });
+        if (mostPopular.length > 0) defaultShelvesData.push({ category: "Most Read", books: mostPopular });
+        if (newArrivals.length > 0) defaultShelvesData.push({ category: "New Arrivals", books: newArrivals });
 
         buildShelves(defaultShelvesData);
         
@@ -142,7 +146,7 @@ function setupSearch() {
             buildShelves([{ category: `Search Results (${results.length})`, books: results }]);
         } else {
             const container = document.getElementById('book-shelves-container');
-            container.innerHTML = `<div style="text-align:center; padding:3rem; color:#666;">No books found matching "${term}"</div>`;
+            container.innerHTML = `<div class="empty-state">No books found matching "${term}"</div>`;
         }
     });
 }
@@ -186,11 +190,8 @@ function buildHero(book) {
     if (!heroSection || !heroContent) return; 
 
     heroSection.style.backgroundImage = `
-        linear-gradient(to right, 
-            rgba(17, 17, 17, 0.95) 30%, 
-            rgba(17, 17, 17, 0.7) 60%, 
-            rgba(17, 17, 17, 0.2) 100%
-        ),
+        linear-gradient(90deg, rgba(8, 8, 9, 0.96) 0%, rgba(8, 8, 9, 0.76) 44%, rgba(8, 8, 9, 0.24) 100%),
+        radial-gradient(circle at 80% 18%, rgba(225, 76, 58, 0.22), transparent 28%),
         url('${book.coverUrl || 'https://placehold.co/1200x600/1a1a1a/FFF?text=No+Cover'}')
     `;
     
@@ -204,18 +205,18 @@ function buildHero(book) {
     }
 
     const heroHtml = `
-        <span class="badge" style="background:#FFD700; color:#000; margin-bottom:1rem; display:inline-block; padding:4px 8px; font-weight:bold; border-radius:4px;">
+        <span class="hero-kicker">
             Editor's Choice
         </span>
-        <h1 class="hero-title" style="font-size:3.5rem; line-height:1.1;">${book.title}</h1>
-        <div style="display:flex; align-items:center; gap:5px; margin: 10px 0 20px 0;">
+        <h1 class="hero-title">${book.title}</h1>
+        <div class="hero-rating">
             ${starsHtml}
-            <span style="color:#888; font-size:0.9rem; margin-left:10px;">(${book.ratingCount} reviews)</span>
+            <span>(${book.ratingCount} reviews)</span>
         </div>
-        <p class="hero-description" style="font-size:1.1rem; color:#ccc; max-width:600px; line-height:1.6;">
+        <p class="hero-description">
             ${book.description ? (book.description.length > 150 ? book.description.substring(0,150)+'...' : book.description) : 'No description available.'}
         </p>
-        <p style="color:#888; font-style:italic; margin-bottom:2rem;">By ${book.authorName || 'Unknown Author'}</p>
+        <p class="hero-author">By ${book.authorName || 'Unknown Author'}</p>
         
         <div class="hero-buttons">
             <button class="btn btn-primary read-book-btn" data-book='${safeData}'>
@@ -261,7 +262,7 @@ function buildShelves(categories) {
             const stars = Math.round(book.avgRating);
             let starIcons = '';
             for(let i=0; i<1; i++) { 
-                starIcons += `<i data-feather="star" style="width:12px; height:12px; fill:#FFD700; color:#FFD700"></i>`;
+                starIcons += `<i data-feather="star" class="rating-star-mini"></i>`;
             }
 
             booksHtml += `
@@ -269,8 +270,8 @@ function buildShelves(categories) {
                     <img src="${book.coverUrl}" alt="${book.title}" onerror="this.src='https://placehold.co/200x300/222/FFF?text=No+Image'">
                     <div class="book-card-info">
                         <h3 class="book-card-title">${book.title}</h3>
-                        <p style="font-size:0.75rem; color:#aaa; margin-top:2px; font-style:italic;">By ${book.authorName || 'Unknown'}</p>
-                        <div style="display:flex; align-items:center; gap:5px; margin-top:5px; font-size:0.8rem; color:#ccc;">
+                        <p class="book-card-author">By ${book.authorName || 'Unknown'}</p>
+                        <div class="book-card-rating">
                             ${starIcons} <span>${book.avgRating.toFixed(1)}</span>
                         </div>
                     </div>
