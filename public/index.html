@@ -814,6 +814,13 @@
     <!-- Combined Scripts -->
     <script type="module">
 
+        // --- RELIABLE DOM READY HELPER ---
+        // Guaranteed to run immediately if DOM is parsed, preventing top-level await race conditions.
+        const onDOMReady = (callback) => {
+            if (document.readyState !== 'loading') callback();
+            else document.addEventListener('DOMContentLoaded', callback);
+        };
+
         // --- PREMIUM INTERACTION: Custom Cursor Logic ---
         const cursorDot = document.getElementById('cursor-dot');
         const cursorOutline = document.getElementById('cursor-outline');
@@ -1074,7 +1081,7 @@
 
         // --- HOME PAGE LOGIC (DYNAMIC) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1103,7 +1110,7 @@
             const profileContainers = document.querySelectorAll('.nav-profile');
             
             profileContainers.forEach(async (container) => {
-                if (user) {
+                if (user && !user.isAnonymous) {
                     let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
                     try {
                         const docRef = doc(db, "users", user.uid);
@@ -1395,8 +1402,41 @@
         }
 
         const page = document.body.dataset.page;
-        onAuthStateChanged(auth, (user) => { updateNavUser(user); });
-        if (page === 'home') { loadHomePage(); } 
+        let isHomeLoaded = false;
+
+        const initAuthAndLoad = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.warn("Auth initialization failed. Proceeding without auth.", error);
+            }
+
+            onAuthStateChanged(auth, (user) => { 
+                updateNavUser(user); 
+                if (page === 'home' && !isHomeLoaded) {
+                    isHomeLoaded = true;
+                    loadHomePage();
+                }
+            });
+
+            // Fallback in case onAuthStateChanged is slow or fails
+            setTimeout(() => {
+                if (page === 'home' && !isHomeLoaded) {
+                    isHomeLoaded = true;
+                    loadHomePage();
+                }
+            }, 1500);
+        };
+
+        onDOMReady(() => {
+            if (page === 'home') {
+                initAuthAndLoad();
+            }
+        });
 
         // Star rotation when scrolled
         let lastScrollY = window.scrollY;

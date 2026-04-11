@@ -3,137 +3,941 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Book Generator - abooki</title>
+    <title>Author a Book - abooki Premium</title>
     <link rel="icon" href="browserIcon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Combined Font Import: Inter for UI, Playfair Display for Editorial Headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="aibook.css">
+
+    <style>
+        /* ---
+        // ===============================================
+        //   01. GLOBAL STYLES, CURSOR, & EDITORIAL PALETTE
+        // ===============================================
+        // --- */
+        :root {
+            --bg-color: #070708; 
+            --bg-surface: #101012;
+            --text-main: #f0ece1;
+            --text-muted: #8e8b82;
+            --accent-gold: #c9a05b;
+            --accent-green: #588157;
+            --border-subtle: rgba(240, 236, 225, 0.08);
+            
+            --font-ui: 'Inter', sans-serif;
+            --font-editorial: 'Playfair Display', serif;
+            --logo-star-rotate: 0deg;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            cursor: auto; 
+        }
+
+        /* Elegant radial glow */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.08) 0%, transparent 70%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* Site-wide Premium Film Grain / Noise Overlay */
+        .site-noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99998;
+            opacity: 0.45;
+            background-image:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+                repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px);
+            mix-blend-mode: overlay;
+        }
+
+        /* Custom Cursor for fine pointer devices */
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, select, .clickable, .magnetic { cursor: none; }
+            
+            #cursor-dot, #cursor-outline {
+                position: fixed; top: 0; left: 0;
+                transform: translate(-50%, -50%);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9999999;
+            }
+            
+            #cursor-dot {
+                width: 6px; height: 6px;
+                background-color: var(--text-main);
+                transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.2s;
+            }
+            
+            #cursor-outline {
+                width: 40px; height: 40px;
+                border: 1px solid rgba(240, 236, 225, 0.3);
+                transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), 
+                            height 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), 
+                            border-color 0.3s, background-color 0.3s;
+            }
+
+            body.cursor-hover #cursor-dot {
+                transform: translate(-50%, -50%) scale(0.1);
+            }
+            body.cursor-hover #cursor-outline {
+                width: 60px; height: 60px;
+                border-color: var(--accent-gold);
+                background-color: rgba(201, 160, 91, 0.05);
+                backdrop-filter: blur(2px);
+            }
+        }
+        @media (pointer: coarse) {
+            #cursor-dot, #cursor-outline { display: none !important; }
+        }
+
+        .magnetic {
+            display: inline-block;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform;
+        }
+
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .stagger-delay-1 { transition-delay: 0.1s; }
+        .stagger-delay-2 { transition-delay: 0.2s; }
+        .stagger-delay-3 { transition-delay: 0.3s; }
+
+        a { color: inherit; text-decoration: none; }
+        ul { list-style: none; }
+        img { max-width: 100%; height: auto; display: block; }
+        main { flex-grow: 1; padding-bottom: 4rem; }
+
+        /* Toast Notifications */
+        .site-toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(16, 16, 18, 0.95); border: 1px solid var(--accent-gold);
+            color: var(--text-main); padding: 1rem 2rem; border-radius: 100px;
+            font-family: var(--font-ui); font-weight: 500; font-size: 0.9rem;
+            z-index: 99999; opacity: 0; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .site-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .site-toast.error { border-color: #e14c3a; color: #e14c3a; }
+        .site-toast.success { border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* ---
+        // ===============================================
+        //   02. DUAL NAVIGATION SYSTEM
+        // ===============================================
+        // --- */
+        .desktop-header-wrapper {
+            position: fixed; top: 1.5rem; left: 0; width: 100%;
+            z-index: 1000; display: flex; justify-content: center;
+            padding: 0 1.5rem; pointer-events: none; 
+        }
+        .main-nav {
+            pointer-events: auto; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 1200px; height: 64px; background: rgba(16, 16, 18, 0.65);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border-subtle);
+            border-radius: 100px; padding: 0 1.5rem 0 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+        .logo { font-family: var(--font-editorial); font-size: 1.4rem; font-weight: 700; letter-spacing: 0.05em; position: relative; color: var(--text-main); }
+        .logo::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.2em; font-family: var(--font-ui); font-size: 0.6em; color: var(--accent-gold);
+            transform: rotate(var(--logo-star-rotate)); transition: transform 0.1s linear;
+        }
+        .nav-links { display: flex; align-items: center; gap: 2rem; margin: 0 auto; }
+        .nav-link {
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.3s ease; position: relative; padding: 0.5rem 0; 
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-main); }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold);
+        }
+        .nav-link-anim { display: inline-flex; align-items: center; } 
+        .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link-anim .book-part {
+            display: inline-flex; align-items: center; max-width: 0; opacity: 0; transform: translateX(-10px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); color: var(--accent-gold); font-weight: 500; overflow: hidden; white-space: nowrap; 
+        }
+        .nav-link-anim:hover .book-part, .nav-link-anim.active .book-part { max-width: 80px; opacity: 1; transform: translateX(0); margin: 0 0.05em; }
+
+        .nav-profile {
+            position: relative; height: 40px; width: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.3s;
+        }
+        .nav-profile:hover { border-color: var(--accent-gold); }
+        .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .nav-dropdown {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0; background: rgba(16, 16, 18, 0.95);
+            backdrop-filter: blur(10px); min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
+        }
+        .nav-profile:hover .nav-dropdown { display: block; }
+        .dropdown-item {
+            display: block; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-radius: 8px; transition: all 0.2s;
+        }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+
+        .mobile-header-wrapper {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 2010;
+            background: rgba(7, 7, 8, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem; justify-content: space-between; align-items: center; transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .mobile-header-wrapper.menu-open { background: transparent; backdrop-filter: none; border-bottom-color: transparent; }
+        .hamburger { width: 30px; height: 20px; position: relative; cursor: pointer; z-index: 2012; }
+        .hamburger span {
+            display: block; position: absolute; height: 2px; width: 100%; background: var(--text-main);
+            border-radius: 2px; opacity: 1; left: 0; transform: rotate(0deg); transition: .25s ease-in-out;
+        }
+        .hamburger span:nth-child(1) { top: 0px; } .hamburger span:nth-child(2) { top: 9px; } .hamburger span:nth-child(3) { top: 18px; }
+        .hamburger.open span:nth-child(1) { top: 9px; transform: rotate(135deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; left: -20px; }
+        .hamburger.open span:nth-child(3) { top: 9px; transform: rotate(-135deg); }
+        
+        .mobile-menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2005; background: #050506;
+            background-image: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.12) 0%, transparent 70%); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .mobile-menu-overlay.active { transform: translateY(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 2.5rem; text-align: center; width: 100%; }
+        .mobile-nav-links li { overflow: hidden; }
+        .mobile-nav-link {
+            font-family: var(--font-editorial); font-size: 3rem; color: var(--text-muted); transition: color 0.3s ease; display: inline-block; transform: translateY(100%); opacity: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        }
+        .mobile-nav-link.active, .mobile-nav-link:hover { color: var(--text-main); }
+        .mobile-nav-link::before {
+            content: attr(data-num); font-family: var(--font-ui); font-size: 0.9rem; vertical-align: super; margin-right: 15px; color: var(--accent-gold); opacity: 0.6;
+        }
+        .mobile-menu-overlay.active .mobile-nav-link { transform: translateY(0); opacity: 1; }
+        .mobile-menu-overlay.active li:nth-child(1) .mobile-nav-link { transition-delay: 0.1s; }
+        .mobile-menu-overlay.active li:nth-child(2) .mobile-nav-link { transition-delay: 0.2s; }
+        .mobile-menu-overlay.active li:nth-child(3) .mobile-nav-link { transition-delay: 0.3s; }
+        .mobile-menu-overlay.active li:nth-child(4) .mobile-nav-link { transition-delay: 0.4s; }
+        .mobile-profile-container { margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translateY(20px); opacity: 0; transition: transform 0.6s ease 0.5s, opacity 0.6s ease 0.5s; }
+        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1; }
+        @media (max-width: 900px) { .desktop-header-wrapper { display: none; } .mobile-header-wrapper { display: flex; } }
+
+
+        /* ---
+        // ===============================================
+        //   03. EDITORIAL AIBOOK GENERATOR
+        // ===============================================
+        // --- */
+        .generator-container {
+            max-width: 1200px;
+            margin: 140px auto 4rem;
+            padding: 4rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            background: rgba(16, 16, 18, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle grid background for the container */
+        .generator-container::before {
+            content: ''; position: absolute; inset: 0; z-index: 0; opacity: 0.1; pointer-events: none;
+            background-image: 
+                linear-gradient(var(--text-main) 1px, transparent 1px),
+                linear-gradient(90deg, var(--text-main) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at top left, black, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at top left, black, transparent 80%);
+        }
+
+        .generator-section { position: relative; z-index: 2; }
+        .generator-visual-section { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
+
+        .editorial-kicker {
+            display: inline-block; font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 0.15em; color: var(--accent-gold); margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--accent-gold); padding-bottom: 0.2rem;
+        }
+
+        .hero-title {
+            font-family: var(--font-editorial); font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 400; line-height: 1.1; margin-bottom: 1rem; color: var(--text-main);
+        }
+
+        .hero-description {
+            font-size: 1.05rem; line-height: 1.6; color: var(--text-muted);
+            margin-bottom: 2rem; font-weight: 300;
+        }
+
+        .generator-form fieldset { border: none; padding: 0; margin-bottom: 2.5rem; }
+        .generator-form legend {
+            font-family: var(--font-ui); font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--accent-gold); margin-bottom: 1.5rem; font-weight: 600;
+        }
+
+        .genre-tags { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2.5rem; }
+        .tag {
+            padding: 0.75rem 1.5rem; border: 1px solid var(--border-subtle); border-radius: 100px;
+            font-size: 0.85rem; color: var(--text-muted); cursor: pointer; transition: all 0.3s;
+        }
+        .tag:hover { border-color: var(--text-main); color: var(--text-main); }
+        .tag.selected { background: var(--accent-gold); color: var(--bg-color); border-color: var(--accent-gold); font-weight: 600; }
+
+        /* Updated Inputs for High Visibility */
+        .generator-form input, .generator-form textarea {
+            width: 100%; 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 8px;
+            color: var(--text-main); 
+            padding: 1.2rem 1.5rem; 
+            font-family: var(--font-ui); 
+            font-size: 1.1rem;
+            transition: all 0.3s ease; 
+            margin-bottom: 2rem; 
+            outline: none; 
+            resize: none;
+        }
+        .generator-form input::placeholder, .generator-form textarea::placeholder {
+            color: rgba(244, 243, 238, 0.5); /* Much brighter placeholder */
+            font-style: italic; 
+            font-family: var(--font-editorial);
+        }
+        .generator-form input:focus, .generator-form textarea:focus { 
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            border-bottom-color: var(--accent-gold); 
+        }
+
+        .btn-editorial {
+            position: relative; display: inline-flex; align-items: center; gap: 0.75rem; justify-content: center;
+            padding: 1rem 2rem; background: transparent; color: var(--text-main);
+            border: 1px solid var(--border-subtle); border-radius: 100px; 
+            font-size: 0.95rem; font-weight: 600; cursor: pointer; overflow: hidden; z-index: 1; transition: color 0.4s ease, border-color 0.4s ease;
+        }
+        .btn-editorial::before {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translate(-50%, 0); width: 120%; padding-bottom: 120%;
+            border-radius: 50%; background: var(--text-main); z-index: -1; transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .btn-editorial:hover { color: var(--bg-color); border-color: var(--text-main); }
+        .btn-editorial:hover::before { transform: translate(-50%, -50%); }
+
+        .btn-outline {
+            padding: 1rem 2rem; border: 1px solid var(--border-subtle); border-radius: 100px; font-size: 0.95rem; font-weight: 500;
+            transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-main); background: transparent; cursor: pointer; justify-content: center;
+        }
+        .btn-outline:hover { border-color: var(--text-main); background: rgba(255,255,255,0.05); }
+
+        /* Visual Placeholder / Loading / Reveal */
+        #visual-placeholder {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            border: 1px dashed var(--border-subtle); border-radius: 16px; padding: 3rem; text-align: center;
+            background: rgba(0,0,0,0.2); transition: opacity 0.4s;
+        }
+        .placeholder-text { color: var(--text-muted); font-family: var(--font-editorial); font-style: italic; font-size: 1.5rem; line-height: 1.4; }
+
+        #loading-section { text-align: center; padding: 4rem 2rem; }
+        .loader-ring {
+            width: 60px; height: 60px; margin: 0 auto 2rem;
+            border: 2px solid var(--border-subtle); border-top-color: var(--accent-gold);
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+
+        #reveal-section { display: flex; flex-direction: column; gap: 2rem; align-items: center; text-align: center; }
+        .reveal-cover { width: 100%; max-width: 280px; margin: 0 auto; }
+        .reveal-cover img { width: 100%; border-radius: 6px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .hero-actions-stacked { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 320px; margin: 0 auto; }
+
+        @media (max-width: 900px) {
+            .generator-container { grid-template-columns: 1fr; padding: 2rem; margin: 100px 1.5rem 4rem; gap: 3rem;}
+            .generator-header h1 { font-size: 2.5rem; }
+            #visual-placeholder { padding: 2rem; min-height: 250px; }
+            .placeholder-text { font-size: 1.2rem; }
+        }
+
+
+        /* ---
+        // ===============================================
+        //   06. PREMIUM FOOTER
+        // ===============================================
+        // --- */
+        .premium-footer {
+            background: #050506; padding: 6rem 4rem 2rem; position: relative; overflow: hidden; flex-shrink: 0; z-index: 10;
+        }
+        .premium-footer::before {
+            content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 80%; height: 1px; background: radial-gradient(circle, rgba(201, 160, 91, 0.3) 0%, transparent 80%);
+        }
+        .footer-content { max-width: 1400px; margin: 0 auto; }
+        .footer-top {
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4rem;
+            padding-bottom: 4rem; border-bottom: 1px solid var(--border-subtle);
+        }
+        .footer-brand h2 {
+            font-family: var(--font-editorial); font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 400; color: var(--text-main); margin-bottom: 1.5rem; line-height: 1;
+        }
+        .footer-brand p { color: var(--text-muted); max-width: 380px; font-size: 1rem; line-height: 1.7; }
+        .footer-links { display: flex; gap: 5rem; }
+        .link-group h4 {
+            color: var(--text-main); font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 0.1em; margin-bottom: 2rem; font-weight: 600;
+        }
+        .link-group a {
+            display: block; color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .link-group a:hover { color: var(--text-main); transform: translateX(4px); }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .footer-copyright, .footer-credits { color: #555; font-size: 0.85rem; }
+        .footer-credits a { color: var(--text-main); font-weight: 500; position: relative; padding-bottom: 2px; }
+        .footer-credits a::after {
+            content: ''; position: absolute; width: 100%; height: 1px; bottom: 0; left: 0;
+            background-color: var(--accent-gold); transform: scaleX(0); transform-origin: bottom right;
+            transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .footer-credits a:hover { color: var(--accent-gold); }
+        .footer-credits a:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+
+        @media (max-width: 900px) {
+            .premium-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .footer-top { flex-direction: column; gap: 3rem; }
+            .footer-links { flex-wrap: wrap; gap: 3rem; }
+        }
+    </style>
 </head>
 <body data-page="aibook">
 
-    <header class="main-header">
+    <!-- Premium Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+
+    <!-- Cinematic Noise Overlay -->
+    <div class="site-noise"></div>
+
+    <!-- 1. DESKTOP FLOATING HEADER -->
+    <div class="desktop-header-wrapper">
         <nav class="main-nav">
-            <a href="index.html" class="logo-link">
-                <div class="logo">
-                    ABOOKI
-                </div>
-            </a>
+            <a href="index.html" class="logo-link magnetic"><div class="logo">ABOOKI</div></a>
             <ul class="nav-links">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                
-                <li>
-                    <a href="aibook.html" class="nav-link nav-link-anim active" id="aibook-link">
-                        <span class="ai-part">A</span>
-                        <span class="book-part">BOOK</span>
-                        <span class="i-part">I</span>
-                    </a>
-                </li>
-                <li><a href="library.html" class="nav-link">Central Library</a></li>
-                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
-                <li><a href="mylist.html" class="nav-link">My List</a></li>
+                <li><a href="index.html" class="nav-link magnetic">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim active magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
+                <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
             </ul>
-            <div class="nav-profile">
-                <!-- Content will be injected by nav.js -->
-                <a href="login.html" class="nav-profile-link">
-                    <i data-feather="user"></i>
-                </a>
+            <div class="nav-profile desktop-profile magnetic">
+                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
             </div>
         </nav>
-    </header>
- 
+    </div>
+
+    <!-- 2. MOBILE FIXED HEADER & FULLSCREEN OVERLAY -->
+    <div class="mobile-header-wrapper">
+        <a href="index.html" class="logo-link"><div class="logo">ABOOKI</div></a>
+        <div class="hamburger" id="mobile-menu-toggle">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="mobile-nav-link" data-num="01">Home</a></li>
+            <li><a href="aibook.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="02">Create Book</a></li>
+            <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
+            <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
+        </ul>
+        <div class="mobile-profile-container nav-profile">
+            <a href="login.html" class="btn-outline">Sign In / Register</a>
+        </div>
+    </div>
+
     <main>
-        <section class="generator-container">
+        <section class="generator-container fade-up">
             
+            <!-- Left Column: Form -->
             <div class="generator-section" id="generator-form-section">
                 <div class="generator-header">
-                    <h1>Create a Mini-Book</h1>
-                    <p>Pick a genre and add a spark.</p>
+                    <span class="editorial-kicker">Creation Studio</span>
+                    <h1 class="hero-title">Author a Volume</h1>
+                    <p class="hero-description">Select your genre and ignite the spark. Our AI will curate the rest of your story.</p>
                 </div>
 
                 <form class="generator-form" id="generator-form">
-                    
                     <fieldset>
-                        <legend>Step 1: The Idea</legend>
-                        
-                        <label>What's your genre?</label>
+                        <legend>01. The Concept</legend>
                         <div class="genre-tags">
-                            <span class="tag" data-genre="Fantasy">Fantasy</span>
-                            <span class="tag" data-genre="Sci-Fi">Sci-Fi</span>
-                            <span class="tag" data-genre="Mystery">Mystery</span>
-                            <span class="tag" data-genre="Romance">Romance</span>
-                            <span class="tag" data-genre="Children's">Children's</span>
+                            <span class="tag selected magnetic" data-genre="Fantasy">Fantasy</span>
+                            <span class="tag magnetic" data-genre="Sci-Fi">Sci-Fi</span>
+                            <span class="tag magnetic" data-genre="Mystery">Mystery</span>
+                            <span class="tag magnetic" data-genre="Romance">Romance</span>
+                            <span class="tag magnetic" data-genre="Children's">Children's</span>
                         </div>
-                        <input type="hidden" id="genre" name="genre">
+                        <input type="hidden" id="genre" name="genre" value="Fantasy">
 
-                        <label for="title">Give your story a title (optional)</label>
-                        <input type="text" id="title" name="title" placeholder="e.g., The Lunar Detective">
-
-                        <label for="idea">Write your big idea (optional)</label>
-                        <textarea id="idea" name="idea" rows="4" placeholder="e.g., 'A detective solves mysteries on the moon'"></textarea>
+                        <input type="text" id="title" name="title" class="magnetic" placeholder="Give your story a title (Required)" required>
+                        <textarea id="idea" name="idea" rows="3" class="magnetic" placeholder="Write your core premise (optional)..."></textarea>
                     </fieldset>
 
                     <fieldset>
-                        <legend>Step 2: Generate!</legend>
-                        <button type="submit" class="btn btn-primary btn-generate">
-                            <i data-feather="play" class="btn-icon"></i>
-                            Generate My Book
+                        <legend>02. The Creation</legend>
+                        <button type="submit" class="btn-editorial magnetic" style="width:100%; justify-content:center;">
+                            Commence Writing <i data-feather="pen-tool"></i>
                         </button>
                     </fieldset>
                 </form>
             </div>
 
-            <div class="generator-section" id="loading-section" style="display: none;">
-                <div class="loading-animation">
-                    <div class="loader"></div>
-                </div>
-                <h2>Writing your story...</h2>
-                <p>This may take up to 60 seconds.</p>
-            </div>
-
-            <div class="generator-section" id="reveal-section" style="display: none;">
+            <!-- Right Column: Visual / Loading / Reveal -->
+            <div class="generator-visual-section">
                 
-                <p class="reveal-subtitle">Your new book is ready!</p>
+                <div id="visual-placeholder">
+                    <p class="placeholder-text">"The blank page is a universe of possibilities awaiting your instruction."</p>
+                </div>
 
-                <div class="reveal-layout">
-                    <div class="reveal-cover">
+                <div id="loading-section" style="display: none;">
+                    <div class="loader-ring"></div>
+                    <h2 class="hero-title" style="font-size:2rem; margin-top:1rem;">Penning the pages...</h2>
+                    <p class="hero-description">This editorial process may take a moment.</p>
+                </div>
+
+                <div id="reveal-section" style="display: none;">
+                    <div class="reveal-cover magnetic">
                         <img id="new-book-cover" src="https://placehold.co/300x450/1a1a1a/f5f5f5?text=Cover" alt="New book cover">
                     </div>
-
-                    <div class="reveal-details">
-                        <h1 id="new-book-title">Book Title</h1>
-                        <p id="new-book-description">A short, compelling description of the book goes here...</p>
-                        
-                        <div class="hero-buttons-stacked">
-                            <a href="reader.html" class="btn btn-primary" id="read-new-book-btn">
-                                <i data-feather="book-open" class="btn-icon"></i> Read Now
-                            </a>
-                            <button class="btn btn-secondary" id="save-new-book-btn">
-                                <i data-feather="plus" class="btn-icon"></i> Save to My Library
-                            </button>
-                        </div>
+                    <span class="editorial-kicker" style="margin-top:2rem;">New Arrival</span>
+                    <h1 id="new-book-title" style="font-family: var(--font-editorial); font-size: 2.5rem; line-height: 1.1; margin-bottom: 1rem;">Book Title</h1>
+                    <p id="new-book-description" class="hero-description">A short, compelling description of the book goes here...</p>
+                    
+                    <div class="hero-actions-stacked">
+                        <a href="reader.html" class="btn-editorial magnetic" id="read-new-book-btn" style="justify-content:center; width:100%;">
+                            Open Volume <i data-feather="book-open"></i>
+                        </a>
+                        <button class="btn-outline magnetic" id="save-new-book-btn" style="width:100%;">
+                            <i data-feather="bookmark"></i> Save to Archive
+                        </button>
+                        <button class="btn-outline magnetic" id="create-new-btn" style="width:100%; border:none;">
+                            <i data-feather="refresh-ccw"></i> Draft Another
+                        </button>
                     </div>
                 </div>
-                
-                <button class="btn-link" id="create-new-btn">
-                    <i data-feather="arrow-left" class="btn-icon"></i>
-                    Start a New Book
-                </button>
+
             </div>
 
         </section>
     </main>
 
-    <footer class="main-footer">
-        <p>&copy; 2025 abooki. All rights reserved.</p>
+    <footer class="premium-footer fade-up">
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h2>ABOOKI</h2>
+                    <p>The interactive library of the future. Discover, read, and create AI-crafted literature wrapped in a premium editorial experience.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Collections</h4>
+                        <a href="library.html">The Archive</a>
+                        <a href="new-releases.html">Latest Editions</a>
+                        <a href="aibook.html">Author a Book</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Connect</h4>
+                        <a href="feedback.html">Share Feedback</a>
+                        <a href="support.html">Support the Project</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    &copy; 2026 Abooki. All rights reserved.
+                </div>
+                <div class="footer-credits">
+                    Crafted by <a href="https://rockandblu.co.uk/" target="_blank" rel="noopener noreferrer">rockandblu.co.uk</a>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script>
-      feather.replace()
+      feather.replace();
     </script>
-    <script type="module" src="aibook.js"></script>
+
+    <!-- Combined Scripts -->
+    <script type="module">
+
+        // --- RELIABLE DOM READY HELPER ---
+        // Guaranteed to run immediately if DOM is parsed, preventing top-level await race conditions.
+        const onDOMReady = (callback) => {
+            if (document.readyState !== 'loading') callback();
+            else document.addEventListener('DOMContentLoaded', callback);
+        };
+
+        // --- PREMIUM INTERACTION: Custom Cursor Logic ---
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+        
+        if (cursorDot && cursorOutline && window.matchMedia("(pointer: fine)").matches) {
+            let cursorX = 0, cursorY = 0, outlineX = 0, outlineY = 0;
+            window.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX; cursorY = e.clientY;
+                cursorDot.style.left = cursorX + 'px'; cursorDot.style.top = cursorY + 'px';
+            });
+            function animateCursor() {
+                outlineX += (cursorX - outlineX) * 0.15; outlineY += (cursorY - outlineY) * 0.15;
+                cursorOutline.style.left = outlineX + 'px'; cursorOutline.style.top = outlineY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+            document.addEventListener('mouseover', (e) => {
+                if(e.target.closest('a, button, input, textarea, .clickable, .magnetic, .tag')) document.body.classList.add('cursor-hover');
+            });
+            document.addEventListener('mouseout', (e) => {
+                if(e.target.closest('a, button, input, textarea, .clickable, .magnetic, .tag')) document.body.classList.remove('cursor-hover');
+            });
+        }
+
+        // --- PREMIUM INTERACTION: Magnetic Buttons Logic ---
+        function initMagneticElements() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const magneticElements = document.querySelectorAll('.magnetic');
+            magneticElements.forEach(elem => {
+                elem.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    this.style.transition = "none";
+                    this.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+                });
+                elem.addEventListener('mouseleave', function() {
+                    this.style.transition = "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    this.style.transform = `translate(0px, 0px)`;
+                });
+            });
+        }
+        initMagneticElements();
+
+        // --- PREMIUM INTERACTION: Scroll Reveal Observer ---
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    scrollObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function observeScrollElements() {
+            document.querySelectorAll('.fade-up:not(.visible)').forEach(el => {
+                scrollObserver.observe(el);
+            });
+        }
+        
+        onDOMReady(observeScrollElements);
+
+        // --- MOBILE MENU LOGIC ---
+        const mobileHeader = document.querySelector('.mobile-header-wrapper');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+        
+        function closeMobileMenu() {
+            mobileToggle.classList.remove('open');
+            mobileMenu.classList.remove('active');
+            mobileHeader.classList.remove('menu-open');
+            document.body.style.overflow = 'auto';
+        }
+        mobileToggle.addEventListener('click', () => {
+            mobileToggle.classList.toggle('open');
+            mobileMenu.classList.toggle('active');
+            mobileHeader.classList.toggle('menu-open');
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+        });
+        mobileLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
+
+        // --- FIREBASE & AIBOOK LOGIC ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } 
+            from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+            authDomain: "studio-5978542726-e345b.firebaseapp.com",
+            projectId: "studio-5978542726-e345b",
+            storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+            messagingSenderId: "968782492427",
+            appId: "1:968782492427:web:90108da3599e50bc2b680e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
+
+        let generateGhostAvatar = () => 'https://placehold.co/32x32/c9a05b/070708?text=U';
+        try {
+            // Note: This top-level await pauses script execution. 
+            // The onDOMReady helper ensures anything waiting for initialization runs regardless.
+            const avatarModule = await import("./avatar-generator.js");
+            generateGhostAvatar = avatarModule.generateGhostAvatar;
+        } catch(e) { console.warn("Local avatar generator missing in preview."); }
+
+        async function updateNavUser(user) {
+            const profileContainers = document.querySelectorAll('.nav-profile');
+            profileContainers.forEach(async (container) => {
+                if (user) {
+                    let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists() && docSnap.data().avatarConfig) {
+                            const config = docSnap.data().avatarConfig;
+                            const avatarUrl = generateGhostAvatar(config);
+                            avatarHtml = `<img src="${avatarUrl}" class="profile-avatar" alt="Profile">`;
+                        } else if (user.photoURL) {
+                            avatarHtml = `<img src="${user.photoURL}" class="profile-avatar" alt="Profile">`;
+                        }
+                    } catch (error) { console.error("Nav Update Error:", error); }
+
+                    if (container.classList.contains('mobile-profile-container')) {
+                        container.innerHTML = `${avatarHtml}<div style="text-align: center; margin-top:1rem;"><a href="profile.html" class="mobile-nav-link" style="font-size:1.2rem; display:block; margin-bottom:1rem;">Profile</a><a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a></div>`;
+                        const mLogoutBtn = container.querySelector('#mobile-logout-btn');
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                    } else {
+                        container.innerHTML = `<a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">${avatarHtml}</a><div class="nav-dropdown"><a href="profile.html" class="dropdown-item">Profile</a><a href="feedback.html" class="dropdown-item">Community Feedback</a><a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a><a href="settings.html" class="dropdown-item">Settings</a><a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a></div>`;
+                        const logoutBtn = container.querySelector('#nav-logout-btn');
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                    }
+                } else {
+                    if (container.classList.contains('mobile-profile-container')) {
+                         container.innerHTML = `<a href="login.html" class="btn-outline">Sign In / Register</a>`;
+                    } else {
+                        container.innerHTML = `<a href="login.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>`;
+                    }
+                }
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        function showSiteNotice(message, type = 'info') {
+            let toast = document.getElementById('site-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'site-toast';
+                toast.className = 'site-toast';
+                document.body.appendChild(toast);
+            }
+            toast.className = `site-toast ${type}`;
+            toast.textContent = message;
+            requestAnimationFrame(() => toast.classList.add('show'));
+            clearTimeout(toast.hideTimer);
+            toast.hideTimer = setTimeout(() => { toast.classList.remove('show'); }, 4600);
+        }
+
+        // --- GENERATOR LOGIC ---
+        function initializeAIGenerator() {
+            onAuthStateChanged(auth, (user) => { updateNavUser(user); });
+
+            const generatorForm = document.getElementById('generator-form');
+            const formSection = document.getElementById('generator-form-section');
+            const visualPlaceholder = document.getElementById('visual-placeholder');
+            const loadingSection = document.getElementById('loading-section');
+            const revealSection = document.getElementById('reveal-section');
+            
+            const newBookTitle = document.getElementById('new-book-title');
+            const newBookDescription = document.getElementById('new-book-description');
+            const newBookCover = document.getElementById('new-book-cover');
+            const saveNewBookBtn = document.getElementById('save-new-book-btn');
+            const createNewBtn = document.getElementById('create-new-btn');
+            
+            let currentBookData = null;
+
+            if (!generatorForm) return; 
+
+            // Handle Genre Tag Selection
+            const genreTags = document.querySelectorAll('.genre-tags .tag');
+            const genreInput = document.getElementById('genre');
+            let selectedGenre = "Fantasy"; 
+            
+            genreTags.forEach(tag => {
+                if (tag.dataset.genre === selectedGenre) {
+                    tag.classList.add('selected');
+                    genreInput.value = selectedGenre;
+                }
+                tag.addEventListener('click', () => {
+                    genreTags.forEach(t => t.classList.remove('selected'));
+                    tag.classList.add('selected');
+                    selectedGenre = tag.dataset.genre;
+                    genreInput.value = selectedGenre;
+                });
+            });
+            
+            // Handle Form Submission
+            generatorForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); 
+
+                const formData = {
+                    genre: selectedGenre,
+                    title: document.getElementById('title').value || "My AI Story",
+                    idea: document.getElementById('idea').value || `A ${selectedGenre} story.`
+                };
+
+                saveNewBookBtn.disabled = false;
+                saveNewBookBtn.innerHTML = '<i data-feather="bookmark"></i> Save to Archive';
+
+                visualPlaceholder.style.display = 'none';
+                revealSection.style.display = 'none';
+                loadingSection.style.display = 'block';
+
+                try {
+                    const user = auth.currentUser;
+                    if (!user) throw new Error("Please sign in before generating a volume.");
+
+                    const idToken = await user.getIdToken();
+                    const response = await fetch('/api/generateBook', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        let errorMsg = "An unknown error occurred.";
+                        try {
+                            const errorBody = await response.json();
+                            errorMsg = errorBody.error?.message || errorBody.error || errorMsg;
+                        } catch (e) { errorMsg = `API request failed with status: ${response.status}`; }
+                        throw new Error(errorMsg);
+                    }
+
+                    const result = await response.json();
+                    const rawText = result.candidates[0].content.parts[0].text;
+                    const bookData = JSON.parse(rawText);
+
+                    const titleQuery = encodeURIComponent(bookData.title);
+                    const hexBg = bookData.cover_hex_bg.replace('#', '');
+                    const hexText = bookData.cover_hex_text.replace('#', '');
+                    bookData.coverUrl = `https://placehold.co/300x450/${hexBg}/${hexText}?text=${titleQuery}&font=playfair+display`;
+                    
+                    currentBookData = bookData;
+                    localStorage.setItem('generatedBook', JSON.stringify(bookData));
+
+                    loadingSection.style.display = 'none';
+                    revealSection.style.display = 'flex';
+                    
+                    newBookTitle.textContent = bookData.title;
+                    newBookDescription.textContent = bookData.description;
+                    newBookCover.src = bookData.coverUrl;
+                    newBookCover.alt = bookData.title;
+                    
+                    document.getElementById('read-new-book-btn').href = 'reader.html';
+                    feather.replace(); 
+
+                } catch (error) {
+                    console.error("Error generating book:", error);
+                    if (error.message.includes("not configured")) {
+                        showSiteNotice("AI generation is not configured on the server yet.", "error");
+                    } else {
+                        showSiteNotice("Sorry, something went wrong: " + error.message, "error");
+                    }
+                    loadingSection.style.display = 'none';
+                    visualPlaceholder.style.display = 'flex';
+                }
+            });
+
+            // Handle "Start a New Book" button
+            if (createNewBtn) {
+                createNewBtn.addEventListener('click', () => {
+                    revealSection.style.display = 'none';
+                    visualPlaceholder.style.display = 'flex';
+                    generatorForm.reset();
+                    genreTags.forEach(t => t.classList.remove('selected'));
+                    const defaultTag = document.querySelector('.tag[data-genre="Fantasy"]');
+                    if(defaultTag) defaultTag.classList.add('selected');
+                });
+            }
+            
+            // Handle "Save to My Library" button
+            if (saveNewBookBtn) {
+                saveNewBookBtn.addEventListener('click', async () => {
+                    if (!currentBookData) return;
+                    const user = auth.currentUser;
+                    
+                    if (!user) {
+                        showSiteNotice("Log in to save volumes to your cloud archive.", "error");
+                        return;
+                    }
+
+                    try {
+                        saveNewBookBtn.innerHTML = 'Saving...';
+                        saveNewBookBtn.disabled = true;
+
+                        const bookToSave = {
+                            ...currentBookData,
+                            createdAt: serverTimestamp(),
+                            userId: user.uid 
+                        };
+
+                        await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'books'), bookToSave);
+
+                        saveNewBookBtn.innerHTML = '<i data-feather="check"></i> Saved to Archive!';
+                        feather.replace();
+                        showSiteNotice("Volume securely archived.", "success");
+
+                    } catch (error) {
+                        console.error("Error saving book to Firebase:", error);
+                        showSiteNotice("There was an error archiving your book: " + error.message, "error");
+                        saveNewBookBtn.disabled = false;
+                        saveNewBookBtn.innerHTML = '<i data-feather="bookmark"></i> Try Again';
+                        feather.replace();
+                    }
+                });
+            }
+        }
+
+        // Use the robust helper instead of standard DOMContentLoaded directly
+        onDOMReady(() => {
+            if (document.body.dataset.page === 'aibook') {
+                try { initializeAIGenerator(); } 
+                catch (e) { console.error("Error initializing AI generator:", e); }
+            }
+        });
+
+        // Star rotation when scrolled
+        let lastScrollY = window.scrollY;
+        let rotation = 0;
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            const delta = currentScrollY - lastScrollY;
+            rotation += delta * 0.5;
+            document.documentElement.style.setProperty('--logo-star-rotate', `${rotation}deg`);
+            lastScrollY = currentScrollY;
+        });
+
+    </script>
 </body>
 </html>
