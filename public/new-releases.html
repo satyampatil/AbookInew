@@ -3,95 +3,1162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Releases - abooki</title>
+    <title>New Editions - abooki Premium</title>
     <link rel="icon" href="browserIcon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Combined Font Import: Inter for UI, Playfair Display for Editorial Headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="new-releases.css">
-    
-    <!-- Add some specific styles for the grid since we are displaying many books -->
+
     <style>
-        .book-grid {
+        /* ---
+        // ===============================================
+        //   00. AWWWARDS LEVEL LOADER & OVERLAYS
+        // ===============================================
+        // --- */
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: #050506; 
+            z-index: 99999;
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding-bottom: 20px;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem 4rem;
+            transition: clip-path 1.4s cubic-bezier(0.85, 0, 0.15, 1);
+            clip-path: inset(0 0 0 0);
         }
-        .badge {
-            display: inline-block;
-            background-color: #E50914;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+
+        #loader-overlay.hide-loader {
+            clip-path: inset(0 0 100% 0);
+            pointer-events: none;
         }
-        .hero-author {
-            color: #ccc;
-            margin-bottom: 1rem;
-            font-style: italic;
+
+        .site-noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99998;
+            opacity: 0.45;
+            background-image:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+                repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px);
+            mix-blend-mode: overlay;
+        }
+
+        .loader-top { display: flex; justify-content: space-between; align-items: flex-start; overflow: hidden; }
+        .loader-title {
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500;
+            letter-spacing: 0.1em; text-transform: uppercase; color: #a19d93;
+            transform: translateY(100%); animation: revealText 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.2s;
+        }
+        .loader-center { flex-grow: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .loader-brand {
+            font-family: 'Playfair Display', serif; font-size: clamp(3rem, 12vw, 9rem);
+            font-weight: 700; color: #f0ece1; letter-spacing: -0.02em; position: relative;
+            transform: translateY(100%); animation: revealText 1s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.4s;
+        }
+        .loader-brand::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.1em; font-family: 'Inter', sans-serif; font-size: 0.3em; color: #c9a05b;
+            animation: spin 6s linear infinite;
+        }
+        .loader-bottom { display: flex; justify-content: flex-end; align-items: flex-end; overflow: hidden; }
+        .loader-counter-wrap {
+            font-family: 'Playfair Display', serif; font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 400; color: #f0ece1; display: flex; align-items: baseline;
+            transform: translateY(100%); animation: revealText 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.6s;
+        }
+        .loader-counter { font-variant-numeric: tabular-nums; }
+        .loader-percent { font-family: 'Inter', sans-serif; font-size: 0.3em; color: #c9a05b; margin-left: 0.3rem; font-weight: 400; }
+        .loader-progress-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: #c9a05b; width: 0%; transition: width 0.1s linear; }
+
+        @keyframes revealText { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @media (max-width: 768px) { #loader-overlay { padding: 2rem 1.5rem; } }
+
+        /* Toast Notifications */
+        .site-toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(16, 16, 18, 0.95); border: 1px solid var(--accent-gold);
+            color: var(--text-main); padding: 1rem 2rem; border-radius: 100px;
+            font-family: var(--font-ui); font-weight: 500; font-size: 0.9rem;
+            z-index: 99999; opacity: 0; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .site-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .site-toast.error { border-color: #e14c3a; color: #e14c3a; }
+        .site-toast.success { border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* ---
+        // ===============================================
+        //   01. GLOBAL STYLES, CURSOR, & EDITORIAL PALETTE
+        // ===============================================
+        // --- */
+        :root {
+            --bg-color: #070708; 
+            --bg-surface: #101012;
+            --text-main: #f0ece1;
+            --text-muted: #8e8b82;
+            --accent-gold: #c9a05b;
+            --accent-green: #588157;
+            --border-subtle: rgba(240, 236, 225, 0.08);
+            --font-ui: 'Inter', sans-serif;
+            --font-editorial: 'Playfair Display', serif;
+            --logo-star-rotate: 0deg;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: var(--font-ui); line-height: 1.6;
+            display: flex; flex-direction: column; min-height: 100vh;
+            overflow-x: hidden; cursor: auto;
+        }
+
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.08) 0%, transparent 70%);
+            z-index: -1; pointer-events: none;
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, select, .clickable, .magnetic { cursor: none; }
+            #cursor-dot, #cursor-outline {
+                position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+                border-radius: 50%; pointer-events: none; z-index: 9999999;
+            }
+            #cursor-dot {
+                width: 6px; height: 6px; background-color: var(--text-main);
+                transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.2s;
+            }
+            #cursor-outline {
+                width: 40px; height: 40px; border: 1px solid rgba(240, 236, 225, 0.3);
+                transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), height 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.3s, background-color 0.3s;
+            }
+            body.cursor-hover #cursor-dot { transform: translate(-50%, -50%) scale(0.1); }
+            body.cursor-hover #cursor-outline {
+                width: 60px; height: 60px; border-color: var(--accent-gold);
+                background-color: rgba(201, 160, 91, 0.05); backdrop-filter: blur(2px);
+            }
+        }
+        @media (pointer: coarse) { #cursor-dot, #cursor-outline { display: none !important; } }
+
+        .magnetic { display: inline-block; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); will-change: transform; }
+        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .stagger-delay-1 { transition-delay: 0.1s; } .stagger-delay-2 { transition-delay: 0.2s; } .stagger-delay-3 { transition-delay: 0.3s; }
+
+        a { color: inherit; text-decoration: none; } ul { list-style: none; } img { max-width: 100%; height: auto; display: block; }
+        main { flex-grow: 1; padding-bottom: 4rem; }
+
+        /* ---
+        // ===============================================
+        //   02. DUAL NAVIGATION SYSTEM
+        // ===============================================
+        // --- */
+        .desktop-header-wrapper {
+            position: fixed; top: 1.5rem; left: 0; width: 100%;
+            z-index: 1000; display: flex; justify-content: center;
+            padding: 0 1.5rem; pointer-events: none; 
+        }
+        .main-nav {
+            pointer-events: auto; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 1200px; height: 64px; background: rgba(16, 16, 18, 0.65);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border-subtle);
+            border-radius: 100px; padding: 0 1.5rem 0 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: all 0.3s ease;
+        }
+        .logo { font-family: var(--font-editorial); font-size: 1.4rem; font-weight: 700; letter-spacing: 0.05em; position: relative; color: var(--text-main); }
+        .logo::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.2em; font-family: var(--font-ui); font-size: 0.6em; color: var(--accent-gold);
+            transform: rotate(var(--logo-star-rotate)); transition: transform 0.1s linear;
+        }
+        .nav-links { display: flex; align-items: center; gap: 2rem; margin: 0 auto; }
+        .nav-link {
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.3s ease; position: relative; padding: 0.5rem 0; 
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-main); }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold);
+        }
+        .nav-link-anim { display: inline-flex; align-items: center; } 
+        .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link-anim .book-part {
+            display: inline-flex; align-items: center; max-width: 0; opacity: 0; transform: translateX(-10px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); color: var(--accent-gold); font-weight: 500; overflow: hidden; white-space: nowrap; 
+        }
+        .nav-link-anim:hover .book-part, .nav-link-anim.active .book-part { max-width: 80px; opacity: 1; transform: translateX(0); margin: 0 0.05em; }
+
+        .nav-profile {
+            position: relative; height: 40px; width: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.3s;
+        }
+        .nav-profile:hover { border-color: var(--accent-gold); }
+        .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .nav-dropdown {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0; background: rgba(16, 16, 18, 0.95);
+            backdrop-filter: blur(10px); min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
+        }
+        .nav-profile:hover .nav-dropdown { display: block; }
+        .dropdown-item {
+            display: block; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-radius: 8px; transition: all 0.2s;
+        }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+
+        .mobile-header-wrapper {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 2010;
+            background: rgba(7, 7, 8, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem; justify-content: space-between; align-items: center; transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .mobile-header-wrapper.menu-open { background: transparent; backdrop-filter: none; border-bottom-color: transparent; }
+        .hamburger { width: 30px; height: 20px; position: relative; cursor: pointer; z-index: 2012; }
+        .hamburger span {
+            display: block; position: absolute; height: 2px; width: 100%; background: var(--text-main);
+            border-radius: 2px; opacity: 1; left: 0; transform: rotate(0deg); transition: .25s ease-in-out;
+        }
+        .hamburger span:nth-child(1) { top: 0px; } .hamburger span:nth-child(2) { top: 9px; } .hamburger span:nth-child(3) { top: 18px; }
+        .hamburger.open span:nth-child(1) { top: 9px; transform: rotate(135deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; left: -20px; }
+        .hamburger.open span:nth-child(3) { top: 9px; transform: rotate(-135deg); }
+        
+        .mobile-menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2005; background: #050506;
+            background-image: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.12) 0%, transparent 70%); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .mobile-menu-overlay.active { transform: translateY(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 2.5rem; text-align: center; width: 100%; }
+        .mobile-nav-links li { overflow: hidden; }
+        .mobile-nav-link {
+            font-family: var(--font-editorial); font-size: 3rem; color: var(--text-muted); transition: color 0.3s ease; display: inline-block; transform: translateY(100%); opacity: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        }
+        .mobile-nav-link.active, .mobile-nav-link:hover { color: var(--text-main); }
+        .mobile-nav-link::before {
+            content: attr(data-num); font-family: var(--font-ui); font-size: 0.9rem; vertical-align: super; margin-right: 15px; color: var(--accent-gold); opacity: 0.6;
+        }
+        .mobile-menu-overlay.active .mobile-nav-link { transform: translateY(0); opacity: 1; }
+        .mobile-menu-overlay.active li:nth-child(1) .mobile-nav-link { transition-delay: 0.1s; }
+        .mobile-menu-overlay.active li:nth-child(2) .mobile-nav-link { transition-delay: 0.2s; }
+        .mobile-menu-overlay.active li:nth-child(3) .mobile-nav-link { transition-delay: 0.3s; }
+        .mobile-menu-overlay.active li:nth-child(4) .mobile-nav-link { transition-delay: 0.4s; }
+        .mobile-profile-container { margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translateY(20px); opacity: 0; transition: transform 0.6s ease 0.5s, opacity 0.6s ease 0.5s; }
+        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1; }
+        @media (max-width: 900px) { .desktop-header-wrapper { display: none; } .mobile-header-wrapper { display: flex; } }
+
+        /* ---
+        // ===============================================
+        //   03. EDITORIAL HERO SECTION (PURE CSS 3D)
+        // ===============================================
+        // --- */
+        .hero-section {
+            min-height: 90vh; padding-top: 120px; display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        @media (max-width: 900px) { .hero-section { padding-top: 100px; min-height: 85vh;} }
+
+        .hero-split { display: flex; align-items: center; justify-content: space-between; max-width: 1400px; width: 100%; padding: 0 4rem; gap: 4rem; }
+        .hero-text-col { flex: 1; max-width: 650px; z-index: 2; }
+        
+        .editorial-kicker {
+            display: inline-block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--accent-gold); margin-bottom: 1.5rem; border-bottom: 1px solid var(--accent-gold); padding-bottom: 0.2rem;
+        }
+
+        .hero-title { font-family: var(--font-editorial); font-size: clamp(3.5rem, 6vw, 5.5rem); font-weight: 400; line-height: 1.05; margin-bottom: 1.5rem; color: var(--text-main); }
+        
+        .hero-meta { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; font-size: 0.95rem; color: var(--text-muted); }
+        .hero-description { font-size: 1.15rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 3rem; font-weight: 300; }
+        .hero-actions { display: flex; gap: 1.5rem; align-items: center; }
+
+        .btn-editorial {
+            position: relative; display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2rem; background: transparent; color: var(--text-main);
+            border: 1px solid var(--border-subtle); border-radius: 100px; font-size: 0.95rem; font-weight: 600; cursor: pointer; overflow: hidden; z-index: 1; transition: color 0.4s ease, border-color 0.4s ease;
+        }
+        .btn-editorial::before {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translate(-50%, 0); width: 120%; padding-bottom: 120%;
+            border-radius: 50%; background: var(--text-main); z-index: -1; transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .btn-editorial:hover { color: var(--bg-color); border-color: var(--text-main); }
+        .btn-editorial:hover::before { transform: translate(-50%, -50%); }
+
+        .hero-visual-col { flex: 1; display: flex; justify-content: center; align-items: center; width: 100%; perspective: 1000px; padding: 2rem; }
+        
+        .book-presentation {
+            position: relative; width: 100%; max-width: 360px; transform-style: preserve-3d; transform: rotateY(-15deg) rotateX(5deg); transition: transform 0.5s ease;
+        }
+        .book-presentation:hover { transform: rotateY(-5deg) rotateX(2deg); }
+        .book-presentation img {
+            width: 100%; height: auto; border-radius: 4px; box-shadow: -20px 20px 40px rgba(0,0,0,0.8), inset 2px 0 5px rgba(255,255,255,0.2); position: relative; z-index: 2;
+        }
+        .book-presentation::before {
+            content: ''; position: absolute; top: 2%; right: -5%; width: 10%; height: 96%; background: #e6e6e6; border-radius: 0 4px 4px 0;
+            transform: rotateY(90deg); transform-origin: left; z-index: 1; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* ---
+        // ===============================================
+        //   04. NEW RELEASES GRID & INTERACTIVE RATING
+        // ===============================================
+        // --- */
+        .book-shelves { max-width: 1400px; margin: 0 auto; padding: 0 4rem 4rem; }
+        .editorial-category { margin-bottom: 6rem; }
+        .category-header { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; }
+        .category-title-serif { font-family: var(--font-editorial); font-size: 2.5rem; font-weight: 400; color: var(--text-main); white-space: nowrap; }
+        .category-line { flex-grow: 1; height: 1px; background: var(--border-subtle); }
+
+        .editorial-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4rem 2rem; }
+        .editorial-book-card { cursor: pointer; display: flex; flex-direction: column; position: relative; }
+        
+        .card-image-container {
+            width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 1.5rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+        }
+        .card-image-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; filter: saturate(0.9) contrast(1.1); }
+        .editorial-book-card:hover .card-image-container { transform: translateY(-12px); box-shadow: 0 30px 50px rgba(0,0,0,0.8); }
+        .editorial-book-card:hover .card-image-container img { transform: scale(1.05); }
+
+        .card-typography { text-align: left; }
+        .card-book-title {
+            font-family: var(--font-editorial); font-size: 1.25rem; font-weight: 400; color: var(--text-main);
+            line-height: 1.3; margin-bottom: 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: color 0.3s;
+        }
+        .editorial-book-card:hover .card-book-title { color: var(--accent-gold); }
+        .card-book-author { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+
+        .empty-state { padding: 4rem; text-align: center; color: var(--text-muted); border: 1px dashed var(--border-subtle); font-family: var(--font-editorial); font-size: 1.5rem; }
+
+        /* Interactive Rating Styling */
+        .rating-container {
+            display: inline-flex; align-items: center; gap: 2px; margin-top: 5px; cursor: pointer; position: relative; z-index: 60;
+        }
+        .rating-container .rate-star { width: 14px; height: 14px; transition: all 0.2s; }
+        .rating-container .rate-star.filled { color: var(--accent-gold); fill: var(--accent-gold); }
+        .rating-container .rate-star.empty { color: #555; fill: none; }
+        .rating-container:hover .rate-star { color: var(--accent-gold); }
+        .rating-text { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; }
+
+        /* Star Animation Overlay */
+        .star-celebration-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 70; overflow: hidden;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+        .anim-star {
+            position: absolute; top: 30%; left: 50%; transform: translateX(-50%) scale(0);
+            color: var(--accent-gold); fill: var(--accent-gold); opacity: 0; width: 24px; height: 24px;
+        }
+        .anim-star.pop { animation: starPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-star.emerge { animation: starEmerge 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes starPop {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            50% { transform: translateX(-50%) scale(1.5); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+        @keyframes starEmerge {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            100% { transform: translate(calc(-50% + var(--tx)), var(--ty)) rotate(var(--rot)) scale(1); opacity: 1; }
+        }
+
+        /* ---
+        // ===============================================
+        //   06. PREMIUM FOOTER & RESPONSIVE
+        // ===============================================
+        // --- */
+        .premium-footer { 
+            background: #050506; 
+            padding: 6rem 4rem 2rem; /* Static padding for baseline */
+            position: relative; 
+            overflow: hidden; 
+            flex-shrink: 0; 
+            z-index: 10; 
+            will-change: padding-bottom; 
+        }
+        .premium-footer::before { 
+            content: ""; 
+            position: absolute; 
+            top: 0; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 80%; 
+            height: 2px; 
+            background: radial-gradient(circle, rgba(201, 160, 91, 0.8) 0%, transparent 80%); 
+            animation: pulseGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { opacity: 0.4; box-shadow: 0 0 10px rgba(201, 160, 91, 0.1); }
+            100% { opacity: 1; box-shadow: 0 0 25px rgba(201, 160, 91, 0.6), 0 0 50px rgba(201, 160, 91, 0.2); }
+        }
+        
+        .footer-content { max-width: 1400px; margin: 0 auto; }
+        .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4rem; padding-bottom: 4rem; border-bottom: 1px solid var(--border-subtle); }
+        .footer-brand h2 { font-family: var(--font-editorial); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 400; color: var(--text-main); margin-bottom: 1.5rem; line-height: 1; }
+        .footer-brand p { color: var(--text-muted); max-width: 380px; font-size: 1rem; line-height: 1.7; }
+        .footer-links { display: flex; gap: 5rem; }
+        .link-group h4 { color: var(--text-main); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; font-weight: 600; }
+        .link-group a { display: block; color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; transition: color 0.3s ease, transform 0.3s ease; }
+        .link-group a:hover { color: var(--text-main); transform: translateX(4px); }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .footer-copyright, .footer-credits { color: #555; font-size: 0.85rem; }
+        .footer-credits a { color: var(--text-main); font-weight: 500; position: relative; padding-bottom: 2px; }
+        .footer-credits a::after { content: ''; position: absolute; width: 100%; height: 1px; bottom: 0; left: 0; background-color: var(--accent-gold); transform: scaleX(0); transform-origin: bottom right; transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
+        .footer-credits a:hover { color: var(--accent-gold); }
+        .footer-credits a:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+
+        /* --- RESPONSIVE LAYOUT FIXES --- */
+        @media (max-width: 900px) {
+            .hero-split { flex-direction: column-reverse; text-align: center; gap: 2rem; padding: 0 2rem; }
+            .hero-meta, .hero-actions { justify-content: center; }
+            .hero-description { margin-left: auto; margin-right: auto; }
+            .hero-visual-col { margin-top: 0; padding: 0; } .book-presentation { max-width: 280px; margin: 0 auto; }
+            .category-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 2rem; }
+            .category-line { width: 100%; }
+            .book-shelves, .premium-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .footer-top { flex-direction: column; gap: 3rem; }
+            .footer-links { flex-wrap: wrap; gap: 3rem; }
+            
+            /* Premium Horizontal Mobile Scroll */
+            .editorial-grid {
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: visible;
+                scroll-snap-type: x mandatory;
+                gap: 1.25rem;
+                padding-bottom: 2rem; /* Room for shadow */
+                margin-left: -1.5rem;
+                margin-right: -1.5rem;
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+                scroll-padding-left: 1.5rem;
+                -ms-overflow-style: none; /* IE and Edge */
+                scrollbar-width: none; /* Firefox */
+            }
+            .editorial-grid::-webkit-scrollbar {
+                display: none; /* Safari and Chrome */
+            }
+            .editorial-book-card {
+                flex: 0 0 160px; /* Fixed mobile width */
+                scroll-snap-align: start;
+            }
+            .card-book-title {
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
 <body data-page="new-releases">
 
-    <header class="main-header">
-        <nav class="main-nav">
-            <a href="index.html" class="logo-link">
-                <div class="logo">
-                    ABOOKI
-                </div>
-            </a>
-            <ul class="nav-links">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                
-                <li>
-                    <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
-                        <span class="ai-part">A</span>
-                        <span class="book-part">BOOK</span>
-                        <span class="i-part">I</span>
-                    </a>
-                </li>
-                <li><a href="library.html" class="nav-link">Central Library</a></li>
-                <li><a href="new-releases.html" class="nav-link active">New Releases</a></li>
-                <li><a href="mylist.html" class="nav-link">My List</a></li>
-            </ul>
-            <div class="nav-profile">
-                <!-- Content will be injected by nav.js -->
-                <a href="login.html" class="nav-profile-link">
-                    <i data-feather="user"></i>
-                </a>
+    <!-- Premium Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+
+    <!-- Cinematic Noise Overlay -->
+    <div class="site-noise"></div>
+
+    <!-- AWWWARDS LEVEL LOADER -->
+    <div id="loader-overlay">
+        <div class="loader-top">
+            <div class="loader-title">The Curated</div>
+            <div class="loader-title" style="animation-delay: 0.3s">Digital Archive</div>
+        </div>
+        
+        <div class="loader-center">
+            <div class="loader-brand">ABOOKI</div>
+        </div>
+        
+        <div class="loader-bottom">
+            <div class="loader-counter-wrap">
+                <span class="loader-counter" id="loader-counter">0</span>
+                <span class="loader-percent">%</span>
             </div>
-            </nav>
-    </header>
+        </div>
+        <div class="loader-progress-bar" id="loader-progress"></div>
+    </div>
+
+    <!-- 1. DESKTOP FLOATING HEADER -->
+    <div class="desktop-header-wrapper">
+        <nav class="main-nav">
+            <a href="index.html" class="logo-link magnetic"><div class="logo">ABOOKI</div></a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link magnetic">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
+                <li><a href="new-releases.html" class="nav-link active magnetic">Editions</a></li>
+            </ul>
+            <div class="nav-profile desktop-profile magnetic">
+                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- 2. MOBILE FIXED HEADER & FULLSCREEN OVERLAY -->
+    <div class="mobile-header-wrapper">
+        <a href="index.html" class="logo-link"><div class="logo">ABOOKI</div></a>
+        <div class="hamburger" id="mobile-menu-toggle">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="mobile-nav-link" data-num="01">Home</a></li>
+            <li><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
+            <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
+            <li><a href="new-releases.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="04">Editions</a></li>
+        </ul>
+        <div class="mobile-profile-container nav-profile">
+            <a href="login.html" class="btn-outline">Sign In / Register</a>
+        </div>
+    </div>
 
     <main>
+        <!-- EDITORIAL SPLIT HERO -->
         <section class="hero-section">
-            <div class="hero-content">
-                <!-- Content injected by JS -->
+            <div class="hero-split">
+                <!-- Text Injected Here -->
+                <div class="hero-text-col" id="hero-text-container"></div>
+                
+                <!-- Pure CSS 3D Book Injected Here -->
+                <div class="hero-visual-col fade-up" id="hero-visual-container"></div>
             </div>
         </section>
 
+        <!-- EDITORIAL MASONRY/GRID SHELVES -->
         <section class="book-shelves">
             <div id="book-shelves-container">
-                <!-- Content injected by JS -->
+                <!-- Generated by JS -->
             </div>
         </section>
-
     </main>
 
-    <footer class="main-footer">
-        <p>&copy; 2025 abooki. All rights reserved.</p>
+    <footer class="premium-footer fade-up">
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h2>ABOOKI</h2>
+                    <p>The interactive library of the future. Discover, read, and create AI-crafted literature wrapped in a premium editorial experience.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Collections</h4>
+                        <a href="library.html">The Archive</a>
+                        <a href="new-releases.html">Latest Editions</a>
+                        <a href="aibook.html">Author a Book</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Connect</h4>
+                        <a href="feedback.html">Share Feedback</a>
+                        <a href="support.html">Support the Project</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    &copy; 2026 Abooki. All rights reserved.
+                </div>
+                <div class="footer-credits">
+                    Crafted by <a href="https://rockandblu.co.uk/" target="_blank" rel="noopener noreferrer">rockandblu.co.uk</a>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script>
-      feather.replace()
+      feather.replace();
     </script>
-    <script type="module" src="new-releases.js"></script>
+
+    <!-- Combined Scripts -->
+    <script type="module">
+        const onDOMReady = (callback) => {
+            if (document.readyState !== 'loading') callback();
+            else document.addEventListener('DOMContentLoaded', callback);
+        };
+
+        // --- PREMIUM INTERACTION: Custom Cursor Logic ---
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+        
+        if (cursorDot && cursorOutline && window.matchMedia("(pointer: fine)").matches) {
+            let cursorX = 0, cursorY = 0, outlineX = 0, outlineY = 0;
+            window.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX; cursorY = e.clientY;
+                cursorDot.style.left = cursorX + 'px'; cursorDot.style.top = cursorY + 'px';
+            });
+            function animateCursor() {
+                outlineX += (cursorX - outlineX) * 0.15; outlineY += (cursorY - outlineY) * 0.15;
+                cursorOutline.style.left = outlineX + 'px'; cursorOutline.style.top = outlineY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+            document.addEventListener('mouseover', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic, .read-book-card, .rating-container')) document.body.classList.add('cursor-hover');
+            });
+            document.addEventListener('mouseout', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic, .read-book-card, .rating-container')) document.body.classList.remove('cursor-hover');
+            });
+        }
+
+        // --- PREMIUM INTERACTION: Magnetic Buttons Logic ---
+        function initMagneticElements() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const magneticElements = document.querySelectorAll('.magnetic');
+            magneticElements.forEach(elem => {
+                elem.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    this.style.transition = "none";
+                    this.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px)`;
+                });
+                elem.addEventListener('mouseleave', function() {
+                    this.style.transition = "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    this.style.transform = `translate(0px, 0px)`;
+                });
+            });
+        }
+        initMagneticElements();
+
+        // --- PREMIUM INTERACTION: Scroll Reveal Observer ---
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    scrollObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function observeScrollElements() {
+            document.querySelectorAll('.fade-up:not(.visible)').forEach(el => {
+                scrollObserver.observe(el);
+            });
+        }
+
+        // --- PREMIUM INTERACTION: Elastic Footer Rubber Band ---
+        const initElasticFooter = () => {
+            const footerEl = document.querySelector('.premium-footer');
+            if (!footerEl) return;
+            
+            let stretchValue = 0;
+            let isTouching = false;
+            let touchStartY = 0;
+            let wheelTimeout;
+
+            const applyStretch = (val) => {
+                // Smooth non-linear dampening for rubber effect. Caps safely at 120px stretch.
+                const stretch = Math.min(val / 2.5, 120); 
+                footerEl.style.paddingBottom = `calc(2rem + ${stretch}px)`;
+            };
+
+            const resetStretch = () => {
+                stretchValue = 0;
+                footerEl.style.transition = 'padding-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                footerEl.style.paddingBottom = '2rem';
+            };
+
+            window.addEventListener('wheel', (e) => {
+                const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+                if (isAtBottom && e.deltaY > 0) {
+                    footerEl.style.transition = 'none';
+                    stretchValue += e.deltaY;
+                    if (stretchValue > 300) stretchValue = 300;
+                    applyStretch(stretchValue);
+                    
+                    clearTimeout(wheelTimeout);
+                    wheelTimeout = setTimeout(resetStretch, 150);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchstart', (e) => {
+                const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+                if (isAtBottom) {
+                    isTouching = true;
+                    touchStartY = e.touches[0].clientY;
+                    footerEl.style.transition = 'none';
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isTouching) return;
+                const touchY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchY;
+                
+                if (deltaY > 0) { 
+                    stretchValue = deltaY * 1.5;
+                    applyStretch(stretchValue);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                if (isTouching) {
+                    isTouching = false;
+                    resetStretch();
+                }
+            });
+        };
+
+        // --- MOBILE MENU LOGIC ---
+        const mobileHeader = document.querySelector('.mobile-header-wrapper');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+        
+        function closeMobileMenu() {
+            mobileToggle.classList.remove('open');
+            mobileMenu.classList.remove('active');
+            mobileHeader.classList.remove('menu-open');
+            document.body.style.overflow = 'auto';
+        }
+        mobileToggle.addEventListener('click', () => {
+            mobileToggle.classList.toggle('open');
+            mobileMenu.classList.toggle('active');
+            mobileHeader.classList.toggle('menu-open'); 
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+        });
+        mobileLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
+        const mobileProfileContainer = document.querySelector('.mobile-profile-container');
+        if (mobileProfileContainer) {
+            mobileProfileContainer.addEventListener('click', (e) => {
+                if(e.target.tagName === 'A' || e.target.closest('a')) closeMobileMenu();
+            });
+        }
+
+        // --- AWWWARDS LOADER LOGIC ---
+        onDOMReady(() => {
+            const counterEl = document.getElementById('loader-counter');
+            const progressEl = document.getElementById('loader-progress');
+            const overlay = document.getElementById('loader-overlay');
+            let count = 0;
+            const updateCounter = () => {
+                const increment = Math.floor(Math.random() * 8) + 1;
+                count += increment;
+                if (count > 100) count = 100;
+                counterEl.textContent = count;
+                progressEl.style.width = `${count}%`;
+                
+                if (count < 100) {
+                    const delay = Math.random() * 80 + 30;
+                    setTimeout(updateCounter, delay);
+                } else {
+                    setTimeout(() => {
+                        overlay.classList.add('hide-loader');
+                        document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+                        setTimeout(() => { overlay.remove(); }, 1400); 
+                    }, 400); 
+                }
+            };
+            setTimeout(updateCounter, 800);
+            initElasticFooter(); // Initialize elastic footer on load
+        });
+
+        // --- FIREBASE & NEW RELEASES LOGIC ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+          authDomain: "studio-5978542726-e345b.firebaseapp.com",
+          projectId: "studio-5978542726-e345b",
+          storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+          messagingSenderId: "968782492427",
+          appId: "1:968782492427:web:90108da3599e50bc2b680e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
+
+        let generateGhostAvatar = () => 'https://placehold.co/32x32/c9a05b/070708?text=U';
+        try {
+            const avatarModule = await import("./avatar-generator.js");
+            generateGhostAvatar = avatarModule.generateGhostAvatar;
+        } catch(e) { console.warn("Local avatar generator missing in preview."); }
+
+        async function updateNavUser(user) {
+            const profileContainers = document.querySelectorAll('.nav-profile');
+            profileContainers.forEach(async (container) => {
+                if (user && !user.isAnonymous) {
+                    let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists() && docSnap.data().avatarConfig) {
+                            const config = docSnap.data().avatarConfig;
+                            const avatarUrl = generateGhostAvatar(config);
+                            avatarHtml = `<img src="${avatarUrl}" class="profile-avatar" alt="Profile">`;
+                        } else if (user.photoURL) {
+                            avatarHtml = `<img src="${user.photoURL}" class="profile-avatar" alt="Profile">`;
+                        }
+                    } catch (error) { console.error("Nav Update Error:", error); }
+
+                    if (container.classList.contains('mobile-profile-container')) {
+                        container.innerHTML = `${avatarHtml}<div style="text-align: center; margin-top:1rem;"><a href="profile.html" class="mobile-nav-link" style="font-size:1.2rem; display:block; margin-bottom:1rem;">Profile</a><a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a></div>`;
+                        const mLogoutBtn = container.querySelector('#mobile-logout-btn');
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                    } else {
+                        container.innerHTML = `<a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">${avatarHtml}</a><div class="nav-dropdown"><a href="profile.html" class="dropdown-item">Profile</a><a href="feedback.html" class="dropdown-item">Community Feedback</a><a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a><a href="settings.html" class="dropdown-item">Settings</a><a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a></div>`;
+                        const logoutBtn = container.querySelector('#nav-logout-btn');
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                    }
+                } else {
+                    if (container.classList.contains('mobile-profile-container')) {
+                         container.innerHTML = `<a href="login.html" class="btn-outline">Sign In / Register</a>`;
+                    } else {
+                        container.innerHTML = `<a href="login.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>`;
+                    }
+                }
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        // --- NEW RELEASES DATA LOGIC ---
+        function getRatingValues(ratingsData) {
+            if (!ratingsData) return [];
+            if (Array.isArray(ratingsData)) return ratingsData; 
+            return Object.values(ratingsData); 
+        }
+
+        function safeEscape(obj) {
+            return JSON.stringify(obj).replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+        }
+
+        function triggerStarAnimation(cardElement, ratingValue) {
+            const overlay = document.createElement('div');
+            overlay.className = 'star-celebration-overlay';
+            
+            const positions = {
+                1: { tx: '-70px', ty: '40px', rot: '-30deg' }, 
+                2: { tx: '-35px', ty: '10px', rot: '-15deg' }, 
+                3: { tx: '0px',   ty: '0px',  rot: '0deg' },   
+                4: { tx: '35px',  ty: '10px', rot: '15deg' },  
+                5: { tx: '70px',  ty: '40px', rot: '30deg' }   
+            };
+
+            let activeIndices = [];
+            switch (ratingValue) {
+                case 1: activeIndices = [3]; break;
+                case 2: activeIndices = [2, 4]; break;          
+                case 3: activeIndices = [2, 3, 4]; break;
+                case 4: activeIndices = [1, 2, 4, 5]; break;    
+                case 5: activeIndices = [1, 2, 3, 4, 5]; break;
+                default: activeIndices = [3];
+            }
+
+            let html = '';
+            for(let i=1; i<=5; i++) {
+                if (activeIndices.includes(i)) {
+                    let animClass = (i === 3) ? 'pop' : 'emerge';
+                    const pos = positions[i];
+                    const style = `--tx: ${pos.tx}; --ty: ${pos.ty}; --rot: ${pos.rot};`;
+                    html += `<i data-feather="star" class="anim-star ${animClass}" style="${style}"></i>`;
+                }
+            }
+            overlay.innerHTML = html;
+            cardElement.appendChild(overlay);
+            
+            if (typeof feather !== 'undefined') feather.replace();
+            setTimeout(() => { overlay.remove(); }, 2000);
+        }
+
+        async function loadNewReleasesPage() {
+            const heroTextContainer = document.getElementById('hero-text-container');
+            const visualContainer = document.getElementById('hero-visual-container');
+            const shelvesContainer = document.getElementById('book-shelves-container');
+
+            if (!shelvesContainer) return;
+            if (heroTextContainer) heroTextContainer.innerHTML = `<h1 class="hero-title fade-up">Curating the Archive...</h1>`;
+
+            try {
+                const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
+                const querySnapshot = await getDocs(booksRef);
+
+                let publicBooks = [];
+                querySnapshot.forEach((doc) => {
+                    publicBooks.push({ ...doc.data(), firestoreId: doc.id });
+                });
+
+                publicBooks.sort((a, b) => {
+                    const tA = a.createdAt?.seconds || 0;
+                    const tB = b.createdAt?.seconds || 0;
+                    return tB - tA; // Newest first
+                });
+
+                if (publicBooks.length === 0) {
+                    if (heroTextContainer) heroTextContainer.innerHTML = `
+                        <span class="editorial-kicker fade-up">First Edition</span>
+                        <h1 class="hero-title fade-up stagger-delay-1">No Public Books Yet</h1>
+                        <p class="hero-description fade-up stagger-delay-2">Be the first to publish one from your library!</p>
+                        <div class="fade-up stagger-delay-3"><a href="aibook.html" class="btn-editorial magnetic">Author a Book <i data-feather="edit-2"></i></a></div>
+                    `;
+                    if (typeof feather !== 'undefined') feather.replace();
+                    initMagneticElements();
+                    observeScrollElements();
+                    return;
+                }
+
+                const featuredBook = publicBooks[0];
+                buildHero(featuredBook, heroTextContainer, visualContainer);
+                buildShelves(shelvesContainer, publicBooks);
+
+            } catch (error) {
+                console.error("Error loading new releases:", error);
+                if (heroTextContainer) heroTextContainer.innerHTML = `<h1 class="hero-title fade-up">Archive Offline</h1><p class="fade-up stagger-delay-1">We could not retrieve the records at this time.</p>`;
+            }
+        }
+
+        function buildHero(book, textContainer, visualContainer) {
+            const safeData = safeEscape(book);
+            const ratingValues = getRatingValues(book.ratings);
+            const avgRating = ratingValues.length > 0 ? (ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length) : 0;
+            const starCount = Math.round(avgRating);
+            
+            let starsHtml = '';
+            for(let i=1; i<=5; i++) {
+                const isFilled = i <= starCount;
+                const style = `width:16px; height:16px; margin-right:2px; ${isFilled ? 'fill: var(--accent-gold); color: var(--accent-gold);' : 'color: #555;'}`;
+                starsHtml += `<i data-feather="star" style="${style}"></i>`;
+            }
+
+            textContainer.innerHTML = `
+                <span class="editorial-kicker fade-up">Fresh Ink</span>
+                <h1 class="hero-title fade-up stagger-delay-1">${book.title}</h1>
+                <div class="hero-meta fade-up stagger-delay-1">
+                    <span class="hero-author">Penned by <strong>${book.authorName || 'Anonymous'}</strong></span>
+                </div>
+                <div class="rating-container fade-up stagger-delay-2" data-firestore-id="${book.firestoreId}" style="margin-bottom: 2rem; justify-content: flex-start; cursor: default;">
+                    ${starsHtml}
+                    <span class="rating-text" style="font-size: 0.9rem;">(${ratingValues.length} votes)</span>
+                </div>
+                <p class="hero-description fade-up stagger-delay-2">
+                    ${book.description ? (book.description.length > 220 ? book.description.substring(0,220)+'...' : book.description) : 'An intriguing new volume awaits your exploration within the archives.'}
+                </p>
+                <div class="hero-actions fade-up stagger-delay-3">
+                    <button class="btn-editorial read-book-btn magnetic" data-book='${safeData}'>
+                        Open Volume <i data-feather="book-open"></i>
+                    </button>
+                </div>
+            `;
+            
+            if (visualContainer) {
+                visualContainer.innerHTML = `
+                    <div class="book-presentation magnetic">
+                        <img src="${book.coverUrl || 'https://placehold.co/800x1200/1a1a1a/FFF?text=No+Cover'}" alt="${book.title} Cover">
+                    </div>
+                `;
+            }
+
+            const btn = textContainer.querySelector('.read-book-btn');
+            if(btn) {
+                btn.addEventListener('click', () => {
+                    try {
+                        const data = JSON.parse(btn.getAttribute('data-book'));
+                        data.isPublicView = true;
+                        localStorage.setItem('generatedBook', JSON.stringify(data));
+                        window.location.href = 'reader.html';
+                    } catch(e) { console.error("Error opening book", e); }
+                });
+            }
+
+            if (typeof feather !== 'undefined') feather.replace();
+            initMagneticElements();
+            observeScrollElements();
+        }
+
+        function buildShelves(container, books) {
+            const title = books.length > 1 ? `Latest Additions (${books.length})` : "Latest Additions";
+            let html = `<div class="editorial-category">
+                            <div class="category-header fade-up">
+                                <h2 class="category-title-serif">${title}</h2>
+                                <div class="category-line"></div>
+                            </div>
+                            <div class="editorial-grid">`;
+
+            let globalIndex = 0;
+            books.forEach(book => {
+                const safeData = safeEscape(book);
+                const ratingValues = getRatingValues(book.ratings);
+                const avgRating = ratingValues.length > 0 ? (ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length) : 0;
+                const starCount = Math.round(avgRating);
+                
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    const starClass = i <= starCount ? 'filled' : 'empty';
+                    starsHtml += `<i data-feather="star" class="rate-star ${starClass}" data-value="${i}"></i>`;
+                }
+
+                const delayClass = `stagger-delay-${(globalIndex % 3) + 1}`;
+
+                html += `
+                    <div class="editorial-book-card fade-up ${delayClass}">
+                        <div class="card-image-container read-book-card" data-book='${safeData}'>
+                            <img src="${book.coverUrl}" alt="${book.title}" onerror="this.src='https://placehold.co/400x600/111/FFF?text=No+Image'">
+                        </div>
+                        <div class="card-typography">
+                            <h3 class="card-book-title read-book-card" data-book='${safeData}'>${book.title}</h3>
+                            <p class="card-book-author">${book.authorName || 'Anonymous'} &bull; <span style="text-transform:none; color:var(--accent-gold);">${book.genre || 'Story'}</span></p>
+                            <div class="rating-container" data-firestore-id="${book.firestoreId}" title="${ratingValues.length} votes">
+                                ${starsHtml}
+                                <span class="rating-text">(${ratingValues.length})</span>
+                            </div>
+                        </div>
+                    </div>`;
+                globalIndex++;
+            });
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+            if (typeof feather !== 'undefined') feather.replace();
+
+            // Setup Card Click
+            const cards = container.querySelectorAll('.read-book-card');
+            cards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.rating-container')) return;
+                    try {
+                        const data = JSON.parse(card.getAttribute('data-book'));
+                        data.isPublicView = true;
+                        localStorage.setItem('generatedBook', JSON.stringify(data));
+                        window.location.href = 'reader.html';
+                    } catch(err) { console.error("Error opening book", err); }
+                });
+            });
+
+            // Setup Rating Interactions
+            const starContainers = container.querySelectorAll('.rating-container');
+            starContainers.forEach((starContainer, idx) => {
+                const book = books[idx]; 
+                const stars = starContainer.querySelectorAll('.rate-star');
+                const firestoreId = starContainer.dataset.firestoreId;
+
+                stars.forEach(star => {
+                    const starValue = parseInt(star.dataset.value);
+                    star.addEventListener('mouseover', () => {
+                        stars.forEach((s, index) => {
+                            if (index < starValue) {
+                                s.classList.add('filled'); s.classList.remove('empty');
+                            } else {
+                                s.classList.remove('filled'); s.classList.add('empty');
+                            }
+                        });
+                    });
+                });
+
+                starContainer.addEventListener('mouseleave', () => {
+                    const currentRatingValues = getRatingValues(book.ratings);
+                    const currentAvg = currentRatingValues.length > 0 ? (currentRatingValues.reduce((a, b) => a + b, 0) / currentRatingValues.length) : 0;
+                    const currentStarCount = Math.round(currentAvg);
+
+                    stars.forEach((s, index) => {
+                        if (index < currentStarCount) {
+                            s.classList.add('filled'); s.classList.remove('empty');
+                        } else {
+                            s.classList.remove('filled'); s.classList.add('empty');
+                        }
+                    });
+                });
+
+                stars.forEach(star => {
+                    star.addEventListener('click', async (e) => {
+                        e.stopPropagation(); 
+                        const user = auth.currentUser;
+                        if (!user || user.isAnonymous) { 
+                            showSiteNotice("Please log in to rate books.", "error"); 
+                            return; 
+                        }
+                        
+                        const ratingValue = parseInt(star.dataset.value);
+                        if (!book.ratings) book.ratings = {};
+                        if (!Array.isArray(book.ratings)) book.ratings[user.uid] = ratingValue;
+                        
+                        const cardElement = starContainer.closest('.editorial-book-card');
+                        if (cardElement) {
+                            // Ensure the card has position relative for the animation overlay
+                            cardElement.style.position = 'relative';
+                            triggerStarAnimation(cardElement, ratingValue);
+                        }
+
+                        const updateVisuals = (containerElement, value, count) => {
+                            const containerStars = containerElement.querySelectorAll('.rate-star'); 
+                            containerStars.forEach((s, index) => {
+                                if (index < value) {
+                                    s.classList.add('filled'); s.classList.remove('empty');
+                                } else {
+                                    s.classList.remove('filled'); s.classList.add('empty');
+                                }
+                            });
+                            const textSpan = containerElement.querySelector('.rating-text');
+                            if (textSpan) textSpan.textContent = `(${count})`; 
+                        };
+
+                        const currentCount = Array.isArray(book.ratings) ? book.ratings.length : Object.keys(book.ratings).length;
+                        updateVisuals(starContainer, ratingValue, currentCount);
+
+                        try {
+                            const bookRef = doc(db, 'artifacts', appId, 'public', 'data', 'books', firestoreId);
+                            const updateData = {};
+                            updateData[`ratings.${user.uid}`] = ratingValue;
+                            await updateDoc(bookRef, updateData);
+                        } catch (err) {
+                            console.error("Error rating book:", err);
+                        }
+                    });
+                });
+            });
+
+            observeScrollElements();
+        }
+
+        // --- INIT ROUTINE ---
+        let isPageLoaded = false;
+        const initAuthAndLoad = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.warn("Auth initialization failed. Proceeding without auth.", error);
+            }
+
+            onAuthStateChanged(auth, (user) => { 
+                updateNavUser(user); 
+                if (!isPageLoaded) {
+                    isPageLoaded = true;
+                    loadNewReleasesPage();
+                }
+            });
+
+            setTimeout(() => {
+                if (!isPageLoaded) {
+                    isPageLoaded = true;
+                    loadNewReleasesPage();
+                }
+            }, 1500);
+        };
+
+        onDOMReady(() => {
+            if (document.body.dataset.page === 'new-releases') {
+                initAuthAndLoad();
+            } else {
+                onAuthStateChanged(auth, (user) => { updateNavUser(user); });
+            }
+        });
+
+        let lastScrollY = window.scrollY;
+        let rotation = 0;
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            const delta = currentScrollY - lastScrollY;
+            rotation += delta * 0.5;
+            document.documentElement.style.setProperty('--logo-star-rotate', `${rotation}deg`);
+            lastScrollY = currentScrollY;
+        });
+    </script>
 </body>
 </html>

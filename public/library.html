@@ -3,55 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central Library - abooki</title>
+    <title>Central Library - abooki Premium</title>
     <link rel="icon" href="browserIcon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Combined Font Import: Inter for UI, Playfair Display for Editorial Headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="library.css">
+
+    <style>
+        /* ---
+        // ===============================================
+        //   00. AWWWARDS LEVEL LOADER & OVERLAYS
+        // ===============================================
+        // --- */
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: #050506; 
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem 4rem;
+            transition: clip-path 1.4s cubic-bezier(0.85, 0, 0.15, 1);
+            clip-path: inset(0 0 0 0);
+        }
+
+        #loader-overlay.hide-loader {
+            clip-path: inset(0 0 100% 0);
+            pointer-events: none;
+        }
+
+        .site-noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99998;
+            opacity: 0.45;
+            background-image:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+                repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px);
+            mix-blend-mode: overlay;
+        }
+
+        .loader-top { display: flex; justify-content: space-between; align-items: flex-start; overflow: hidden; }
+        .loader-title {
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500;
+            letter-spacing: 0.1em; text-transform: uppercase; color: #a19d93;
+            transform: translateY(100%); animation: revealText 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.2s;
+        }
+        .loader-center { flex-grow: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .loader-brand {
+            font-family: 'Playfair Display', serif; font-size: clamp(3rem, 12vw, 9rem);
+            font-weight: 700; color: #f0ece1; letter-spacing: -0.02em; position: relative;
+            transform: translateY(100%); animation: revealText 1s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.4s;
+        }
+        .loader-brand::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.1em; font-family: 'Inter', sans-serif; font-size: 0.3em; color: #c9a05b;
+            animation: spin 6s linear infinite;
+        }
+        .loader-bottom { display: flex; justify-content: flex-end; align-items: flex-end; overflow: hidden; }
+        .loader-counter-wrap {
+            font-family: 'Playfair Display', serif; font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 400; color: #f0ece1; display: flex; align-items: baseline;
+            transform: translateY(100%); animation: revealText 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.6s;
+        }
+        .loader-counter { font-variant-numeric: tabular-nums; }
+        .loader-percent { font-family: 'Inter', sans-serif; font-size: 0.3em; color: #c9a05b; margin-left: 0.3rem; font-weight: 400; }
+        .loader-progress-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: #c9a05b; width: 0%; transition: width 0.1s linear; }
+
+        @keyframes revealText { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @media (max-width: 768px) { #loader-overlay { padding: 2rem 1.5rem; } }
+
+        /* Toast Notifications */
+        .site-toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(16, 16, 18, 0.95); border: 1px solid var(--accent-gold);
+            color: var(--text-main); padding: 1rem 2rem; border-radius: 100px;
+            font-family: var(--font-ui); font-weight: 500; font-size: 0.9rem;
+            z-index: 99999; opacity: 0; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .site-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .site-toast.error { border-color: #e14c3a; color: #e14c3a; }
+        .site-toast.success { border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* ---
+        // ===============================================
+        //   01. GLOBAL STYLES, CURSOR, & EDITORIAL PALETTE
+        // ===============================================
+        // --- */
+        :root {
+            --bg-color: #070708; 
+            --bg-surface: #101012;
+            --text-main: #f0ece1;
+            --text-muted: #8e8b82;
+            --accent-gold: #c9a05b;
+            --accent-green: #588157;
+            --border-subtle: rgba(240, 236, 225, 0.08);
+            --font-ui: 'Inter', sans-serif;
+            --font-editorial: 'Playfair Display', serif;
+            --logo-star-rotate: 0deg;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: var(--font-ui); line-height: 1.6;
+            display: flex; flex-direction: column; min-height: 100vh;
+            overflow-x: hidden; cursor: auto;
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, select, .clickable, .magnetic { cursor: none; }
+            #cursor-dot, #cursor-outline {
+                position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+                border-radius: 50%; pointer-events: none; z-index: 9999999;
+            }
+            #cursor-dot {
+                width: 6px; height: 6px; background-color: var(--text-main);
+                transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.2s;
+            }
+            #cursor-outline {
+                width: 40px; height: 40px; border: 1px solid rgba(240, 236, 225, 0.3);
+                transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), height 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.3s, background-color 0.3s;
+            }
+            body.cursor-hover #cursor-dot { transform: translate(-50%, -50%) scale(0.1); }
+            body.cursor-hover #cursor-outline {
+                width: 60px; height: 60px; border-color: var(--accent-gold);
+                background-color: rgba(201, 160, 91, 0.05); backdrop-filter: blur(2px);
+            }
+        }
+        @media (pointer: coarse) { #cursor-dot, #cursor-outline { display: none !important; } }
+
+        .magnetic { display: inline-block; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); will-change: transform; }
+        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        a { color: inherit; text-decoration: none; } ul { list-style: none; } img { max-width: 100%; height: auto; display: block; }
+        main { flex-grow: 1; }
+
+        /* ---
+        // ===============================================
+        //   02. DUAL NAVIGATION SYSTEM
+        // ===============================================
+        // --- */
+        .desktop-header-wrapper {
+            position: fixed; top: 1.5rem; left: 0; width: 100%;
+            z-index: 1000; display: flex; justify-content: center;
+            padding: 0 1.5rem; pointer-events: none; 
+        }
+        .main-nav {
+            pointer-events: auto; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 1200px; height: 64px; background: rgba(16, 16, 18, 0.65);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border-subtle);
+            border-radius: 100px; padding: 0 1.5rem 0 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: all 0.3s ease;
+        }
+        .logo { font-family: var(--font-editorial); font-size: 1.4rem; font-weight: 700; letter-spacing: 0.05em; position: relative; color: var(--text-main); }
+        .logo::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.2em; font-family: var(--font-ui); font-size: 0.6em; color: var(--accent-gold);
+            transform: rotate(var(--logo-star-rotate)); transition: transform 0.1s linear;
+        }
+        .nav-links { display: flex; align-items: center; gap: 2rem; margin: 0 auto; }
+        .nav-link {
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.3s ease; position: relative; padding: 0.5rem 0; 
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-main); }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold);
+        }
+        .nav-link-anim { display: inline-flex; align-items: center; } 
+        .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link-anim .book-part {
+            display: inline-flex; align-items: center; max-width: 0; opacity: 0; transform: translateX(-10px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); color: var(--accent-gold); font-weight: 500; overflow: hidden; white-space: nowrap; 
+        }
+        .nav-link-anim:hover .book-part, .nav-link-anim.active .book-part { max-width: 80px; opacity: 1; transform: translateX(0); margin: 0 0.05em; }
+
+        .nav-profile {
+            position: relative; height: 40px; width: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.3s;
+        }
+        .nav-profile:hover { border-color: var(--accent-gold); }
+        .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .nav-dropdown {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0; background: rgba(16, 16, 18, 0.95);
+            backdrop-filter: blur(10px); min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
+        }
+        .nav-profile:hover .nav-dropdown { display: block; }
+        .dropdown-item {
+            display: block; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-radius: 8px; transition: all 0.2s;
+        }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+
+        .mobile-header-wrapper {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 2010;
+            background: rgba(7, 7, 8, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem; justify-content: space-between; align-items: center; transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .mobile-header-wrapper.menu-open { background: transparent; backdrop-filter: none; border-bottom-color: transparent; }
+        .hamburger { width: 30px; height: 20px; position: relative; cursor: pointer; z-index: 2012; }
+        .hamburger span {
+            display: block; position: absolute; height: 2px; width: 100%; background: var(--text-main);
+            border-radius: 2px; opacity: 1; left: 0; transform: rotate(0deg); transition: .25s ease-in-out;
+        }
+        .hamburger span:nth-child(1) { top: 0px; } .hamburger span:nth-child(2) { top: 9px; } .hamburger span:nth-child(3) { top: 18px; }
+        .hamburger.open span:nth-child(1) { top: 9px; transform: rotate(135deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; left: -20px; }
+        .hamburger.open span:nth-child(3) { top: 9px; transform: rotate(-135deg); }
+        
+        .mobile-menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2005; background: #050506;
+            background-image: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.12) 0%, transparent 70%); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .mobile-menu-overlay.active { transform: translateY(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 2.5rem; text-align: center; width: 100%; }
+        .mobile-nav-links li { overflow: hidden; }
+        .mobile-nav-link {
+            font-family: var(--font-editorial); font-size: 3rem; color: var(--text-muted); transition: color 0.3s ease; display: inline-block; transform: translateY(100%); opacity: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        }
+        .mobile-nav-link.active, .mobile-nav-link:hover { color: var(--text-main); }
+        .mobile-nav-link::before {
+            content: attr(data-num); font-family: var(--font-ui); font-size: 0.9rem; vertical-align: super; margin-right: 15px; color: var(--accent-gold); opacity: 0.6;
+        }
+        .mobile-menu-overlay.active .mobile-nav-link { transform: translateY(0); opacity: 1; }
+        .mobile-menu-overlay.active li:nth-child(1) .mobile-nav-link { transition-delay: 0.1s; }
+        .mobile-menu-overlay.active li:nth-child(2) .mobile-nav-link { transition-delay: 0.2s; }
+        .mobile-menu-overlay.active li:nth-child(3) .mobile-nav-link { transition-delay: 0.3s; }
+        .mobile-menu-overlay.active li:nth-child(4) .mobile-nav-link { transition-delay: 0.4s; }
+        .mobile-profile-container { margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translateY(20px); opacity: 0; transition: transform 0.6s ease 0.5s, opacity 0.6s ease 0.5s; }
+        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1; }
+        @media (max-width: 900px) { .desktop-header-wrapper { display: none; } .mobile-header-wrapper { display: flex; } }
+
+
+        /* ---
+        // ===============================================
+        //   03. CENTRAL LIBRARY SPECIFIC STYLES
+        // ===============================================
+        // --- */
+        .library-container {
+            position: relative;
+            width: 100%; 
+            height: 100vh; 
+            overflow: hidden;
+            background-color: var(--bg-color);
+        }
+
+        .library-background {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(7, 7, 8, 0.7), rgba(7, 7, 8, 0.9)), url('image_f07d9a.jpg');
+            background-size: cover; background-position: center; z-index: 0;
+            filter: grayscale(0.5);
+        }
+
+        /* FIX: Bulletproof horizontal centering */
+        .library-overlay {
+            position: absolute; 
+            top: 120px; 
+            left: 0;
+            right: 0;
+            width: 100%;
+            text-align: center; 
+            z-index: 10; 
+            color: var(--text-main);
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8); 
+            pointer-events: none; 
+        }
+
+        .library-overlay h1 {
+            font-family: var(--font-editorial); font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 400; margin-bottom: 0.5rem; line-height: 1.1;
+        }
+
+        .library-overlay p {
+            font-family: var(--font-ui); font-size: 1.1rem; color: var(--accent-gold);
+            text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500;
+        }
+
+        #avatar-playground {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 5; pointer-events: none; 
+        }
+
+        .floating-avatar {
+            position: absolute; width: 80px; height: 80px; pointer-events: auto; 
+            cursor: pointer; will-change: top, left; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            z-index: 20;
+        }
+
+        .floating-avatar img {
+            width: 100%; height: 100%; object-fit: contain;
+            animation: float-bob 4s ease-in-out infinite;
+        }
+
+        @keyframes float-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .avatar-tooltip {
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(10px);
+            background: rgba(16, 16, 18, 0.95); border: 1px solid var(--accent-gold);
+            color: var(--text-main); padding: 12px 16px; border-radius: 12px;
+            width: max-content; max-width: 220px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); opacity: 0; visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+            font-size: 0.9rem; z-index: 30; backdrop-filter: blur(10px);
+        }
+
+        .avatar-tooltip::after {
+            content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+            border-width: 6px; border-style: solid;
+            border-color: var(--accent-gold) transparent transparent transparent;
+        }
+
+        .avatar-tooltip strong { display: block; color: var(--accent-gold); margin-bottom: 4px; font-weight: 600; }
+        .avatar-tooltip em { display: block; font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
+
+        .floating-avatar:hover { z-index: 40; }
+        .floating-avatar:hover .avatar-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-15px); }
+
+
+        /* --- MUSIC PLAYER WIDGET (Premium Theme) --- */
+        /* FIX: Reverted padding and width/height to old reliable numbers to prevent svg clipping */
+        .music-player-widget {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+            background: rgba(16, 16, 18, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            color: var(--text-main); font-family: var(--font-ui); border-radius: 50px;
+            
+            width: 60px; height: 60px; padding-left: 9px; padding-top: 4px; overflow: hidden;
+            
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column;
+        }
+
+        .music-player-widget:hover {
+            width: 260px; height: auto; min-height: 120px; border-radius: 20px; padding: 20px;
+            background: rgba(16, 16, 18, 0.95); border-color: var(--accent-gold);
+        }
+
+        .music-header { display: flex; align-items: center; gap: 15px; width: 100%; margin-bottom: 0; transition: margin-bottom 0.3s; }
+        .music-player-widget:hover .music-header { margin-bottom: 15px; }
+
+        .music-disc {
+            width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+            animation: spin 5s linear infinite; animation-play-state: paused; cursor: pointer;
+        }
+        
+        .music-info-controls {
+            display: flex; flex-direction: column; flex-grow: 1; opacity: 0; transform: translateX(-10px); transition: all 0.6s ease; white-space: nowrap;
+        }
+        .music-player-widget:hover .music-info-controls { opacity: 1; transform: translateX(0); }
+
+        .music-song-name { font-size: 0.9rem; font-weight: 600; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: var(--accent-gold); }
+        .music-controls { display: flex; gap: 12px; margin-top: 6px; }
+        .music-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0; transition: color 0.2s; }
+        .music-btn:hover { color: var(--text-main); }
+        .music-btn svg { width: 18px; height: 18px; }
+
+        .music-playlist {
+            opacity: 0; height: 0; pointer-events: none; transition: all 0.3s ease;
+            display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0;
+        }
+        .music-player-widget:hover .music-playlist { opacity: 1; height: auto; pointer-events: auto; padding-top: 15px; }
+
+        .playlist-item { font-size: 0.85rem; color: var(--text-muted); cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: all 0.2s; }
+        .playlist-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+        .playlist-item.active { color: var(--accent-gold); font-weight: 600; background: rgba(201, 160, 91, 0.1); }
+
+        .music-player-widget.playing .music-disc { animation-play-state: running; }
+
+        @media (max-width: 900px) {
+            .music-player-widget { bottom: 20px; left: 20px; }
+            .library-overlay { top: 100px; }
+        }
+    </style>
 </head>
 <body data-page="library">
 
-    <header class="main-header">
-        <nav class="main-nav">
-            <a href="index.html" class="logo-link">
-                <div class="logo">
-                    ABOOKI
-                </div>
-            </a>
-            <ul class="nav-links">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                
-                <li>
-                    <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
-                        <span class="ai-part">A</span>
-                        <span class="book-part">BOOK</span>
-                        <span class="i-part">I</span>
-                    </a>
-                </li>
+    <!-- Premium Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
 
-                <!-- Added Library Link -->
-                <li><a href="library.html" class="nav-link active">Central Library</a></li>
-                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
-                <li><a href="mylist.html" class="nav-link">My List</a></li>
+    <!-- Cinematic Noise Overlay -->
+    <div class="site-noise"></div>
+
+    <!-- AWWWARDS LEVEL LOADER -->
+    <div id="loader-overlay">
+        <div class="loader-top">
+            <div class="loader-title">The Curated</div>
+            <div class="loader-title" style="animation-delay: 0.3s">Digital Archive</div>
+        </div>
+        
+        <div class="loader-center">
+            <div class="loader-brand">ABOOKI</div>
+        </div>
+        
+        <div class="loader-bottom">
+            <div class="loader-counter-wrap">
+                <span class="loader-counter" id="loader-counter">0</span>
+                <span class="loader-percent">%</span>
+            </div>
+        </div>
+        <div class="loader-progress-bar" id="loader-progress"></div>
+    </div>
+
+    <!-- 1. DESKTOP FLOATING HEADER -->
+    <div class="desktop-header-wrapper">
+        <nav class="main-nav">
+            <a href="index.html" class="logo-link magnetic"><div class="logo">ABOOKI</div></a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link magnetic">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="library.html" class="nav-link active magnetic">Archive</a></li>
+                <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
             </ul>
-            <div class="nav-profile">
-                <a href="login.html" class="nav-profile-link">
-                    <i data-feather="user"></i>
-                </a>
+            <div class="nav-profile desktop-profile magnetic">
+                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
             </div>
         </nav>
-    </header>
+    </div>
+
+    <!-- 2. MOBILE FIXED HEADER & FULLSCREEN OVERLAY -->
+    <div class="mobile-header-wrapper">
+        <a href="index.html" class="logo-link"><div class="logo">ABOOKI</div></a>
+        <div class="hamburger" id="mobile-menu-toggle">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="mobile-nav-link" data-num="01">Home</a></li>
+            <li><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
+            <li><a href="library.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="03">Archive</a></li>
+            <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
+        </ul>
+        <div class="mobile-profile-container nav-profile">
+            <!-- Auth injected here for mobile -->
+            <a href="login.html" class="btn-outline">Sign In / Register</a>
+        </div>
+    </div>
 
     <main class="library-container">
         <!-- Background Image -->
         <div class="library-background"></div>
         
         <!-- Overlay -->
-        <div class="library-overlay">
-            <h1>The Central Library</h1>
+        <div class="library-overlay fade-up">
+            <h1>The Central Archive</h1>
             <p>Active readers worldwide</p>
         </div>
 
@@ -63,8 +470,610 @@
     </main>
 
     <script>
-      feather.replace()
+      feather.replace();
     </script>
-    <script type="module" src="library.js"></script>
+
+    <!-- Combined Scripts -->
+    <script type="module">
+        // --- RELIABLE DOM READY HELPER ---
+        const onDOMReady = (callback) => {
+            if (document.readyState !== 'loading') callback();
+            else document.addEventListener('DOMContentLoaded', callback);
+        };
+
+        // --- PREMIUM INTERACTION: Custom Cursor Logic ---
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+        
+        if (cursorDot && cursorOutline && window.matchMedia("(pointer: fine)").matches) {
+            let cursorX = 0, cursorY = 0, outlineX = 0, outlineY = 0;
+            
+            window.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX; cursorY = e.clientY;
+                cursorDot.style.left = cursorX + 'px'; cursorDot.style.top = cursorY + 'px';
+            });
+            
+            function animateCursor() {
+                outlineX += (cursorX - outlineX) * 0.15; outlineY += (cursorY - outlineY) * 0.15;
+                cursorOutline.style.left = outlineX + 'px'; cursorOutline.style.top = outlineY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+
+            document.addEventListener('mouseover', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic, .floating-avatar')) {
+                    document.body.classList.add('cursor-hover');
+                }
+            });
+            document.addEventListener('mouseout', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic, .floating-avatar')) {
+                    document.body.classList.remove('cursor-hover');
+                }
+            });
+        }
+
+        // --- PREMIUM INTERACTION: Magnetic Buttons Logic ---
+        function initMagneticElements() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const magneticElements = document.querySelectorAll('.magnetic');
+            
+            magneticElements.forEach(elem => {
+                elem.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    this.style.transition = "none";
+                    this.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px)`;
+                });
+                elem.addEventListener('mouseleave', function() {
+                    this.style.transition = "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    this.style.transform = `translate(0px, 0px)`;
+                });
+            });
+        }
+        initMagneticElements();
+
+        // --- MOBILE MENU LOGIC ---
+        const mobileHeader = document.querySelector('.mobile-header-wrapper');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+        
+        function closeMobileMenu() {
+            mobileToggle.classList.remove('open');
+            mobileMenu.classList.remove('active');
+            mobileHeader.classList.remove('menu-open');
+            document.body.style.overflow = 'auto';
+        }
+
+        mobileToggle.addEventListener('click', () => {
+            mobileToggle.classList.toggle('open');
+            mobileMenu.classList.toggle('active');
+            mobileHeader.classList.toggle('menu-open'); 
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+        });
+
+        mobileLinks.forEach(link => { link.addEventListener('click', closeMobileMenu); });
+
+        const mobileProfileContainer = document.querySelector('.mobile-profile-container');
+        if (mobileProfileContainer) {
+            mobileProfileContainer.addEventListener('click', (e) => {
+                if(e.target.tagName === 'A' || e.target.closest('a')) closeMobileMenu();
+            });
+        }
+
+        // --- AWWWARDS LOADER LOGIC ---
+        onDOMReady(() => {
+            const counterEl = document.getElementById('loader-counter');
+            const progressEl = document.getElementById('loader-progress');
+            const overlay = document.getElementById('loader-overlay');
+            let count = 0;
+            
+            const updateCounter = () => {
+                const increment = Math.floor(Math.random() * 8) + 1;
+                count += increment;
+                if (count > 100) count = 100;
+                counterEl.textContent = count;
+                progressEl.style.width = `${count}%`;
+                
+                if (count < 100) {
+                    const delay = Math.random() * 80 + 30;
+                    setTimeout(updateCounter, delay);
+                } else {
+                    setTimeout(() => {
+                        overlay.classList.add('hide-loader');
+                        // Trigger fade up for specific elements
+                        document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+                        setTimeout(() => { overlay.remove(); }, 1400); 
+                    }, 400); 
+                }
+            };
+            setTimeout(updateCounter, 800);
+        });
+
+        // --- FIREBASE & LIBRARY LOGIC ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, deleteDoc, getDocs, writeBatch, limit } 
+            from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU",
+          authDomain: "studio-5978542726-e345b.firebaseapp.com",
+          projectId: "studio-5978542726-e345b",
+          storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+          messagingSenderId: "968782492427",
+          appId: "1:968782492427:web:90108da3599e50bc2b680e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
+
+        let generateGhostAvatar = () => 'https://placehold.co/32x32/c9a05b/070708?text=U';
+        try {
+            const avatarModule = await import("./avatar-generator.js");
+            generateGhostAvatar = avatarModule.generateGhostAvatar;
+        } catch(e) { console.warn("Local avatar generator missing in preview."); }
+
+        async function updateNavUser(user) {
+            const profileContainers = document.querySelectorAll('.nav-profile');
+            profileContainers.forEach(async (container) => {
+                if (user && !user.isAnonymous) {
+                    let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists() && docSnap.data().avatarConfig) {
+                            const config = docSnap.data().avatarConfig;
+                            const avatarUrl = generateGhostAvatar(config);
+                            avatarHtml = `<img src="${avatarUrl}" class="profile-avatar" alt="Profile">`;
+                        } else if (user.photoURL) {
+                            avatarHtml = `<img src="${user.photoURL}" class="profile-avatar" alt="Profile">`;
+                        }
+                    } catch (error) { console.error("Nav Update Error:", error); }
+
+                    if (container.classList.contains('mobile-profile-container')) {
+                        container.innerHTML = `${avatarHtml}<div style="text-align: center; margin-top:1rem;"><a href="profile.html" class="mobile-nav-link" style="font-size:1.2rem; display:block; margin-bottom:1rem;">Profile</a><a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a></div>`;
+                        const mLogoutBtn = container.querySelector('#mobile-logout-btn');
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                    } else {
+                        container.innerHTML = `<a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">${avatarHtml}</a><div class="nav-dropdown"><a href="profile.html" class="dropdown-item">Profile</a><a href="feedback.html" class="dropdown-item">Community Feedback</a><a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a><a href="settings.html" class="dropdown-item">Settings</a><a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a></div>`;
+                        const logoutBtn = container.querySelector('#nav-logout-btn');
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                    }
+                } else {
+                    if (container.classList.contains('mobile-profile-container')) {
+                         container.innerHTML = `<a href="login.html" class="btn-outline">Sign In / Register</a>`;
+                    } else {
+                        container.innerHTML = `<a href="login.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>`;
+                    }
+                }
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        // Global variables to manage state
+        const playground = document.getElementById('avatar-playground');
+        const activeGhosts = new Map(); 
+        let unsubscribeSnapshot = null;
+        let currentUser = null;
+        let availableBookTitles = []; 
+
+        const MAX_VISIBLE_GHOSTS = 30; 
+
+        // --- MUSIC CONFIGURATION ---
+        const MUSIC_FOLDER = 'Music/';
+        const PLAYLIST = [ "Purple lofi", "In Dreamland", "Loading cute" ];
+        let currentTrackIndex = 0;
+        let audioObj = new Audio();
+        let isPlaying = false;
+
+        const initAuthAndLoad = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.warn("Auth initialization failed. Proceeding without auth.", error);
+            }
+
+            onAuthStateChanged(auth, async (user) => {
+                updateNavUser(user);
+                currentUser = user;
+
+                if (user) {
+                    if (!unsubscribeSnapshot) {
+                        await fetchPublicBooks();
+                        startLibraryListener();
+                    }
+                    if (!document.getElementById('music-player-widget')) {
+                        initMusicPlayer();
+                    }
+                } else {
+                    if (unsubscribeSnapshot) {
+                        unsubscribeSnapshot();
+                        unsubscribeSnapshot = null;
+                    }
+                    activeGhosts.forEach(el => el.remove());
+                    activeGhosts.clear();
+                }
+            });
+        };
+
+        // --- FETCH REAL BOOKS ---
+        async function fetchPublicBooks() {
+            try {
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'books'), limit(50));
+                const snapshot = await getDocs(q);
+                availableBookTitles = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.title) availableBookTitles.push(data.title);
+                });
+                console.log(`Loaded ${availableBookTitles.length} real book titles for bots.`);
+            } catch (e) {
+                console.error("Error fetching public books:", e);
+            }
+        }
+
+        function startLibraryListener() {
+            console.log("Authenticated. Starting library listener...");
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'active_readers'));
+            
+            unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+                const now = Date.now();
+                const allReaders = [];
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let lastSeenTime = now;
+                    if (data.lastSeen && typeof data.lastSeen.toMillis === 'function') {
+                        lastSeenTime = data.lastSeen.toMillis();
+                    } else if (data.lastSeen === null) {
+                        lastSeenTime = now; 
+                    }
+                    if (now - lastSeenTime <= 5 * 60 * 1000) {
+                        data.lastSeenTime = lastSeenTime;
+                        allReaders.push(data);
+                    }
+                });
+
+                const countEl = document.querySelector('.library-overlay p');
+                if (countEl) {
+                    if (allReaders.length > 0) {
+                        countEl.textContent = `${allReaders.length} Active Reader${allReaders.length === 1 ? '' : 's'}`;
+                    } else {
+                        countEl.textContent = "Waiting for readers...";
+                    }
+                }
+
+                allReaders.sort((a, b) => b.lastSeenTime - a.lastSeenTime);
+                const visibleReaders = allReaders.slice(0, MAX_VISIBLE_GHOSTS);
+                const visibleIds = new Set(visibleReaders.map(r => r.userId));
+
+                visibleReaders.forEach(data => {
+                    if (activeGhosts.has(data.userId)) {
+                        updateGhost(data.userId, data);
+                    } else {
+                        createGhost(data);
+                    }
+                });
+
+                for (const [userId, element] of activeGhosts) {
+                    if (!visibleIds.has(userId)) {
+                        removeGhost(userId);
+                    }
+                }
+            }, (error) => { console.error("Library Listener Error:", error); });
+        }
+
+        // --- NEW: BOT REFRESH LOGIC (CLIENT-SIDE ONLY TO BYPASS PERMISSION ERRORS) ---
+        let localBots = [];
+
+        async function addDummyReaders(count = 5) {
+            const names = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "Gandalf", "Hermione", "Luna", "Neo", "Frodo", "Zelda", "Mario", "Link", "Geralt"];
+            const fallbackBooks = ["The Great Gatsby", "Dune", "1984", "The Hobbit", "Project Hail Mary", "Neuromancer"];
+            const colors = ['blue', 'purple', 'green', 'pink', 'orange'];
+            const moods = ['happy', 'curious', 'nerdy', 'sleepy'];
+            const accessories = ['none', 'hat', 'sparkles'];
+
+            for(let i=0; i<count; i++) {
+                const uid = `dummy_${Date.now()}_${Math.floor(Math.random()*10000)}`;
+                const name = names[Math.floor(Math.random() * names.length)];
+                
+                let bookTitle = availableBookTitles.length > 0 
+                    ? availableBookTitles[Math.floor(Math.random() * availableBookTitles.length)]
+                    : fallbackBooks[Math.floor(Math.random() * fallbackBooks.length)];
+                
+                const dummyData = {
+                    userId: uid,
+                    displayName: `${name} (Bot)`,
+                    bookTitle: bookTitle,
+                    avatarConfig: {
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        mood: moods[Math.floor(Math.random() * moods.length)],
+                        accessory: accessories[Math.floor(Math.random() * accessories.length)]
+                    },
+                    lastSeen: Date.now(),
+                    page: Math.floor(Math.random() * 200)
+                };
+
+                // Add directly to local UI to bypass Firebase security rules
+                localBots.push(dummyData);
+                createGhost(dummyData);
+            }
+        }
+
+        async function removeDummyReaders() {
+            let count = localBots.length;
+            localBots.forEach(bot => {
+                removeGhost(bot.userId);
+            });
+            localBots = [];
+            if (count > 0) {
+                console.log(`Cleared ${count} bots.`);
+            }
+        }
+
+        // 1 Minute Auto-Refresh: Cycles simulated bots
+        setInterval(async () => {
+            console.log("1 Minute Auto-Refresh: Cycling bots...");
+            await removeDummyReaders();
+            
+            setTimeout(() => {
+                const botsToAdd = Math.floor(Math.random() * 4) + 3;
+                addDummyReaders(botsToAdd);
+            }, 1000);
+        }, 60000);
+
+        // Run initial bot spawn
+        setTimeout(() => {
+            if (activeGhosts.size < 3) {
+                addDummyReaders(Math.floor(Math.random() * 3) + 3);
+            }
+        }, 3000);
+
+
+        // --- MUSIC PLAYER LOGIC (Premium Theme) ---
+        function initMusicPlayer() {
+            const widget = document.createElement('div');
+            widget.id = 'music-player-widget';
+            widget.className = 'music-player-widget';
+
+            // Premium Gold & Dark Disc SVG
+            const discSVG = `
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                <circle cx="50" cy="50" r="50" fill="#111" />
+                <circle cx="50" cy="50" r="32" fill="#070708" />
+                <circle cx="50" cy="50" r="6" fill="#c9a05b" />
+                <g fill="none" stroke="#c9a05b" stroke-width="2" stroke-linecap="round" opacity="0.6">
+                    <path d="M 62 38 A 17 17 0 0 1 62 62" />
+                    <path d="M 70 30 A 28 28 0 0 1 70 70" />
+                    <path d="M 38 62 A 17 17 0 0 1 38 38" />
+                    <path d="M 30 70 A 28 28 0 0 1 30 30" />
+                </g>
+            </svg>`;
+
+            const header = document.createElement('div');
+            header.className = 'music-header';
+            const disc = document.createElement('div');
+            disc.className = 'music-disc';
+            disc.innerHTML = discSVG;
+            const infoControls = document.createElement('div');
+            infoControls.className = 'music-info-controls';
+            const songName = document.createElement('div');
+            songName.className = 'music-song-name';
+            songName.innerText = PLAYLIST[0];
+
+            const controls = document.createElement('div');
+            controls.className = 'music-controls';
+            const playBtn = document.createElement('button');
+            playBtn.className = 'music-btn';
+            playBtn.innerHTML = `<i data-feather="play"></i>`;
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'music-btn';
+            nextBtn.innerHTML = `<i data-feather="skip-forward"></i>`;
+
+            controls.appendChild(playBtn);
+            controls.appendChild(nextBtn);
+            infoControls.appendChild(songName);
+            infoControls.appendChild(controls);
+            header.appendChild(disc);
+            header.appendChild(infoControls);
+
+            const playlistContainer = document.createElement('div');
+            playlistContainer.className = 'music-playlist';
+            PLAYLIST.forEach((track, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                if (index === 0) item.classList.add('active');
+                item.innerText = track;
+                item.onclick = () => { currentTrackIndex = index; playTrack(); };
+                playlistContainer.appendChild(item);
+            });
+
+            widget.appendChild(header);
+            widget.appendChild(playlistContainer);
+            document.body.appendChild(widget);
+            if (typeof feather !== 'undefined') feather.replace();
+
+            audioObj.volume = 0.3; 
+            
+            const updateUI = () => {
+                songName.innerText = PLAYLIST[currentTrackIndex];
+                if (isPlaying) {
+                    playBtn.innerHTML = `<i data-feather="pause"></i>`;
+                    widget.classList.add('playing');
+                } else {
+                    playBtn.innerHTML = `<i data-feather="play"></i>`;
+                    widget.classList.remove('playing');
+                }
+                const items = playlistContainer.querySelectorAll('.playlist-item');
+                items.forEach((item, idx) => {
+                    if (idx === currentTrackIndex) item.classList.add('active');
+                    else item.classList.remove('active');
+                });
+                if (typeof feather !== 'undefined') feather.replace();
+            };
+
+            const playTrack = async () => {
+                const fileName = PLAYLIST[currentTrackIndex];
+                audioObj.src = `${MUSIC_FOLDER}${fileName}.mp3`;
+                try {
+                    await audioObj.play();
+                    isPlaying = true;
+                } catch (err) {
+                    console.warn("Autoplay blocked", err);
+                    isPlaying = false;
+                }
+                updateUI();
+            };
+
+            disc.onclick = () => {
+                if (!audioObj.src) { playTrack(); return; }
+                if (isPlaying) { audioObj.pause(); isPlaying = false; }
+                else { audioObj.play(); isPlaying = true; }
+                updateUI();
+            };
+
+            playBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (isPlaying) { audioObj.pause(); isPlaying = false; }
+                else {
+                    if (!audioObj.src) { playTrack(); return; }
+                    audioObj.play(); isPlaying = true;
+                }
+                updateUI();
+            };
+
+            nextBtn.onclick = (e) => {
+                e.stopPropagation();
+                currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+                playTrack();
+            };
+
+            audioObj.onended = () => {
+                currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+                playTrack();
+            };
+        }
+
+        function createGhost(data) {
+            const el = document.createElement('div');
+            el.className = 'floating-avatar';
+            
+            const startX = 10 + Math.random() * 80;
+            const startY = 10 + Math.random() * 70;
+            el.style.left = startX + '%';
+            el.style.top = startY + '%';
+
+            const img = document.createElement('img');
+            try {
+                img.src = generateGhostAvatar(data.avatarConfig);
+            } catch (e) {
+                console.warn("Avatar gen failed, using fallback", e);
+                img.src = 'https://placehold.co/100x100/1a1a1a/c9a05b?text=?';
+            }
+            el.appendChild(img);
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'avatar-tooltip';
+            tooltip.innerHTML = `
+                <strong>${data.displayName}</strong>
+                Reading: <br>
+                <em>${data.bookTitle || 'A Mystery Book'}</em>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">(Click to Join)</div>
+            `;
+            el.appendChild(tooltip);
+
+            el.addEventListener('click', async (e) => {
+                e.stopPropagation(); 
+                if (!data.bookTitle) return;
+                try {
+                    const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
+                    const q = query(booksRef, where('title', '==', data.bookTitle), limit(1));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        const bookDoc = querySnapshot.docs[0];
+                        const bookData = bookDoc.data();
+                        bookData.firestoreId = bookDoc.id; 
+                        bookData.isPublicView = true;
+                        localStorage.setItem('generatedBook', JSON.stringify(bookData));
+                        window.location.href = 'reader.html';
+                    } else {
+                        alert(`"${data.bookTitle}" is currently not available in the public archive.`);
+                    }
+                } catch (error) {
+                    console.error("Error fetching book:", error);
+                    alert("Could not open book info.");
+                }
+            });
+
+            if (playground) playground.appendChild(el);
+            activeGhosts.set(data.userId, el);
+            moveGhostRandomly(el);
+        }
+
+        function updateGhost(userId, data) {
+            const el = activeGhosts.get(userId);
+            if (!el) return;
+            const tooltip = el.querySelector('.avatar-tooltip');
+            if (tooltip) {
+                tooltip.innerHTML = `
+                    <strong>${data.displayName}</strong>
+                    Reading: <br>
+                    <em>${data.bookTitle || 'A Mystery Book'}</em>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">(Click to Join)</div>
+                `;
+            }
+        }
+
+        function removeGhost(userId) {
+            const el = activeGhosts.get(userId);
+            if (el) {
+                el.style.transition = 'opacity 0.5s';
+                el.style.opacity = '0';
+                setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 500);
+                activeGhosts.delete(userId);
+            }
+        }
+
+        function moveGhostRandomly(element) {
+            if (!element.parentNode) return;
+            const newX = 10 + Math.random() * 80; 
+            const newY = 10 + Math.random() * 70; 
+            const durationSec = 15 + Math.random() * 10; 
+
+            element.style.transition = `left ${durationSec}s ease-in-out, top ${durationSec}s ease-in-out`;
+            element.style.left = newX + '%';
+            element.style.top = newY + '%';
+
+            setTimeout(() => { moveGhostRandomly(element); }, durationSec * 1000);
+        }
+
+        // Initialize Library page
+        onDOMReady(() => {
+            if (document.body.dataset.page === 'library') {
+                initAuthAndLoad();
+            }
+        });
+
+        // Star rotation when scrolled
+        let lastScrollY = window.scrollY;
+        let rotation = 0;
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            const delta = currentScrollY - lastScrollY;
+            rotation += delta * 0.5;
+            document.documentElement.style.setProperty('--logo-star-rotate', `${rotation}deg`);
+            lastScrollY = currentScrollY;
+        });
+
+    </script>
 </body>
 </html>
