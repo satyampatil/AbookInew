@@ -42,8 +42,8 @@ export async function updateNavUser(user) {
             if (container.classList.contains('mobile-profile-container')) {
                 container.innerHTML = `
                     ${avatarHtml}
-                    <div style="text-align: center; margin-top:1rem;">
-                        <a href="profile.html" class="mobile-nav-link" style="font-size:1.2rem; display:block; margin-bottom:1rem;">Profile</a>
+                    <div class="mobile-profile-actions">
+                        <a href="profile.html" class="mobile-profile-link">Profile</a>
                         <a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a>
                     </div>
                 `;
