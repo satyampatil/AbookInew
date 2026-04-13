@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter Not Found - abooki Premium</title>
+    <link rel="icon" href="browserIcon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <style>
+        /* ---
+        // ===============================================
+        //   00. OVERLAYS & TOASTS
+        // ===============================================
+        // --- */
+        .site-noise {
+            position: fixed; inset: 0; pointer-events: none; z-index: 99998; opacity: 0.45;
+            background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+                              repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px);
+            mix-blend-mode: overlay;
+        }
+
+        /* ---
+        // ===============================================
+        //   01. GLOBAL STYLES & CURSOR
+        // ===============================================
+        // --- */
+        :root {
+            --bg-color: #070708; 
+            --bg-surface: #101012;
+            --text-main: #f0ece1;
+            --text-muted: #8e8b82;
+            --accent-gold: #c9a05b;
+            --accent-green: #588157;
+            --border-subtle: rgba(240, 236, 225, 0.08);
+            --font-ui: 'Inter', sans-serif;
+            --font-editorial: 'Playfair Display', serif;
+            --logo-star-rotate: 0deg;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: var(--font-ui); line-height: 1.6;
+            display: flex; flex-direction: column; min-height: 100vh;
+            overflow-x: hidden; cursor: auto;
+        }
+
+        /* Centered radial glow for the 404 page */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 160, 91, 0.06) 0%, transparent 60%);
+            z-index: -1; pointer-events: none;
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, select, .clickable, .magnetic { cursor: none; }
+            #cursor-dot, #cursor-outline {
+                position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+                border-radius: 50%; pointer-events: none; z-index: 9999999;
+            }
+            #cursor-dot {
+                width: 6px; height: 6px; background-color: var(--text-main);
+                transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.2s;
+            }
+            #cursor-outline {
+                width: 40px; height: 40px; border: 1px solid rgba(240, 236, 225, 0.3);
+                transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), height 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.3s, background-color 0.3s;
+            }
+            body.cursor-hover #cursor-dot { transform: translate(-50%, -50%) scale(0.1); }
+            body.cursor-hover #cursor-outline {
+                width: 60px; height: 60px; border-color: var(--accent-gold);
+                background-color: rgba(201, 160, 91, 0.05); backdrop-filter: blur(2px);
+            }
+        }
+        @media (pointer: coarse) { #cursor-dot, #cursor-outline { display: none !important; } }
+
+        .magnetic { display: inline-block; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); will-change: transform; }
+        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .stagger-delay-1 { transition-delay: 0.1s; } .stagger-delay-2 { transition-delay: 0.2s; } .stagger-delay-3 { transition-delay: 0.3s; }
+
+        a { color: inherit; text-decoration: none; } ul { list-style: none; } img { max-width: 100%; height: auto; display: block; }
+        main { flex-grow: 1; display: flex; flex-direction: column; }
+
+        /* ---
+        // ===============================================
+        //   02. NAVIGATION
+        // ===============================================
+        // --- */
+        .desktop-header-wrapper {
+            position: fixed; top: 1.5rem; left: 0; width: 100%;
+            z-index: 1000; display: flex; justify-content: center;
+            padding: 0 1.5rem; pointer-events: none; 
+        }
+        .main-nav {
+            pointer-events: auto; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 1200px; height: 64px; background: rgba(16, 16, 18, 0.65);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border-subtle);
+            border-radius: 100px; padding: 0 1.5rem 0 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: all 0.3s ease;
+        }
+        .logo { font-family: var(--font-editorial); font-size: 1.4rem; font-weight: 700; letter-spacing: 0.05em; position: relative; color: var(--text-main); }
+        .logo::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.2em; font-family: var(--font-ui); font-size: 0.6em; color: var(--accent-gold);
+            transform: rotate(var(--logo-star-rotate)); transition: transform 0.1s linear;
+        }
+        .nav-links { display: flex; align-items: center; gap: 2rem; margin: 0 auto; }
+        .nav-link {
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.3s ease; position: relative; padding: 0.5rem 0; 
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-main); }
+        .nav-link.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold); }
+        
+        /* Fixed Missing Nav Link Animation CSS */
+        .nav-link-anim { display: inline-flex; align-items: center; } 
+        .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link-anim .book-part {
+            display: inline-flex; align-items: center; max-width: 0; opacity: 0; transform: translateX(-10px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); color: var(--accent-gold); font-weight: 500; overflow: hidden; white-space: nowrap; 
+        }
+        .nav-link-anim:hover .book-part, .nav-link-anim.active .book-part { max-width: 80px; opacity: 1; transform: translateX(0); margin: 0 0.05em; }
+
+        .nav-mylist-item { transition: opacity 0.28s ease, visibility 0.28s ease; }
+        .nav-auth-placeholder { visibility: hidden; opacity: 0; pointer-events: none; }
+        body.user-signed-in .nav-auth-placeholder { visibility: visible; opacity: 1; pointer-events: auto; }
+        body.nav-auth-resolved:not(.user-signed-in) .nav-mylist-item { display: none !important; }
+        
+        .nav-profile {
+            position: relative; height: 40px; width: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.3s;
+        }
+        .nav-profile:hover { border-color: var(--accent-gold); }
+        .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+        /* Fixed Missing Dropdown CSS */
+        .nav-dropdown {
+            display: none; position: absolute; top: 100%; right: 0; background: rgba(16, 16, 18, 0.95);
+            backdrop-filter: blur(10px); min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
+        }
+        .nav-profile:hover .nav-dropdown { display: block; }
+        .dropdown-item { display: block; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-radius: 8px; transition: all 0.2s; }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+
+        .mobile-header-wrapper {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 2010;
+            background: rgba(7, 7, 8, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem; justify-content: space-between; align-items: center; transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .mobile-header-wrapper.menu-open { background: transparent; backdrop-filter: none; border-bottom-color: transparent; }
+        .hamburger { width: 30px; height: 20px; position: relative; cursor: pointer; z-index: 2012; }
+        .hamburger span {
+            display: block; position: absolute; height: 2px; width: 100%; background: var(--text-main);
+            border-radius: 2px; opacity: 1; left: 0; transform: rotate(0deg); transition: .25s ease-in-out;
+        }
+        .hamburger span:nth-child(1) { top: 0px; } .hamburger span:nth-child(2) { top: 9px; } .hamburger span:nth-child(3) { top: 18px; }
+        .hamburger.open span:nth-child(1) { top: 9px; transform: rotate(135deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; left: -20px; }
+        .hamburger.open span:nth-child(3) { top: 9px; transform: rotate(-135deg); }
+        
+        .mobile-menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2005; background: #050506;
+            background-image: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.12) 0%, transparent 70%); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .mobile-menu-overlay.active { transform: translateY(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 2.5rem; text-align: center; width: 100%; }
+        .mobile-nav-links li { overflow: hidden; }
+        .mobile-nav-link { font-family: var(--font-editorial); font-size: 3rem; color: var(--text-muted); transition: color 0.3s ease; display: inline-block; transform: translateY(100%); opacity: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease; }
+        .mobile-nav-link.active, .mobile-nav-link:hover { color: var(--text-main); }
+        .mobile-nav-link::before { content: attr(data-num); font-family: var(--font-ui); font-size: 0.9rem; vertical-align: super; margin-right: 15px; color: var(--accent-gold); opacity: 0.6; }
+        .mobile-menu-overlay.active .mobile-nav-link { transform: translateY(0); opacity: 1; }
+        .mobile-menu-overlay.active li:nth-child(n) .mobile-nav-link { transition-delay: calc(0.1s * var(--i)); }
+        
+        .mobile-profile-container .btn-outline {
+            border: 1px solid var(--border-subtle); padding: 0.75rem 1.5rem; border-radius: 100px; color: var(--text-main); display: inline-block;
+        }
+
+        @media (max-width: 900px) { .desktop-header-wrapper { display: none; } .mobile-header-wrapper { display: flex; } .mobile-menu-overlay { justify-content: flex-start; overflow-y: auto; padding: clamp(5.5rem, 12vh, 7rem) 1.5rem 2rem; } .mobile-nav-links { gap: clamp(1.15rem, 4.2vh, 2rem); } .mobile-nav-link { font-size: clamp(2rem, 9vw, 2.85rem); line-height: 1.05; } }
+
+        /* ---
+        // ===============================================
+        //   03. 404 ERROR SECTION
+        // ===============================================
+        // --- */
+        .error-section {
+            flex-grow: 1; min-height: 90vh; padding-top: 100px; padding-bottom: 4rem;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; position: relative; overflow: hidden;
+        }
+
+        .editorial-kicker {
+            display: inline-block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--accent-gold); margin-bottom: 2rem; border-bottom: 1px solid var(--accent-gold); padding-bottom: 0.2rem;
+            position: relative; z-index: 3;
+        }
+
+        /* The massive "404" text */
+        .error-code {
+            font-family: var(--font-editorial);
+            font-size: clamp(8rem, 25vw, 18rem);
+            font-weight: 400; line-height: 0.85; margin: 0;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(240, 236, 225, 0.15);
+            position: relative;
+            z-index: 2;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform;
+        }
+
+        /* Glowing duplicate for depth */
+        .error-code::before {
+            content: attr(data-text);
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            color: rgba(201, 160, 91, 0.6);
+            -webkit-text-stroke: 0;
+            filter: blur(25px);
+            z-index: -1;
+            animation: pulseGlow404 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow404 {
+            0% { opacity: 0.4; filter: blur(20px); }
+            100% { opacity: 0.8; filter: blur(35px); }
+        }
+
+        /* Elegant title overlapping the numbers */
+        .error-title {
+            font-family: var(--font-editorial);
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 400;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            margin-top: -3.5rem; /* Overlaps the 404 */
+            z-index: 3; position: relative;
+        }
+
+        .error-desc {
+            font-size: 1.15rem; color: var(--text-muted);
+            max-width: 500px; margin: 0 auto 3rem; line-height: 1.7;
+            font-weight: 300; z-index: 3; position: relative; padding: 0 1.5rem;
+        }
+
+        .error-actions {
+            display: flex; gap: 1.5rem; justify-content: center; align-items: center;
+            z-index: 3; position: relative;
+        }
+
+        .btn-outline {
+            padding: 1rem 2rem; border: 1px solid var(--border-subtle); border-radius: 100px; font-size: 0.95rem; font-weight: 500;
+            transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-main); background: transparent;
+        }
+        .btn-outline:hover { border-color: var(--text-main); background: rgba(255,255,255,0.05); }
+
+        /* Floating elements in background */
+        .drifting-page {
+            position: absolute; border: 1px solid var(--border-subtle);
+            background: rgba(255,255,255,0.02); backdrop-filter: blur(2px);
+            z-index: 1; pointer-events: none;
+            animation: floatPage var(--duration) ease-in-out infinite alternate;
+        }
+        @keyframes floatPage {
+            0% { transform: translateY(0) rotate(var(--rot-start)); opacity: 0.1; }
+            100% { transform: translateY(-40px) rotate(var(--rot-end)); opacity: 0.25; }
+        }
+
+        @media (max-width: 768px) {
+            .error-actions { flex-direction: column; width: 100%; padding: 0 2rem; }
+            .btn-outline { width: 100%; justify-content: center; }
+            .error-title { margin-top: -1.5rem; }
+        }
+
+        /* ---
+        // ===============================================
+        //   04. PREMIUM FOOTER
+        // ===============================================
+        // --- */
+        .premium-footer { 
+            background: #050506; padding: 6rem 4rem 2rem; position: relative; overflow: hidden; flex-shrink: 0; z-index: 10; will-change: padding-bottom; 
+        }
+        .premium-footer::before { 
+            content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(900px, 82%); height: 2px; 
+            background: linear-gradient(90deg, transparent, rgba(201, 160, 91, 0.82), transparent); animation: pulseGlowFooter 4.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulseGlowFooter {
+            0% { opacity: 0.5; box-shadow: 0 0 8px rgba(201, 160, 91, 0.2); }
+            100% { opacity: 1; box-shadow: 0 0 22px rgba(201, 160, 91, 0.5), 0 0 36px rgba(201, 160, 91, 0.18); }
+        }
+        
+        .footer-content { max-width: 1400px; margin: 0 auto; }
+        .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4rem; padding-bottom: 4rem; border-bottom: 1px solid var(--border-subtle); }
+        .footer-brand h2 { font-family: var(--font-editorial); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 400; color: var(--text-main); margin-bottom: 1.5rem; line-height: 1; }
+        .footer-brand p { color: var(--text-muted); max-width: 380px; font-size: 1rem; line-height: 1.7; }
+        .footer-links { display: flex; gap: 5rem; }
+        .link-group h4 { color: var(--text-main); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; font-weight: 600; }
+        .link-group a { display: block; color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; transition: color 0.3s ease, transform 0.3s ease; }
+        .link-group a:hover { color: var(--text-main); transform: translateX(4px); }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .footer-copyright, .footer-credits { color: #555; font-size: 0.85rem; }
+        .footer-credits a { color: var(--text-main); font-weight: 500; position: relative; padding-bottom: 2px; }
+        .footer-credits a::after { content: ''; position: absolute; width: 100%; height: 1px; bottom: 0; left: 0; background-color: var(--accent-gold); transform: scaleX(0); transform-origin: bottom right; transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
+        .footer-credits a:hover { color: var(--accent-gold); }
+        .footer-credits a:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+
+        @media (max-width: 900px) {
+            .premium-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .footer-top { flex-direction: column; gap: 3rem; }
+            .footer-links { flex-wrap: wrap; gap: 3rem; }
+        }
+    </style>
+</head>
+<body data-page="404">
+
+    <!-- Premium Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+
+    <!-- Cinematic Noise Overlay -->
+    <div class="site-noise"></div>
+
+    <!-- 1. DESKTOP FLOATING HEADER -->
+    <div class="desktop-header-wrapper">
+        <nav class="main-nav">
+            <a href="index.html" class="logo-link magnetic"><div class="logo">ABOOKI</div></a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link magnetic">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
+                <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
+                <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
+            </ul>
+            <div class="nav-profile desktop-profile">
+                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
+                <!-- Restored dropdown styling logic in updateNavUser script -->
+            </div>
+        </nav>
+    </div>
+
+    <!-- 2. MOBILE FIXED HEADER & FULLSCREEN OVERLAY -->
+    <div class="mobile-header-wrapper">
+        <a href="index.html" class="logo-link"><div class="logo">ABOOKI</div></a>
+        <div class="hamburger" id="mobile-menu-toggle">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <ul class="mobile-nav-links">
+            <li style="--i:1"><a href="index.html" class="mobile-nav-link" data-num="01">Home</a></li>
+            <li style="--i:2"><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
+            <li style="--i:3"><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
+            <li style="--i:4"><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
+            <li class="nav-mylist-item nav-auth-placeholder" style="--i:5"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
+        </ul>
+        <div class="mobile-profile-container nav-profile">
+            <a href="login.html" class="btn-outline">Sign In / Register</a>
+        </div>
+    </div>
+
+    <main>
+        <!-- 404 SECTION -->
+        <section class="error-section">
+            <!-- Decorative Drifting Pages -->
+            <div class="drifting-page" style="width: 80px; height: 120px; top: 15%; left: 10%; --rot-start: -15deg; --rot-end: 5deg; --duration: 6s;"></div>
+            <div class="drifting-page" style="width: 60px; height: 90px; top: 30%; right: 15%; --rot-start: 20deg; --rot-end: -10deg; --duration: 8s;"></div>
+            <div class="drifting-page" style="width: 100px; height: 150px; bottom: 20%; left: 20%; --rot-start: -5deg; --rot-end: -25deg; --duration: 7s;"></div>
+            
+            <!-- Content -->
+            <span class="editorial-kicker fade-up">Lost Page</span>
+            
+            <h1 class="error-code fade-up stagger-delay-1" id="parallax-404" data-text="404">404</h1>
+            
+            <h2 class="error-title fade-up stagger-delay-2">Chapter Not Found</h2>
+            
+            <p class="error-desc fade-up stagger-delay-3">
+                The volume you are looking for seems to have been misplaced in the archives, or perhaps torn from the binding altogether.
+            </p>
+            
+            <div class="error-actions fade-up stagger-delay-3">
+                <a href="index.html" class="btn-outline magnetic">
+                    Return to Library <i data-feather="corner-down-left" style="width: 18px;"></i>
+                </a>
+                <a href="library.html" class="btn-outline magnetic">
+                    Search Archives <i data-feather="search" style="width: 16px;"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="premium-footer fade-up">
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h2>ABOOKI</h2>
+                    <p>The interactive library of the future. Discover, read, and create AI-crafted literature wrapped in a premium editorial experience.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Collections</h4>
+                        <a href="library.html">The Archive</a>
+                        <a href="new-releases.html">Latest Editions</a>
+                        <a href="aibook.html">Author a Book</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Connect</h4>
+                        <a href="feedback.html">Share Feedback</a>
+                        <a href="support.html">Support the Project</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">&copy; 2026 Abooki. All rights reserved.</div>
+                <div class="footer-credits">Crafted by <a href="https://rockandblu.co.uk/" target="_blank" rel="noopener noreferrer">rockandblu.co.uk</a></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+      feather.replace();
+    </script>
+
+    <!-- Interactions & Config -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // --- UTILS & INTERACTIONS ---
+        const onDOMReady = (callback) => {
+            if (document.readyState !== 'loading') callback();
+            else document.addEventListener('DOMContentLoaded', callback);
+        };
+
+        // Custom Cursor
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+        if (cursorDot && cursorOutline && window.matchMedia("(pointer: fine)").matches) {
+            let cursorX = 0, cursorY = 0, outlineX = 0, outlineY = 0;
+            window.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX; cursorY = e.clientY;
+                cursorDot.style.left = cursorX + 'px'; cursorDot.style.top = cursorY + 'px';
+            });
+            function animateCursor() {
+                outlineX += (cursorX - outlineX) * 0.15; outlineY += (cursorY - outlineY) * 0.15;
+                cursorOutline.style.left = outlineX + 'px'; cursorOutline.style.top = outlineY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+            document.addEventListener('mouseover', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic')) document.body.classList.add('cursor-hover');
+            });
+            document.addEventListener('mouseout', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic')) document.body.classList.remove('cursor-hover');
+            });
+        }
+
+        // Magnetic Buttons
+        function initMagneticElements() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const magneticElements = document.querySelectorAll('.magnetic');
+            magneticElements.forEach(elem => {
+                elem.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    this.style.transition = "none";
+                    this.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px)`;
+                });
+                elem.addEventListener('mouseleave', function() {
+                    this.style.transition = "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    this.style.transform = `translate(0px, 0px)`;
+                });
+            });
+        }
+
+        // Parallax effect on the 404 text
+        function initParallax404() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const parallaxEl = document.getElementById('parallax-404');
+            if(parallaxEl) {
+                window.addEventListener('mousemove', (e) => {
+                    const x = (window.innerWidth / 2 - e.clientX) / 40;
+                    const y = (window.innerHeight / 2 - e.clientY) / 40;
+                    parallaxEl.style.transform = `translate(${x}px, ${y}px)`;
+                });
+            }
+        }
+
+        // Scroll Observer
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    scrollObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function observeScrollElements() {
+            document.querySelectorAll('.fade-up:not(.visible)').forEach(el => scrollObserver.observe(el));
+        }
+
+        // Elastic Footer
+        const initElasticFooter = () => {
+            const footerEl = document.querySelector('.premium-footer');
+            if (!footerEl) return;
+            let stretchValue = 0, isTouching = false, touchStartY = 0, wheelTimeout;
+            const applyStretch = (val) => { footerEl.style.paddingBottom = `calc(2rem + ${Math.min(val / 2.5, 120)}px)`; };
+            const resetStretch = () => { stretchValue = 0; footerEl.style.transition = 'padding-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; footerEl.style.paddingBottom = '2rem'; };
+            window.addEventListener('wheel', (e) => {
+                if (Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5 && e.deltaY > 0) {
+                    footerEl.style.transition = 'none'; stretchValue += e.deltaY; if (stretchValue > 300) stretchValue = 300; applyStretch(stretchValue);
+                    clearTimeout(wheelTimeout); wheelTimeout = setTimeout(resetStretch, 150);
+                }
+            }, { passive: true });
+            window.addEventListener('touchstart', (e) => {
+                if (Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5) {
+                    isTouching = true; touchStartY = e.touches[0].clientY; footerEl.style.transition = 'none';
+                }
+            }, { passive: true });
+            window.addEventListener('touchmove', (e) => {
+                if (!isTouching) return; const deltaY = touchStartY - e.touches[0].clientY;
+                if (deltaY > 0) applyStretch(deltaY * 1.5);
+            }, { passive: true });
+            window.addEventListener('touchend', () => { if (isTouching) { isTouching = false; resetStretch(); } });
+        };
+
+        // Mobile Menu
+        const mobileHeader = document.querySelector('.mobile-header-wrapper');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        function closeMobileMenu() {
+            mobileToggle.classList.remove('open'); mobileMenu.classList.remove('active'); mobileHeader.classList.remove('menu-open');
+            document.body.style.overflow = 'auto';
+        }
+        mobileToggle.addEventListener('click', () => {
+            mobileToggle.classList.toggle('open'); mobileMenu.classList.toggle('active'); mobileHeader.classList.toggle('menu-open'); 
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+        });
+        document.querySelectorAll('.mobile-nav-link').forEach(link => link.addEventListener('click', closeMobileMenu));
+
+        // Star Logo Rotation
+        let lastScrollY = window.scrollY;
+        let rotation = 0;
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            rotation += (currentScrollY - lastScrollY) * 0.5;
+            document.documentElement.style.setProperty('--logo-star-rotate', `${rotation}deg`);
+            lastScrollY = currentScrollY;
+        });
+
+        // --- FIREBASE CONFIG & AUTH UI ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU", 
+          authDomain: "studio-5978542726-e345b.firebaseapp.com",
+          projectId: "studio-5978542726-e345b",
+          storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+          messagingSenderId: "968782492427",
+          appId: "1:968782492427:web:90108da3599e50bc2b680e"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let generateGhostAvatar = () => 'https://placehold.co/32x32/c9a05b/070708?text=U';
+        try {
+            const avatarModule = await import("./avatar-generator.js");
+            generateGhostAvatar = avatarModule.generateGhostAvatar;
+        } catch(e) { console.warn("Local avatar generator missing in preview."); }
+
+        async function updateNavUser(user) {
+            const profileContainers = document.querySelectorAll('.nav-profile');
+            const isSignedIn = Boolean(user && !user.isAnonymous);
+            document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.body.classList.add('nav-auth-resolved');
+            
+            profileContainers.forEach(async (container) => {
+                if (isSignedIn) {
+                    let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists() && docSnap.data().avatarConfig) {
+                            const config = docSnap.data().avatarConfig;
+                            avatarHtml = `<img src="${generateGhostAvatar(config)}" class="profile-avatar" alt="Profile">`;
+                        } else if (user.photoURL) {
+                            avatarHtml = `<img src="${user.photoURL}" class="profile-avatar" alt="Profile">`;
+                        }
+                    } catch (error) { console.error("Nav Update Error:", error); }
+
+                    if (container.classList.contains('mobile-profile-container')) {
+                        container.innerHTML = `${avatarHtml}<div class="mobile-profile-actions"><a href="profile.html" class="mobile-profile-link">Profile</a><a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a></div>`;
+                        const mLogoutBtn = container.querySelector('#mobile-logout-btn');
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
+                    } else {
+                        container.innerHTML = `<a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">${avatarHtml}</a><div class="nav-dropdown"><a href="profile.html" class="dropdown-item">Profile</a><a href="feedback.html" class="dropdown-item">Community Feedback</a><a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a><a href="settings.html" class="dropdown-item">Settings</a><a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a></div>`;
+                        const logoutBtn = container.querySelector('#nav-logout-btn');
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
+                    }
+                } else {
+                    if (container.classList.contains('mobile-profile-container')) {
+                         container.innerHTML = `<a href="login.html" class="btn-outline">Sign In / Register</a>`;
+                    } else {
+                        container.innerHTML = `<a href="login.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>`;
+                    }
+                }
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        const initAuthAndLoad = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                }
+            } catch (error) { console.warn("Auth initialization failed.", error); }
+
+            onAuthStateChanged(auth, (user) => { updateNavUser(user); });
+        };
+
+        onDOMReady(() => {
+            initMagneticElements();
+            initParallax404();
+            initElasticFooter();
+            observeScrollElements();
+            initAuthAndLoad();
+        });
+    </script>
+</body>
+</html>
