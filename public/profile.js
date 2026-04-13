@@ -65,7 +65,7 @@ let avatarConfig = { color: 'blue', mood: 'happy', accessory: 'none' };
 onAuthStateChanged(auth, async (user) => {
     updateNavUser(user);
 
-    if (user) {
+    if (user && !user.isAnonymous) {
         currentUser = user;
         if(nameEl) nameEl.innerText = user.displayName || "Ghost Reader";
         if(emailEl) emailEl.innerText = user.email;

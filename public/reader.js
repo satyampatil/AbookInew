@@ -270,6 +270,11 @@ function initializeReader() {
         let avatarConfig = { color: 'blue', mood: 'happy', accessory: 'none' }; 
         try {
             const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().preferences?.ghostMode) {
+                const prefs = userDoc.data().preferences;
+                localStorage.setItem('abooki_reader_prefs', JSON.stringify(prefs));
+                return;
+            }
             if (userDoc.exists() && userDoc.data().avatarConfig) {
                 avatarConfig = userDoc.data().avatarConfig;
             }
@@ -373,9 +378,9 @@ function initializeReader() {
 
     // --- 3. AUTH LISTENER ---
     onAuthStateChanged(auth, (user) => {
-        currentUser = user;
+        currentUser = user && !user.isAnonymous ? user : null;
         updateNavUser(user);
-        if (user) {
+        if (user && !user.isAnonymous) {
             checkIfSaved(user);
             startPresenceHeartbeat(user);
         } else {

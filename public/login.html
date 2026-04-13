@@ -20,35 +20,43 @@
 <body data-page="login">
 
     <!-- Header / Navigation -->
-    <header class="main-header">
+        <!-- 1. DESKTOP FLOATING HEADER -->
+    <div class="desktop-header-wrapper">
         <nav class="main-nav">
-            <a href="index.html" class="logo-link">
-                <div class="logo">
-                    ABOOKI
-                </div>
-            </a>
+            <a href="index.html" class="logo-link magnetic"><div class="logo">ABOOKI</div></a>
             <ul class="nav-links">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li>
-                    <a href="aibook.html" class="nav-link nav-link-anim" id="aibook-link">
-                        <span class="ai-part">A</span>
-                        <span class="book-part">BOOK</span>
-                        <span class="i-part">I</span>
-                    </a>
-                </li>
-                <li><a href="library.html" class="nav-link">Central Library</a></li>
-                <li><a href="new-releases.html" class="nav-link">New Releases</a></li>
-                <li><a href="mylist.html" class="nav-link">My List</a></li>
+                <li><a href="index.html" class="nav-link magnetic">Home</a></li>
+                <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
+                <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
+                <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
+                <li style="display: none;"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
             </ul>
-            <!-- This is now the active "page" -->
-            <div class="nav-profile">
-                <!-- Content will be injected by nav.js -->
-                <a href="login.html" class="nav-profile-link">
-                    <i data-feather="user"></i>
-                </a>
+            <div class="nav-profile desktop-profile">
+                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-color); width:18px;"></i></a>
             </div>
         </nav>
-    </header>
+    </div>
+
+    <!-- 2. MOBILE FIXED HEADER & FULLSCREEN OVERLAY -->
+    <div class="mobile-header-wrapper">
+        <a href="index.html" class="logo-link"><div class="logo">ABOOKI</div></a>
+        <div class="hamburger" id="mobile-menu-toggle">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="mobile-nav-link" data-num="01">Home</a></li>
+            <li><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
+            <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
+            <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
+            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
+        </ul>
+        <div class="mobile-profile-container nav-profile">
+            <a href="login.html" class="btn-outline">Sign In / Register</a>
+        </div>
+    </div>
 
     <main>
         <section class="login-container">
@@ -147,8 +155,32 @@
     </main>
 
     <!-- Footer -->
-    <footer class="main-footer">
-        <p>&copy; 2025 abooki. All rights reserved.</p>
+    <footer class="premium-footer fade-up">
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <h2>ABOOKI</h2>
+                    <p>The interactive library of the future. Discover, read, and create AI-crafted literature wrapped in a premium editorial experience.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Collections</h4>
+                        <a href="library.html">The Archive</a>
+                        <a href="new-releases.html">Latest Editions</a>
+                        <a href="aibook.html">Author a Book</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Connect</h4>
+                        <a href="feedback.html">Share Feedback</a>
+                        <a href="support.html">Support the Project</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">&copy; 2026 Abooki. All rights reserved.</div>
+                <div class="footer-credits">Crafted by <a href="https://rockandblu.co.uk/" target="_blank" rel="noopener noreferrer">rockandblu.co.uk</a></div>
+            </div>
+        </div>
     </footer>
 
     <!-- Run Feather Icons -->

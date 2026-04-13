@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, async (user) => {
         updateNavUser(user);
-        if (user) {
+        if (user && !user.isAnonymous) {
             await loadPreferences(user);
         } else {
             window.location.href = 'login.html';
@@ -183,6 +183,7 @@ async function loadPreferences(user) {
 
     // 5. Toggles
     document.getElementById('ghost-mode-toggle').checked = prefs.ghostMode;
+    localStorage.setItem('abooki_reader_prefs', JSON.stringify(prefs));
 
     // Update internal state from UI inputs
     document.getElementById('font-select').addEventListener('change', (e) => prefs.font = e.target.value);
@@ -191,7 +192,7 @@ async function loadPreferences(user) {
 
 async function savePreferences() {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user || user.isAnonymous) return;
 
     const btn = document.getElementById('save-prefs-btn');
     const msg = document.getElementById('save-message');

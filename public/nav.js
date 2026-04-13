@@ -8,12 +8,18 @@ import { generateGhostAvatar } from "./avatar-generator.js";
  * @param {Object|null} user - The Firebase User object or null.
  */
 export async function updateNavUser(user) {
-    const navProfileContainer = document.querySelector('.nav-profile');
-    if (!navProfileContainer) return;
+    const isSignedIn = Boolean(user && !user.isAnonymous);
+    document.body.classList.toggle('user-signed-in', isSignedIn);
+    document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
+        const navItem = link.closest('li') || link;
+        navItem.style.display = isSignedIn ? '' : 'none';
+    });
 
-    if (user) {
-        // User is logged in
-        let avatarHtml = `<i data-feather="user" style="color: #E50914;"></i>`; 
+    const profileContainers = document.querySelectorAll('.nav-profile');
+    if (profileContainers.length === 0) return;
+
+    if (isSignedIn) {
+        let avatarHtml = `<i data-feather="user" style="color: var(--text-color); width:18px;"></i>`; 
         
         try {
             const auth = getAuth(); 
@@ -32,43 +38,160 @@ export async function updateNavUser(user) {
             console.error("Nav Update Error:", error);
         }
 
-        // --- UPDATED DROPDOWN STRUCTURE ---
-        // Added Link to feedback.html
-        navProfileContainer.innerHTML = `
-            <a href="profile.html" class="nav-profile-link">
-                ${avatarHtml}
-            </a>
-            <div class="nav-dropdown">
-                <a href="profile.html" class="dropdown-item">Profile</a>
-                <a href="feedback.html" class="dropdown-item">Community Feedback</a>
-                <a href="support.html" class="dropdown-item" style="color: #FFD700;">Support Us</a>
-                <a href="settings.html" class="dropdown-item">Settings</a>
-                <a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a>
-            </div>
-        `;
-        
-        const logoutBtn = navProfileContainer.querySelector('#nav-logout-btn');
-        if(logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const auth = getAuth();
-                auth.signOut().then(() => window.location.href = 'login.html');
-            });
-        }
-
+        profileContainers.forEach((container) => {
+            if (container.classList.contains('mobile-profile-container')) {
+                container.innerHTML = `
+                    ${avatarHtml}
+                    <div style="text-align: center; margin-top:1rem;">
+                        <a href="profile.html" class="mobile-nav-link" style="font-size:1.2rem; display:block; margin-bottom:1rem;">Profile</a>
+                        <a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a>
+                    </div>
+                `;
+                const logoutBtn = container.querySelector('#mobile-logout-btn');
+                if(logoutBtn) logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const auth = getAuth();
+                    auth.signOut().then(() => window.location.href = 'login.html');
+                });
+            } else {
+                container.innerHTML = `
+                    <a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">
+                        ${avatarHtml}
+                    </a>
+                    <div class="nav-dropdown">
+                        <a href="profile.html" class="dropdown-item">Profile</a>
+                        <a href="feedback.html" class="dropdown-item">Community Feedback</a>
+                        <a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a>
+                        <a href="settings.html" class="dropdown-item">Settings</a>
+                        <a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a>
+                    </div>
+                `;
+                const logoutBtn = container.querySelector('#nav-logout-btn');
+                if(logoutBtn) logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const auth = getAuth();
+                    auth.signOut().then(() => window.location.href = 'login.html');
+                });
+            }
+        });
     } else {
-        // User is logged out
-        navProfileContainer.innerHTML = `
-            <a href="login.html" class="nav-profile-link">
-                <i data-feather="user"></i>
-            </a>
-        `;
+        profileContainers.forEach((container) => {
+            if (container.classList.contains('mobile-profile-container')) {
+                container.innerHTML = `<a href="login.html" class="btn-outline">Sign In / Register</a>`;
+            } else {
+                container.innerHTML = `
+                    <a href="login.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">
+                        <i data-feather="user" style="color:var(--text-color); width:18px;"></i>
+                    </a>
+                `;
+            }
+        });
     }
 
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
 }
+
+function setupMobileNav() {
+    const mobileHeader = document.querySelector('.mobile-header-wrapper');
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+    const mobileProfileContainer = document.querySelector('.mobile-profile-container');
+    if (!mobileHeader || !mobileToggle || !mobileMenu) return;
+
+    function closeMobileMenu() {
+        mobileToggle.classList.remove('open');
+        mobileMenu.classList.remove('active');
+        mobileHeader.classList.remove('menu-open');
+        document.body.style.overflow = 'auto';
+    }
+
+    mobileToggle.addEventListener('click', () => {
+        mobileToggle.classList.toggle('open');
+        mobileMenu.classList.toggle('active');
+        mobileHeader.classList.toggle('menu-open');
+        document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+    });
+
+    mobileLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
+    if (mobileProfileContainer) {
+        mobileProfileContainer.addEventListener('click', (e) => {
+            if(e.target.tagName === 'A' || e.target.closest('a')) closeMobileMenu();
+        });
+    }
+}
+
+function initElasticFooter() {
+    const footerEl = document.querySelector('.premium-footer');
+    if (!footerEl || footerEl.dataset.elasticReady === 'true') return;
+    footerEl.dataset.elasticReady = 'true';
+
+    let stretchValue = 0;
+    let isTouching = false;
+    let touchStartY = 0;
+    let wheelTimeout;
+
+    const applyStretch = (val) => {
+        const stretch = Math.min(val / 2.5, 120);
+        footerEl.style.paddingBottom = `calc(2rem + ${stretch}px)`;
+    };
+
+    const resetStretch = () => {
+        stretchValue = 0;
+        footerEl.style.transition = 'padding-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        footerEl.style.paddingBottom = '2rem';
+    };
+
+    window.addEventListener('wheel', (e) => {
+        const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+        if (isAtBottom && e.deltaY > 0) {
+            footerEl.style.transition = 'none';
+            stretchValue += e.deltaY;
+            if (stretchValue > 300) stretchValue = 300;
+            applyStretch(stretchValue);
+
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(resetStretch, 150);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchstart', (e) => {
+        const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+        if (isAtBottom) {
+            isTouching = true;
+            touchStartY = e.touches[0].clientY;
+            footerEl.style.transition = 'none';
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!isTouching) return;
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchStartY - touchY;
+
+        if (deltaY > 0) {
+            stretchValue = deltaY * 1.5;
+            applyStretch(stretchValue);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        if (isTouching) {
+            isTouching = false;
+            resetStretch();
+        }
+    });
+}
+
+function setupSharedPageInteractions() {
+    setupMobileNav();
+    initElasticFooter();
+}
+
+if (document.readyState !== 'loading') setupSharedPageInteractions();
+else document.addEventListener('DOMContentLoaded', setupSharedPageInteractions);
 // star rotation when scrolled
 let lastScrollY = window.scrollY;
     let rotation = 0;

@@ -344,7 +344,7 @@
         .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         
         .nav-dropdown {
-            display: none; position: absolute; top: calc(100% + 10px); right: 0;
+            display: none; position: absolute; top: 100%; right: 0;
             background: rgba(16, 16, 18, 0.95); backdrop-filter: blur(10px);
             min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle);
             padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
@@ -431,8 +431,9 @@
             margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;
             transform: translateY(20px); opacity: 0;
             transition: transform 0.6s ease 0.5s, opacity 0.6s ease 0.5s;
-        }
-        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1; }
+         width: auto; height: auto; border: 0; min-width: 180px;}
+        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1;  width: auto; height: auto; border: 0; min-width: 180px;}
+        .mobile-profile-container > .profile-avatar { width: 48px; height: 48px; flex: 0 0 auto; }
         
         @media (max-width: 900px) {
             .desktop-header-wrapper { display: none; }
@@ -608,13 +609,13 @@
         }
         .premium-footer::before {
             content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 80%; height: 2px; background: radial-gradient(circle, rgba(201, 160, 91, 0.8) 0%, transparent 80%);
-            animation: pulseGlow 3s ease-in-out infinite alternate;
+            width: min(680px, 72%); height: 1px; background: linear-gradient(90deg, transparent, rgba(201, 160, 91, 0.82), transparent);
+            animation: pulseGlow 4.5s ease-in-out infinite alternate;
         }
 
         @keyframes pulseGlow {
-            0% { opacity: 0.4; box-shadow: 0 0 10px rgba(201, 160, 91, 0.1); }
-            100% { opacity: 1; box-shadow: 0 0 25px rgba(201, 160, 91, 0.6), 0 0 50px rgba(201, 160, 91, 0.2); }
+            0% { opacity: 0.45; box-shadow: 0 0 4px rgba(201, 160, 91, 0.12); }
+            100% { opacity: 0.9; box-shadow: 0 0 14px rgba(201, 160, 91, 0.34); }
         }
         .footer-content { max-width: 1400px; margin: 0 auto; }
         .footer-top {
@@ -727,8 +728,9 @@
                 <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
                 <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
                 <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
+                <li style="display: none;"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
             </ul>
-            <div class="nav-profile desktop-profile magnetic">
+            <div class="nav-profile desktop-profile">
                 <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
             </div>
         </nav>
@@ -748,6 +750,7 @@
             <li><a href="aibook.html" class="mobile-nav-link" style="color:var(--accent-gold);" data-num="02">Create Book</a></li>
             <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
             <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
+            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
         </ul>
         <div class="mobile-profile-container nav-profile">
             <!-- Auth injected here for mobile -->
@@ -1185,7 +1188,7 @@
 
         // --- HOME PAGE LOGIC (DYNAMIC) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1212,9 +1215,15 @@
         async function updateNavUser(user) {
             // Target BOTH desktop and mobile profiles
             const profileContainers = document.querySelectorAll('.nav-profile');
+            const isSignedIn = Boolean(user && !user.isAnonymous);
+            document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
+                const navItem = link.closest('li') || link;
+                navItem.style.display = isSignedIn ? '' : 'none';
+            });
             
             profileContainers.forEach(async (container) => {
-                if (user && !user.isAnonymous) {
+                if (isSignedIn) {
                     let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
                     try {
                         const docRef = doc(db, "users", user.uid);
@@ -1239,7 +1248,7 @@
                             </div>
                         `;
                         const mLogoutBtn = container.querySelector('#mobile-logout-btn');
-                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
                     } else {
                         // Desktop Dropdown
                         container.innerHTML = `
@@ -1255,7 +1264,7 @@
                             </div>
                         `;
                         const logoutBtn = container.querySelector('#nav-logout-btn');
-                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
                     }
                 } else {
                     if (container.classList.contains('mobile-profile-container')) {
@@ -1514,8 +1523,6 @@
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else if (!auth.currentUser) {
-                    await signInAnonymously(auth);
                 }
             } catch (error) {
                 console.warn("Auth initialization failed. Proceeding without auth.", error);
@@ -1559,3 +1566,6 @@
     </script>
 </body>
 </html>
+
+
+

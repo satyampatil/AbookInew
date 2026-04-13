@@ -40,10 +40,10 @@ function initializeMyList() {
     if (!container) return;
 
     onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
+        currentUser = user && !user.isAnonymous ? user : null;
         updateNavUser(user);
 
-        if (!user) {
+        if (!user || user.isAnonymous) {
             if(privateUnsubscribe) privateUnsubscribe();
             container.innerHTML = `
                 <div class="empty-list-message" style="text-align:center; padding: 2rem;">

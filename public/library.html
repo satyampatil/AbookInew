@@ -146,7 +146,7 @@
         .nav-profile:hover { border-color: var(--accent-gold); }
         .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .nav-dropdown {
-            display: none; position: absolute; top: calc(100% + 10px); right: 0; background: rgba(16, 16, 18, 0.95);
+            display: none; position: absolute; top: 100%; right: 0; background: rgba(16, 16, 18, 0.95);
             backdrop-filter: blur(10px); min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
         }
         .nav-profile:hover .nav-dropdown { display: block; }
@@ -190,8 +190,9 @@
         .mobile-menu-overlay.active li:nth-child(2) .mobile-nav-link { transition-delay: 0.2s; }
         .mobile-menu-overlay.active li:nth-child(3) .mobile-nav-link { transition-delay: 0.3s; }
         .mobile-menu-overlay.active li:nth-child(4) .mobile-nav-link { transition-delay: 0.4s; }
-        .mobile-profile-container { margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translateY(20px); opacity: 0; transition: transform 0.6s ease 0.5s, opacity 0.6s ease 0.5s; }
-        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1; }
+        .mobile-profile-container { margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translateY(20px); opacity: 0; transition: transform 0.6s ease 0.5s, opacity 0.6s ease 0.5s;  width: auto; height: auto; border: 0; min-width: 180px;}
+        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1;  width: auto; height: auto; border: 0; min-width: 180px;}
+        .mobile-profile-container > .profile-avatar { width: 48px; height: 48px; flex: 0 0 auto; }
         @media (max-width: 900px) { .desktop-header-wrapper { display: none; } .mobile-header-wrapper { display: flex; } }
 
 
@@ -336,6 +337,17 @@
             .music-player-widget { bottom: 20px; left: 20px; }
             .library-overlay { top: 100px; }
         }
+
+        @media (hover: none) {
+            .music-player-widget.expanded {
+                width: 260px; height: auto; min-height: 120px; border-radius: 20px; padding: 20px;
+                background: rgba(16, 16, 18, 0.95); border-color: var(--accent-gold);
+            }
+
+            .music-player-widget.expanded .music-header { margin-bottom: 15px; }
+            .music-player-widget.expanded .music-info-controls { opacity: 1; transform: translateX(0); }
+            .music-player-widget.expanded .music-playlist { opacity: 1; height: auto; pointer-events: auto; padding-top: 15px; }
+        }
     </style>
 </head>
 <body data-page="library">
@@ -356,8 +368,9 @@
                 <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
                 <li><a href="library.html" class="nav-link active magnetic">Archive</a></li>
                 <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
+                <li style="display: none;"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
             </ul>
-            <div class="nav-profile desktop-profile magnetic">
+            <div class="nav-profile desktop-profile">
                 <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
             </div>
         </nav>
@@ -377,6 +390,7 @@
             <li><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
             <li><a href="library.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="03">Archive</a></li>
             <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
+            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
         </ul>
         <div class="mobile-profile-container nav-profile">
             <!-- Auth injected here for mobile -->
@@ -496,8 +510,8 @@
 
         // --- FIREBASE & LIBRARY LOGIC ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, deleteDoc, getDocs, writeBatch, limit } 
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, deleteDoc, getDocs, getDoc, writeBatch, limit } 
             from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -522,8 +536,14 @@
 
         async function updateNavUser(user) {
             const profileContainers = document.querySelectorAll('.nav-profile');
+            const isSignedIn = Boolean(user && !user.isAnonymous);
+            document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
+                const navItem = link.closest('li') || link;
+                navItem.style.display = isSignedIn ? '' : 'none';
+            });
             profileContainers.forEach(async (container) => {
-                if (user && !user.isAnonymous) {
+                if (isSignedIn) {
                     let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
                     try {
                         const docRef = doc(db, "users", user.uid);
@@ -540,11 +560,11 @@
                     if (container.classList.contains('mobile-profile-container')) {
                         container.innerHTML = `${avatarHtml}<div style="text-align: center; margin-top:1rem;"><a href="profile.html" class="mobile-nav-link" style="font-size:1.2rem; display:block; margin-bottom:1rem;">Profile</a><a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a></div>`;
                         const mLogoutBtn = container.querySelector('#mobile-logout-btn');
-                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
                     } else {
                         container.innerHTML = `<a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">${avatarHtml}</a><div class="nav-dropdown"><a href="profile.html" class="dropdown-item">Profile</a><a href="feedback.html" class="dropdown-item">Community Feedback</a><a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a><a href="settings.html" class="dropdown-item">Settings</a><a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a></div>`;
                         const logoutBtn = container.querySelector('#nav-logout-btn');
-                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.reload()); });
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
                     }
                 } else {
                     if (container.classList.contains('mobile-profile-container')) {
@@ -577,8 +597,6 @@
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else if (!auth.currentUser) {
-                    await signInAnonymously(auth);
                 }
             } catch (error) {
                 console.warn("Auth initialization failed. Proceeding without auth.", error);
@@ -586,9 +604,9 @@
 
             onAuthStateChanged(auth, async (user) => {
                 updateNavUser(user);
-                currentUser = user;
+                currentUser = user && !user.isAnonymous ? user : null;
 
-                if (user) {
+                if (currentUser) {
                     if (!unsubscribeSnapshot) {
                         await fetchPublicBooks();
                         startLibraryListener();
@@ -805,6 +823,18 @@
             if (typeof feather !== 'undefined') feather.replace();
 
             audioObj.volume = 0.3; 
+            const usesTouchExpansion = window.matchMedia("(hover: none)").matches;
+
+            if (usesTouchExpansion) {
+                widget.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    widget.classList.add('expanded');
+                });
+
+                document.addEventListener('click', () => {
+                    widget.classList.remove('expanded');
+                });
+            }
             
             const updateUI = () => {
                 songName.innerText = PLAYLIST[currentTrackIndex];
@@ -837,6 +867,10 @@
             };
 
             disc.onclick = () => {
+                if (usesTouchExpansion && !widget.classList.contains('expanded')) {
+                    widget.classList.add('expanded');
+                    return;
+                }
                 if (!audioObj.src) { playTrack(); return; }
                 if (isPlaying) { audioObj.pause(); isPlaying = false; }
                 else { audioObj.play(); isPlaying = true; }
@@ -865,14 +899,66 @@
             };
         }
 
+        function getHeadingExclusionRect() {
+            const heading = document.querySelector('.library-overlay h1');
+            const count = document.querySelector('.library-overlay p');
+            if (!heading || !count) return null;
+
+            const headingRect = heading.getBoundingClientRect();
+            const countRect = count.getBoundingClientRect();
+            const paddingX = 48;
+            const paddingY = 36;
+
+            return {
+                left: Math.min(headingRect.left, countRect.left) - paddingX,
+                right: Math.max(headingRect.right, countRect.right) + paddingX,
+                top: Math.min(headingRect.top, countRect.top) - paddingY,
+                bottom: Math.max(headingRect.bottom, countRect.bottom) + paddingY
+            };
+        }
+
+        function intersectsRect(a, b) {
+            if (!a || !b) return false;
+            return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        }
+
+        function getSafeGhostPosition() {
+            if (!playground) return { x: 10 + Math.random() * 80, y: 10 + Math.random() * 70 };
+
+            const containerRect = playground.getBoundingClientRect();
+            const exclusionRect = getHeadingExclusionRect();
+            const ghostSize = 90;
+
+            for (let attempt = 0; attempt < 40; attempt += 1) {
+                const x = 10 + Math.random() * 80;
+                const y = 10 + Math.random() * 70;
+                const candidateRect = {
+                    left: containerRect.left + (containerRect.width * x / 100),
+                    right: containerRect.left + (containerRect.width * x / 100) + ghostSize,
+                    top: containerRect.top + (containerRect.height * y / 100),
+                    bottom: containerRect.top + (containerRect.height * y / 100) + ghostSize
+                };
+
+                if (!intersectsRect(candidateRect, exclusionRect)) {
+                    return { x, y };
+                }
+            }
+
+            if (exclusionRect) {
+                const safeTop = ((exclusionRect.bottom - containerRect.top + 35) / containerRect.height) * 100;
+                return { x: 10 + Math.random() * 80, y: Math.min(Math.max(safeTop, 32), 80) };
+            }
+
+            return { x: 10 + Math.random() * 80, y: 55 + Math.random() * 25 };
+        }
+
         function createGhost(data) {
             const el = document.createElement('div');
             el.className = 'floating-avatar';
             
-            const startX = 10 + Math.random() * 80;
-            const startY = 10 + Math.random() * 70;
-            el.style.left = startX + '%';
-            el.style.top = startY + '%';
+            const startPosition = getSafeGhostPosition();
+            el.style.left = startPosition.x + '%';
+            el.style.top = startPosition.y + '%';
 
             const img = document.createElement('img');
             try {
@@ -948,13 +1034,12 @@
 
         function moveGhostRandomly(element) {
             if (!element.parentNode) return;
-            const newX = 10 + Math.random() * 80; 
-            const newY = 10 + Math.random() * 70; 
+            const newPosition = getSafeGhostPosition();
             const durationSec = 15 + Math.random() * 10; 
 
             element.style.transition = `left ${durationSec}s ease-in-out, top ${durationSec}s ease-in-out`;
-            element.style.left = newX + '%';
-            element.style.top = newY + '%';
+            element.style.left = newPosition.x + '%';
+            element.style.top = newPosition.y + '%';
 
             setTimeout(() => { moveGhostRandomly(element); }, durationSec * 1000);
         }
@@ -980,3 +1065,6 @@
     </script>
 </body>
 </html>
+
+
+

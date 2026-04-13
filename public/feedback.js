@@ -26,7 +26,7 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Auth Listener
     onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
+        currentUser = user && !user.isAnonymous ? user : null;
         updateNavUser(user);
         updateInputAvatar(user);
         
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const btn = document.getElementById('post-comment-btn');
         if (btn) {
-            if (!user) {
+            if (!user || user.isAnonymous) {
                 btn.textContent = 'Log in to Comment';
             } else {
                 btn.textContent = 'Comment';
@@ -113,7 +113,7 @@ async function updateInputAvatar(user) {
     const avatarContainer = document.querySelector('.current-user-avatar');
     if (!avatarContainer) return;
 
-    if (!user) {
+    if (!user || user.isAnonymous) {
         avatarContainer.innerHTML = `<i data-feather="user"></i>`;
         feather.replace();
         return;

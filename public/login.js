@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { updateNavUser } from "./nav.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NEW: Check if already logged in ---
     // If user is already logged in, skip the login page and go to profile
     onAuthStateChanged(auth, (user) => {
-        if (user) {
+        updateNavUser(user);
+        if (user && !user.isAnonymous) {
             // Optional: You can remove this if you want users to be able to see the login page animation
             // before redirecting, but usually instant redirect is better UX.
             console.log("User already logged in, redirecting...");
