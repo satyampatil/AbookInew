@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -177,6 +177,10 @@
         .nav-link.active::after {
             content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold);
         }
+        .nav-mylist-item { transition: opacity 0.28s ease, visibility 0.28s ease; }
+        .nav-auth-placeholder { visibility: hidden; opacity: 0; pointer-events: none; }
+        body.user-signed-in .nav-auth-placeholder { visibility: visible; opacity: 1; pointer-events: auto; }
+        body.nav-auth-resolved:not(.user-signed-in) .nav-mylist-item { display: none !important; }
         .nav-link-anim { display: inline-flex; align-items: center; } 
         .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-link-anim .book-part {
@@ -366,11 +370,22 @@
         .placeholder-text { color: var(--text-muted); font-family: var(--font-editorial); font-style: italic; font-size: 1.5rem; line-height: 1.4; }
 
         #loading-section { text-align: center; padding: 4rem 2rem; }
-        .loader-ring {
-            width: 60px; height: 60px; margin: 0 auto 2rem;
-            border: 2px solid var(--border-subtle); border-top-color: var(--accent-gold);
-            border-radius: 50%; animation: spin 1s linear infinite;
+        .writing-skeleton {
+            width: min(100%, 280px); aspect-ratio: 2 / 3; margin: 0 auto 2rem; border-radius: 4px;
+            border: 1px solid var(--border-subtle); background: rgba(240, 236, 225, 0.04); padding: 1.35rem;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42); position: relative; overflow: hidden;
         }
+        .writing-skeleton::before {
+            content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(240, 236, 225, 0.12), transparent);
+            animation: skeletonSweep 1.45s ease-in-out infinite;
+        }
+        .writing-skeleton-line {
+            height: 12px; border-radius: 8px; background: rgba(240, 236, 225, 0.08); margin-bottom: 0.85rem;
+        }
+        .writing-skeleton-line.short { width: 62%; }
+        .writing-skeleton-line.medium { width: 78%; }
+        @keyframes skeletonSweep { 100% { transform: translateX(100%); } }
 
         #reveal-section { display: flex; flex-direction: column; gap: 2rem; align-items: center; text-align: center; }
         .reveal-cover { width: 100%; max-width: 280px; margin: 0 auto; }
@@ -459,7 +474,7 @@
                 <li><a href="aibook.html" class="nav-link nav-link-anim active magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
                 <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
                 <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
-                <li style="display: none;"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
+                <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
             </ul>
             <div class="nav-profile desktop-profile">
                 <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
@@ -481,7 +496,7 @@
             <li><a href="aibook.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="02">Create Book</a></li>
             <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
             <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
-            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
+            <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
         </ul>
         <div class="mobile-profile-container nav-profile">
             <a href="login.html" class="btn-outline">Sign In / Register</a>
@@ -532,7 +547,12 @@
                 </div>
 
                 <div id="loading-section" style="display: none;">
-                    <div class="loader-ring"></div>
+                    <div class="writing-skeleton" aria-hidden="true">
+                        <div class="writing-skeleton-line"></div>
+                        <div class="writing-skeleton-line medium"></div>
+                        <div class="writing-skeleton-line"></div>
+                        <div class="writing-skeleton-line short"></div>
+                    </div>
                     <h2 class="hero-title" style="font-size:2rem; margin-top:1rem;">Penning the pages...</h2>
                     <p class="hero-description">This editorial process may take a moment.</p>
                 </div>
@@ -787,9 +807,10 @@
             const profileContainers = document.querySelectorAll('.nav-profile');
             const isSignedIn = Boolean(user && !user.isAnonymous);
             document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.body.classList.add('nav-auth-resolved');
             document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
                 const navItem = link.closest('li') || link;
-                navItem.style.display = isSignedIn ? '' : 'none';
+                navItem.classList.add('nav-mylist-item', 'nav-auth-placeholder');
             });
             profileContainers.forEach(async (container) => {
                 if (isSignedIn) {
@@ -1023,6 +1044,7 @@
     </script>
 </body>
 </html>
+
 
 
 

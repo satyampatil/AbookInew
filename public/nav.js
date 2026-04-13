@@ -10,9 +10,10 @@ import { generateGhostAvatar } from "./avatar-generator.js";
 export async function updateNavUser(user) {
     const isSignedIn = Boolean(user && !user.isAnonymous);
     document.body.classList.toggle('user-signed-in', isSignedIn);
+    document.body.classList.add('nav-auth-resolved');
     document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
         const navItem = link.closest('li') || link;
-        navItem.style.display = isSignedIn ? '' : 'none';
+        navItem.classList.add('nav-mylist-item', 'nav-auth-placeholder');
     });
 
     const profileContainers = document.querySelectorAll('.nav-profile');

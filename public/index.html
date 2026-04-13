@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -319,6 +319,10 @@
             transform: translateX(-50%); width: 4px; height: 4px;
             border-radius: 50%; background-color: var(--accent-gold);
         }
+        .nav-mylist-item { transition: opacity 0.28s ease, visibility 0.28s ease; }
+        .nav-auth-placeholder { visibility: hidden; opacity: 0; pointer-events: none; }
+        body.user-signed-in .nav-auth-placeholder { visibility: visible; opacity: 1; pointer-events: auto; }
+        body.nav-auth-resolved:not(.user-signed-in) .nav-mylist-item { display: none !important; }
 
         /* Removed overflow: hidden from the main link so the active dot isn't clipped */
         .nav-link-anim { display: inline-flex; align-items: center; } 
@@ -607,6 +611,20 @@
             border: 1px dashed var(--border-subtle); font-family: var(--font-editorial); font-size: 1.5rem;
         }
 
+        .skeleton-category { margin-bottom: 6rem; }
+        .skeleton-card { cursor: default; pointer-events: none; }
+        .skeleton-cover, .skeleton-line, .skeleton-pill { position: relative; overflow: hidden; background: rgba(240, 236, 225, 0.07); }
+        .skeleton-cover::after, .skeleton-line::after, .skeleton-pill::after {
+            content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(240, 236, 225, 0.12), transparent);
+            animation: skeletonSweep 1.45s ease-in-out infinite;
+        }
+        .skeleton-cover { width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; margin-bottom: 1.5rem; border: 1px solid rgba(240, 236, 225, 0.08); }
+        .skeleton-line { height: 14px; border-radius: 8px; margin-bottom: 0.8rem; }
+        .skeleton-line.short { width: 62%; }
+        .skeleton-pill { width: 92px; height: 24px; border-radius: 8px; }
+        @keyframes skeletonSweep { 100% { transform: translateX(100%); } }
+
         /* ---
         // ===============================================
         //   06. PREMIUM FOOTER
@@ -736,7 +754,7 @@
                 <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
                 <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
                 <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
-                <li style="display: none;"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
+                <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
             </ul>
             <div class="nav-profile desktop-profile">
                 <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
@@ -758,7 +776,7 @@
             <li><a href="aibook.html" class="mobile-nav-link" style="color:var(--accent-gold);" data-num="02">Create Book</a></li>
             <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
             <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
-            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
+            <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
         </ul>
         <div class="mobile-profile-container nav-profile">
             <!-- Auth injected here for mobile -->
@@ -1225,9 +1243,10 @@
             const profileContainers = document.querySelectorAll('.nav-profile');
             const isSignedIn = Boolean(user && !user.isAnonymous);
             document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.body.classList.add('nav-auth-resolved');
             document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
                 const navItem = link.closest('li') || link;
-                navItem.style.display = isSignedIn ? '' : 'none';
+                navItem.classList.add('nav-mylist-item', 'nav-auth-placeholder');
             });
             
             profileContainers.forEach(async (container) => {
@@ -1305,9 +1324,37 @@
         }
 
         // --- MAIN FETCH LOGIC ---
+        function buildBookSkeleton(count = 8, title = "Loading the shelves") {
+            return `
+                <div class="editorial-category skeleton-category" aria-hidden="true">
+                    <div class="category-header">
+                        <h2 class="category-title-serif">${title}</h2>
+                        <div class="category-line"></div>
+                    </div>
+                    <div class="editorial-grid">
+                        ${Array.from({ length: count }).map(() => `
+                            <div class="editorial-book-card skeleton-card">
+                                <div class="skeleton-cover"></div>
+                                <div class="card-typography">
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line short"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showBookSkeleton(title) {
+            const shelvesContainer = document.getElementById('book-shelves-container');
+            if (shelvesContainer) shelvesContainer.innerHTML = buildBookSkeleton(8, title);
+        }
+
         async function loadHomePage() {
             const heroTextContainer = document.getElementById('hero-text-container');
             if (heroTextContainer) heroTextContainer.innerHTML = `<h1 class="hero-title fade-up">Curating the Archive...</h1>`;
+            showBookSkeleton("Curating the shelves");
 
             try {
                 const booksRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
@@ -1574,6 +1621,7 @@
     </script>
 </body>
 </html>
+
 
 
 

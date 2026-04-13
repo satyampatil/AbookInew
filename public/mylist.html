@@ -1,20 +1,371 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Library - abooki</title>
+    <title>My Library - abooki Premium</title>
     <link rel="icon" href="browserIcon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Combined Font Import: Inter for UI, Playfair Display for Editorial Headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="mylist.css">
+
+    <style>
+        /* ---
+        // ===============================================
+        //   00. OVERLAYS & TOASTS
+        // ===============================================
+        // --- */
+        .site-noise {
+            position: fixed; inset: 0; pointer-events: none; z-index: 99998; opacity: 0.45;
+            background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+                              repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px);
+            mix-blend-mode: overlay;
+        }
+
+        /* BADGE NOTIFICATION TOAST (Gamification) */
+        .badge-toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: rgba(16, 16, 18, 0.95); border: 1px solid var(--accent-gold);
+            border-radius: 100px; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); opacity: 0; z-index: 99999; pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1); backdrop-filter: blur(10px);
+        }
+        .badge-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .badge-icon { font-size: 1.8rem; filter: drop-shadow(0 0 10px rgba(201, 160, 91, 0.5)); }
+        .badge-info h4 { margin: 0; color: var(--accent-gold); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; font-family: var(--font-ui); }
+        .badge-info h3 { margin: 2px 0 0 0; color: var(--text-main); font-size: 1rem; font-weight: 600; font-family: var(--font-ui); }
+        .badge-info p { margin: 2px 0 0 0; color: var(--text-muted); font-size: 0.85rem; font-family: var(--font-ui); }
+
+        /* General Toast Notifications */
+        .site-toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(16, 16, 18, 0.95); border: 1px solid var(--accent-gold);
+            color: var(--text-main); padding: 1rem 2rem; border-radius: 100px;
+            font-family: var(--font-ui); font-weight: 500; font-size: 0.9rem;
+            z-index: 99999; opacity: 0; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .site-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .site-toast.error { border-color: #e14c3a; color: #e14c3a; }
+        .site-toast.success { border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* ---
+        // ===============================================
+        //   01. GLOBAL STYLES & CURSOR
+        // ===============================================
+        // --- */
+        :root {
+            --bg-color: #070708; 
+            --bg-surface: #101012;
+            --text-main: #f0ece1;
+            --text-muted: #8e8b82;
+            --accent-gold: #c9a05b;
+            --accent-green: #588157;
+            --border-subtle: rgba(240, 236, 225, 0.08);
+            --font-ui: 'Inter', sans-serif;
+            --font-editorial: 'Playfair Display', serif;
+            --logo-star-rotate: 0deg;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: var(--font-ui); line-height: 1.6;
+            display: flex; flex-direction: column; min-height: 100vh;
+            overflow-x: hidden; cursor: auto;
+        }
+
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.08) 0%, transparent 70%);
+            z-index: -1; pointer-events: none;
+        }
+
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, select, .clickable, .magnetic { cursor: none; }
+            #cursor-dot, #cursor-outline {
+                position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+                border-radius: 50%; pointer-events: none; z-index: 9999999;
+            }
+            #cursor-dot {
+                width: 6px; height: 6px; background-color: var(--text-main);
+                transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), background-color 0.2s;
+            }
+            #cursor-outline {
+                width: 40px; height: 40px; border: 1px solid rgba(240, 236, 225, 0.3);
+                transition: width 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), height 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.3s, background-color 0.3s;
+            }
+            body.cursor-hover #cursor-dot { transform: translate(-50%, -50%) scale(0.1); }
+            body.cursor-hover #cursor-outline {
+                width: 60px; height: 60px; border-color: var(--accent-gold);
+                background-color: rgba(201, 160, 91, 0.05); backdrop-filter: blur(2px);
+            }
+        }
+        @media (pointer: coarse) { #cursor-dot, #cursor-outline { display: none !important; } }
+
+        .magnetic { display: inline-block; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); will-change: transform; }
+        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .stagger-delay-1 { transition-delay: 0.1s; } .stagger-delay-2 { transition-delay: 0.2s; } .stagger-delay-3 { transition-delay: 0.3s; }
+
+        a { color: inherit; text-decoration: none; } ul { list-style: none; } img { max-width: 100%; height: auto; display: block; }
+        main { flex-grow: 1; padding-bottom: 4rem; }
+
+        /* ---
+        // ===============================================
+        //   02. NAVIGATION
+        // ===============================================
+        // --- */
+        .desktop-header-wrapper {
+            position: fixed; top: 1.5rem; left: 0; width: 100%;
+            z-index: 1000; display: flex; justify-content: center;
+            padding: 0 1.5rem; pointer-events: none; 
+        }
+        .main-nav {
+            pointer-events: auto; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 1200px; height: 64px; background: rgba(16, 16, 18, 0.65);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border-subtle);
+            border-radius: 100px; padding: 0 1.5rem 0 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: all 0.3s ease;
+        }
+        .logo { font-family: var(--font-editorial); font-size: 1.4rem; font-weight: 700; letter-spacing: 0.05em; position: relative; color: var(--text-main); }
+        .logo::after {
+            content: "*"; position: absolute; right: -0.3em; top: -0.2em; font-family: var(--font-ui); font-size: 0.6em; color: var(--accent-gold);
+            transform: rotate(var(--logo-star-rotate)); transition: transform 0.1s linear;
+        }
+        .nav-links { display: flex; align-items: center; gap: 2rem; margin: 0 auto; }
+        .nav-link {
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); transition: color 0.3s ease; position: relative; padding: 0.5rem 0; 
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-main); }
+        .nav-link.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold); }
+        .nav-mylist-item { transition: opacity 0.28s ease, visibility 0.28s ease; }
+        .nav-auth-placeholder { visibility: hidden; opacity: 0; pointer-events: none; }
+        body.user-signed-in .nav-auth-placeholder { visibility: visible; opacity: 1; pointer-events: auto; }
+        body.nav-auth-resolved:not(.user-signed-in) .nav-mylist-item { display: none !important; }
+        .nav-link-anim { display: inline-flex; align-items: center; } 
+        .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link-anim .book-part {
+            display: inline-flex; align-items: center; max-width: 0; opacity: 0; transform: translateX(-10px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); color: var(--accent-gold); font-weight: 500; overflow: hidden; white-space: nowrap; 
+        }
+        .nav-link-anim:hover .book-part, .nav-link-anim.active .book-part { max-width: 80px; opacity: 1; transform: translateX(0); margin: 0 0.05em; }
+
+        .nav-profile {
+            position: relative; height: 40px; width: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.3s;
+        }
+        .nav-profile:hover { border-color: var(--accent-gold); }
+        .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .nav-dropdown {
+            display: none; position: absolute; top: 100%; right: 0; background: rgba(16, 16, 18, 0.95);
+            backdrop-filter: blur(10px); min-width: 180px; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001;
+        }
+        .nav-profile:hover .nav-dropdown { display: block; }
+        .dropdown-item { display: block; padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border-radius: 8px; transition: all 0.2s; }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+
+        .mobile-header-wrapper {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 2010;
+            background: rgba(7, 7, 8, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem; justify-content: space-between; align-items: center; transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .mobile-header-wrapper.menu-open { background: transparent; backdrop-filter: none; border-bottom-color: transparent; }
+        .hamburger { width: 30px; height: 20px; position: relative; cursor: pointer; z-index: 2012; }
+        .hamburger span {
+            display: block; position: absolute; height: 2px; width: 100%; background: var(--text-main);
+            border-radius: 2px; opacity: 1; left: 0; transform: rotate(0deg); transition: .25s ease-in-out;
+        }
+        .hamburger span:nth-child(1) { top: 0px; } .hamburger span:nth-child(2) { top: 9px; } .hamburger span:nth-child(3) { top: 18px; }
+        .hamburger.open span:nth-child(1) { top: 9px; transform: rotate(135deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; left: -20px; }
+        .hamburger.open span:nth-child(3) { top: 9px; transform: rotate(-135deg); }
+        
+        .mobile-menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2005; background: #050506;
+            background-image: radial-gradient(circle at 50% 0%, rgba(201, 160, 91, 0.12) 0%, transparent 70%); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .mobile-menu-overlay.active { transform: translateY(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 2.5rem; text-align: center; width: 100%; }
+        .mobile-nav-links li { overflow: hidden; }
+        .mobile-nav-link { font-family: var(--font-editorial); font-size: 3rem; color: var(--text-muted); transition: color 0.3s ease; display: inline-block; transform: translateY(100%); opacity: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease; }
+        .mobile-nav-link.active, .mobile-nav-link:hover { color: var(--text-main); }
+        .mobile-nav-link::before { content: attr(data-num); font-family: var(--font-ui); font-size: 0.9rem; vertical-align: super; margin-right: 15px; color: var(--accent-gold); opacity: 0.6; }
+        .mobile-menu-overlay.active .mobile-nav-link { transform: translateY(0); opacity: 1; }
+        .mobile-menu-overlay.active li:nth-child(1) .mobile-nav-link { transition-delay: 0.1s; }
+        .mobile-menu-overlay.active li:nth-child(2) .mobile-nav-link { transition-delay: 0.2s; }
+        .mobile-menu-overlay.active li:nth-child(3) .mobile-nav-link { transition-delay: 0.3s; }
+        .mobile-menu-overlay.active li:nth-child(4) .mobile-nav-link { transition-delay: 0.4s; }
+        .mobile-menu-overlay.active li:nth-child(5) .mobile-nav-link { transition-delay: 0.5s; }
+        .mobile-profile-container { margin-top: 4rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; transform: translateY(20px); opacity: 0; transition: transform 0.6s ease 0.6s, opacity 0.6s ease 0.6s; width: auto; height: auto; border: 0; min-width: 180px;}
+        .mobile-menu-overlay.active .mobile-profile-container { transform: translateY(0); opacity: 1; }
+        .mobile-profile-container > .profile-avatar { width: 48px; height: 48px; flex: 0 0 auto; }
+        .mobile-profile-container .mobile-profile-actions { text-align: center; }
+        .mobile-profile-container .mobile-profile-link { display: block; margin-bottom: 0.8rem; font-family: var(--font-ui); font-size: 1.05rem; line-height: 1.2; color: var(--text-main); }
+        .mobile-profile-container .btn-outline { border: 1px solid var(--border-subtle); padding: 0.75rem 1.5rem; border-radius: 100px; color: var(--text-main); display: inline-block; }
+
+        @media (max-width: 900px) { .desktop-header-wrapper { display: none; } .mobile-header-wrapper { display: flex; } .mobile-menu-overlay { justify-content: flex-start; overflow-y: auto; padding: clamp(5.5rem, 12vh, 7rem) 1.5rem 2rem; } .mobile-nav-links { gap: clamp(1.15rem, 4.2vh, 2rem); } .mobile-nav-link { font-size: clamp(2rem, 9vw, 2.85rem); line-height: 1.05; } .mobile-profile-container { margin-top: clamp(1.5rem, 5vh, 3rem); gap: 0.75rem; } .mobile-profile-container > .profile-avatar { width: 46px; height: 46px; } }
+
+        /* ---
+        // ===============================================
+        //   03. MY LIST HERO / HEADER 
+        // ===============================================
+        // --- */
+        .library-hero {
+            padding-top: 140px; padding-bottom: 3rem; max-width: 1400px; margin: 0 auto; padding-left: 4rem; padding-right: 4rem;
+            display: flex; flex-direction: column; align-items: flex-start;
+        }
+        .library-kicker {
+            display: inline-block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--accent-gold); margin-bottom: 1rem; border-bottom: 1px solid var(--accent-gold); padding-bottom: 0.2rem;
+        }
+        .mylist-page-title { font-family: var(--font-editorial); font-size: clamp(3rem, 5vw, 4.5rem); font-weight: 400; line-height: 1.1; margin-bottom: 1.5rem; color: var(--text-main); }
+        
+        .library-controls { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem; }
+        .library-stats { font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 1.5rem; }
+        .stat-item { background: rgba(255, 255, 255, 0.03); padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid var(--border-subtle); }
+        .stat-item b { color: var(--text-main); font-weight: 600; }
+        
+        .genre-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .filter-btn {
+            background: transparent; border: 1px solid var(--border-subtle); color: var(--text-muted);
+            padding: 0.5rem 1.25rem; border-radius: 100px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s ease; font-family: var(--font-ui); font-weight: 500;
+        }
+        .filter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text-main); transform: translateY(-2px); }
+        .filter-btn.active { background: var(--text-main); border-color: var(--text-main); color: var(--bg-color); }
+
+        /* ---
+        // ===============================================
+        //   04. BOOK GRID & CARDS (EDITORIAL STYLE)
+        // ===============================================
+        // --- */
+        .book-shelves { max-width: 1400px; margin: 0 auto; padding: 0 4rem 4rem; }
+        .section-header { margin-bottom: 3rem; display: flex; align-items: center; gap: 2rem; }
+        .section-header h2 { font-family: var(--font-editorial); font-size: 2.2rem; font-weight: 400; color: var(--text-main); white-space: nowrap; }
+        .section-header .category-line { flex-grow: 1; height: 1px; background: var(--border-subtle); }
+
+        .editorial-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4rem 2rem; margin-bottom: 5rem; }
+        .editorial-book-card { display: flex; flex-direction: column; position: relative; }
+        
+        .card-image-container {
+            width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; overflow: hidden; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 1.5rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+        }
+        .card-image-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; filter: saturate(0.9) contrast(1.1); }
+        .editorial-book-card:hover .card-image-container { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.7); }
+        .editorial-book-card:hover .card-image-container img { transform: scale(1.05); }
+
+        .card-typography { text-align: left; }
+        .card-book-title {
+            font-family: var(--font-editorial); font-size: 1.2rem; font-weight: 400; color: var(--text-main);
+            line-height: 1.3; margin-bottom: 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: color 0.3s;
+        }
+        .editorial-book-card:hover .card-book-title { color: var(--accent-gold); }
+        .card-book-author { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+        /* Actions Overlay (Delete & Ribbon) */
+        .bookmark-ribbon {
+            position: absolute; top: -5px; left: 15px; width: 28px; height: 45px; z-index: 60; cursor: pointer;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .bookmark-ribbon.is-private { background-color: rgba(229, 9, 20, 0.9); }
+        .bookmark-ribbon.is-public { background-color: rgba(76, 175, 80, 0.9); }
+        .bookmark-ribbon.is-golden { background-color: var(--accent-gold); cursor: default; }
+        .bookmark-ribbon.is-golden:hover { transform: none; filter: none; }
+        .bookmark-ribbon:hover { transform: translateY(-2px) scale(1.05); filter: brightness(1.2); }
+
+        .list-delete-btn {
+            position: absolute; top: 10px; right: 10px; z-index: 60; width: 32px; height: 32px; border-radius: 50%;
+            background-color: rgba(16, 16, 18, 0.7); border: 1px solid rgba(255,255,255,0.15); color: var(--text-main);
+            backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+            opacity: 0; transform: scale(0.8); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
+        }
+        .list-delete-btn svg { width: 14px; height: 14px; }
+        .editorial-book-card:hover .list-delete-btn { opacity: 1; transform: scale(1); }
+        .list-delete-btn:hover { background-color: #e14c3a; border-color: #e14c3a; transform: scale(1.1); color: #fff; }
+
+        .empty-state { padding: 4rem; text-align: center; color: var(--text-muted); border: 1px dashed var(--border-subtle); border-radius: 12px; margin-top: 2rem; }
+        .empty-state h3 { font-family: var(--font-editorial); font-size: 1.8rem; color: var(--text-main); margin-bottom: 1rem; }
+        .empty-state .btn-editorial { margin-top: 1.5rem; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border: 1px solid var(--border-subtle); border-radius: 100px; color: var(--text-main); transition: all 0.3s; }
+        .empty-state .btn-editorial:hover { background: var(--text-main); color: var(--bg-color); }
+
+        .skeleton-category { margin-bottom: 6rem; }
+        .skeleton-card { cursor: default; pointer-events: none; }
+        .skeleton-cover, .skeleton-line, .skeleton-pill { position: relative; overflow: hidden; background: rgba(240, 236, 225, 0.07); }
+        .skeleton-cover::after, .skeleton-line::after, .skeleton-pill::after {
+            content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(240, 236, 225, 0.12), transparent);
+            animation: skeletonSweep 1.45s ease-in-out infinite;
+        }
+        .skeleton-cover { width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; margin-bottom: 1.5rem; border: 1px solid rgba(240, 236, 225, 0.08); }
+        .skeleton-line { height: 14px; border-radius: 8px; margin-bottom: 0.8rem; }
+        .skeleton-line.short { width: 62%; }
+        @keyframes skeletonSweep { 100% { transform: translateX(100%); } }
+
+        /* ---
+        // ===============================================
+        //   05. PREMIUM FOOTER & RESPONSIVE
+        // ===============================================
+        // --- */
+        .premium-footer { 
+            background: #050506; padding: 6rem 4rem 2rem; position: relative; overflow: hidden; flex-shrink: 0; z-index: 10; will-change: padding-bottom; 
+        }
+        .premium-footer::before { 
+            content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(900px, 82%); height: 2px; 
+            background: linear-gradient(90deg, transparent, rgba(201, 160, 91, 0.82), transparent); animation: pulseGlow 4.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulseGlow {
+            0% { opacity: 0.5; box-shadow: 0 0 8px rgba(201, 160, 91, 0.2); }
+            100% { opacity: 1; box-shadow: 0 0 22px rgba(201, 160, 91, 0.5), 0 0 36px rgba(201, 160, 91, 0.18); }
+        }
+        
+        .footer-content { max-width: 1400px; margin: 0 auto; }
+        .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4rem; padding-bottom: 4rem; border-bottom: 1px solid var(--border-subtle); }
+        .footer-brand h2 { font-family: var(--font-editorial); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 400; color: var(--text-main); margin-bottom: 1.5rem; line-height: 1; }
+        .footer-brand p { color: var(--text-muted); max-width: 380px; font-size: 1rem; line-height: 1.7; }
+        .footer-links { display: flex; gap: 5rem; }
+        .link-group h4 { color: var(--text-main); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; font-weight: 600; }
+        .link-group a { display: block; color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; transition: color 0.3s ease, transform 0.3s ease; }
+        .link-group a:hover { color: var(--text-main); transform: translateX(4px); }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .footer-copyright, .footer-credits { color: #555; font-size: 0.85rem; }
+        .footer-credits a { color: var(--text-main); font-weight: 500; position: relative; padding-bottom: 2px; }
+        .footer-credits a::after { content: ''; position: absolute; width: 100%; height: 1px; bottom: 0; left: 0; background-color: var(--accent-gold); transform: scaleX(0); transform-origin: bottom right; transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
+        .footer-credits a:hover { color: var(--accent-gold); }
+        .footer-credits a:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+
+        @media (max-width: 900px) {
+            .library-hero { padding-top: 110px; padding-left: 1.5rem; padding-right: 1.5rem; }
+            .book-shelves, .premium-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 2rem; }
+            .section-header .category-line { width: 100%; }
+            .footer-top { flex-direction: column; gap: 3rem; }
+            .footer-links { flex-wrap: wrap; gap: 3rem; }
+            .list-delete-btn { opacity: 1; transform: scale(1); } /* Always visible on mobile */
+            .editorial-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2rem 1rem; }
+        }
+    </style>
 </head>
 <body data-page="mylist">
 
-        <!-- 1. DESKTOP FLOATING HEADER -->
+    <!-- Premium Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+
+    <!-- Cinematic Noise Overlay -->
+    <div class="site-noise"></div>
+
+    <!-- Global Toast -->
+    <div id="site-toast" class="site-toast"><i data-feather="info"></i> <span id="toast-msg"></span></div>
+
+    <!-- 1. DESKTOP FLOATING HEADER -->
     <div class="desktop-header-wrapper">
         <nav class="main-nav">
             <a href="index.html" class="logo-link magnetic"><div class="logo">ABOOKI</div></a>
@@ -23,10 +374,10 @@
                 <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
                 <li><a href="library.html" class="nav-link magnetic">Archive</a></li>
                 <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
-                <li style="display: none;"><a href="mylist.html" class="nav-link active magnetic">My List</a></li>
+                <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="nav-link active magnetic">My List</a></li>
             </ul>
             <div class="nav-profile desktop-profile">
-                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-color); width:18px;"></i></a>
+                <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
             </div>
         </nav>
     </div>
@@ -45,7 +396,7 @@
             <li><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
             <li><a href="library.html" class="mobile-nav-link" data-num="03">Archive</a></li>
             <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
-            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link active" data-num="05">My List</a></li>
+            <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="05">My List</a></li>
         </ul>
         <div class="mobile-profile-container nav-profile">
             <a href="login.html" class="btn-outline">Sign In / Register</a>
@@ -53,21 +404,32 @@
     </div>
 
     <main>
-        <section class="book-shelves">
-            <div class="library-header">
-                <h1 class="mylist-page-title">My Library</h1>
-                
-                <div class="library-controls">
-                    <div id="library-stats" class="library-stats">
-                        </div>
-                    <div id="genre-filters" class="genre-filters">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        </div>
+        <!-- LIBRARY HEADER SECTION -->
+        <section class="library-hero">
+            <span class="library-kicker fade-up">Curated Collection</span>
+            <h1 class="mylist-page-title fade-up stagger-delay-1">My Library</h1>
+            
+            <div class="library-controls fade-up stagger-delay-2">
+                <div id="library-stats" class="library-stats">
+                    <!-- Stats injected here -->
+                </div>
+                <div id="genre-filters" class="genre-filters">
+                    <button class="filter-btn active magnetic" data-filter="all">All Genres</button>
+                    <!-- Genre filters injected here -->
                 </div>
             </div>
+        </section>
 
+        <!-- BOOK GRIDS SECTION -->
+        <section class="book-shelves">
             <div id="book-shelves-container">
-                <p style="text-align:center; padding:2rem; color:#888;">Loading your library...</p>
+                <!-- Skeletons loaded initially -->
+                <div class="editorial-grid skeleton-category" aria-hidden="true">
+                    <div class="editorial-book-card skeleton-card"><div class="skeleton-cover"></div><div class="card-typography"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="editorial-book-card skeleton-card"><div class="skeleton-cover"></div><div class="card-typography"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="editorial-book-card skeleton-card"><div class="skeleton-cover"></div><div class="card-typography"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="editorial-book-card skeleton-card"><div class="skeleton-cover"></div><div class="card-typography"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+                </div>
             </div>
         </section>
     </main>
@@ -100,7 +462,634 @@
         </div>
     </footer>
 
-    <script>feather.replace()</script>
-    <script type="module" src="mylist.js"></script>
+    <script>
+      feather.replace();
+    </script>
+
+    <!-- Combined Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc, query, where, serverTimestamp, getDoc, onSnapshot, increment, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // --- UTILS & INTERACTIONS ---
+        const onDOMReady = (callback) => {
+            if (document.readyState !== 'loading') callback();
+            else document.addEventListener('DOMContentLoaded', callback);
+        };
+
+        function showSiteNotice(message, type = "success") {
+            const toast = document.getElementById('site-toast');
+            const msgEl = document.getElementById('toast-msg');
+            toast.className = `site-toast ${type} show`;
+            msgEl.textContent = message;
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        // Custom Cursor
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+        if (cursorDot && cursorOutline && window.matchMedia("(pointer: fine)").matches) {
+            let cursorX = 0, cursorY = 0, outlineX = 0, outlineY = 0;
+            window.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX; cursorY = e.clientY;
+                cursorDot.style.left = cursorX + 'px'; cursorDot.style.top = cursorY + 'px';
+            });
+            function animateCursor() {
+                outlineX += (cursorX - outlineX) * 0.15; outlineY += (cursorY - outlineY) * 0.15;
+                cursorOutline.style.left = outlineX + 'px'; cursorOutline.style.top = outlineY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+            document.addEventListener('mouseover', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic, .bookmark-ribbon, .list-delete-btn')) document.body.classList.add('cursor-hover');
+            });
+            document.addEventListener('mouseout', (e) => {
+                if(e.target.closest('a, button, input, .clickable, .magnetic, .bookmark-ribbon, .list-delete-btn')) document.body.classList.remove('cursor-hover');
+            });
+        }
+
+        // Magnetic Buttons
+        function initMagneticElements() {
+            if (!window.matchMedia("(pointer: fine)").matches) return;
+            const magneticElements = document.querySelectorAll('.magnetic');
+            magneticElements.forEach(elem => {
+                elem.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    this.style.transition = "none";
+                    this.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px)`;
+                });
+                elem.addEventListener('mouseleave', function() {
+                    this.style.transition = "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    this.style.transform = `translate(0px, 0px)`;
+                });
+            });
+        }
+
+        // Scroll Observer
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    scrollObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function observeScrollElements() {
+            document.querySelectorAll('.fade-up:not(.visible)').forEach(el => scrollObserver.observe(el));
+        }
+
+        // Elastic Footer
+        const initElasticFooter = () => {
+            const footerEl = document.querySelector('.premium-footer');
+            if (!footerEl) return;
+            let stretchValue = 0, isTouching = false, touchStartY = 0, wheelTimeout;
+            const applyStretch = (val) => { footerEl.style.paddingBottom = `calc(2rem + ${Math.min(val / 2.5, 120)}px)`; };
+            const resetStretch = () => { stretchValue = 0; footerEl.style.transition = 'padding-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; footerEl.style.paddingBottom = '2rem'; };
+            window.addEventListener('wheel', (e) => {
+                if (Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5 && e.deltaY > 0) {
+                    footerEl.style.transition = 'none'; stretchValue += e.deltaY; if (stretchValue > 300) stretchValue = 300; applyStretch(stretchValue);
+                    clearTimeout(wheelTimeout); wheelTimeout = setTimeout(resetStretch, 150);
+                }
+            }, { passive: true });
+            window.addEventListener('touchstart', (e) => {
+                if (Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5) {
+                    isTouching = true; touchStartY = e.touches[0].clientY; footerEl.style.transition = 'none';
+                }
+            }, { passive: true });
+            window.addEventListener('touchmove', (e) => {
+                if (!isTouching) return; const deltaY = touchStartY - e.touches[0].clientY;
+                if (deltaY > 0) applyStretch(deltaY * 1.5);
+            }, { passive: true });
+            window.addEventListener('touchend', () => { if (isTouching) { isTouching = false; resetStretch(); } });
+        };
+
+        // Mobile Menu
+        const mobileHeader = document.querySelector('.mobile-header-wrapper');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        function closeMobileMenu() {
+            mobileToggle.classList.remove('open'); mobileMenu.classList.remove('active'); mobileHeader.classList.remove('menu-open');
+            document.body.style.overflow = 'auto';
+        }
+        mobileToggle.addEventListener('click', () => {
+            mobileToggle.classList.toggle('open'); mobileMenu.classList.toggle('active'); mobileHeader.classList.toggle('menu-open'); 
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+        });
+        document.querySelectorAll('.mobile-nav-link').forEach(link => link.addEventListener('click', closeMobileMenu));
+
+        // Star Logo Rotation
+        let lastScrollY = window.scrollY;
+        let rotation = 0;
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            rotation += (currentScrollY - lastScrollY) * 0.5;
+            document.documentElement.style.setProperty('--logo-star-rotate', `${rotation}deg`);
+            lastScrollY = currentScrollY;
+        });
+
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyC2VtkohplpoihVUzlFncyxW6qi39r_IEU", 
+          authDomain: "studio-5978542726-e345b.firebaseapp.com",
+          projectId: "studio-5978542726-e345b",
+          storageBucket: "studio-5978542726-e345b.firebasestorage.app",
+          messagingSenderId: "968782492427",
+          appId: "1:968782492427:web:90108da3599e50bc2b680e"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-book-app';
+
+        let generateGhostAvatar = () => 'https://placehold.co/32x32/c9a05b/070708?text=U';
+        try {
+            const avatarModule = await import("./avatar-generator.js");
+            generateGhostAvatar = avatarModule.generateGhostAvatar;
+        } catch(e) { console.warn("Local avatar generator missing in preview."); }
+
+        async function updateNavUser(user) {
+            const profileContainers = document.querySelectorAll('.nav-profile');
+            const isSignedIn = Boolean(user && !user.isAnonymous);
+            document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.body.classList.add('nav-auth-resolved');
+            document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
+                const navItem = link.closest('li') || link;
+                navItem.classList.add('nav-mylist-item', 'nav-auth-placeholder');
+            });
+            profileContainers.forEach(async (container) => {
+                if (isSignedIn) {
+                    let avatarHtml = `<i data-feather="user" style="color: var(--text-main); width:18px;"></i>`; 
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists() && docSnap.data().avatarConfig) {
+                            const config = docSnap.data().avatarConfig;
+                            avatarHtml = `<img src="${generateGhostAvatar(config)}" class="profile-avatar" alt="Profile">`;
+                        } else if (user.photoURL) {
+                            avatarHtml = `<img src="${user.photoURL}" class="profile-avatar" alt="Profile">`;
+                        }
+                    } catch (error) { console.error("Nav Update Error:", error); }
+
+                    if (container.classList.contains('mobile-profile-container')) {
+                        container.innerHTML = `${avatarHtml}<div class="mobile-profile-actions"><a href="profile.html" class="mobile-profile-link">Profile</a><a href="#" id="mobile-logout-btn" class="btn-outline">Log Out</a></div>`;
+                        const mLogoutBtn = container.querySelector('#mobile-logout-btn');
+                        if(mLogoutBtn) mLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
+                    } else {
+                        container.innerHTML = `<a href="profile.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;">${avatarHtml}</a><div class="nav-dropdown"><a href="profile.html" class="dropdown-item">Profile</a><a href="feedback.html" class="dropdown-item">Community Feedback</a><a href="support.html" class="dropdown-item" style="color: var(--accent-gold);">Support Us</a><a href="settings.html" class="dropdown-item">Settings</a><a href="#" class="dropdown-item" id="nav-logout-btn">Log Out</a></div>`;
+                        const logoutBtn = container.querySelector('#nav-logout-btn');
+                        if(logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); auth.signOut().then(() => window.location.href = 'login.html'); });
+                    }
+                } else {
+                    if (container.classList.contains('mobile-profile-container')) {
+                         container.innerHTML = `<a href="login.html" class="btn-outline">Sign In / Register</a>`;
+                    } else {
+                        container.innerHTML = `<a href="login.html" style="display:flex; width:100%; height:100%; align-items:center; justify-content:center;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>`;
+                    }
+                }
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        // --- GAMIFICATION CONFIG ---
+        const BADGES = {
+            books_published: {
+                1: { id: 'author_1', name: 'Debut Author', icon: '📝', desc: 'Publish your first book' },
+                5: { id: 'author_5', name: 'Storyteller', icon: '📚', desc: 'Publish 5 books' },
+                20: { id: 'author_20', name: 'Bestseller', icon: '🏆', desc: 'Publish 20 books' }
+            }
+        };
+
+        function showBadgeNotification(badge) {
+            const div = document.createElement('div');
+            div.className = 'badge-toast';
+            div.innerHTML = `
+                <div class="badge-icon">${badge.icon}</div>
+                <div class="badge-info">
+                    <h4>Badge Unlocked!</h4>
+                    <h3>${badge.name}</h3>
+                    <p>${badge.desc}</p>
+                </div>
+            `;
+            document.body.appendChild(div);
+            requestAnimationFrame(() => div.classList.add('show'));
+            setTimeout(() => {
+                div.classList.remove('show');
+                setTimeout(() => div.remove(), 500);
+            }, 4000);
+        }
+
+        async function syncBadges(actionType, currentCount) {
+            const userRef = doc(db, "users", currentUser.uid);
+            const userSnap = await getDoc(userRef);
+            let currentBadges = userSnap.data()?.badges || [];
+            
+            const badgeMap = BADGES[actionType];
+            if (!badgeMap) return;
+
+            let badgesChanged = false;
+            const earnedBadgeIds = new Set(currentBadges.map(b => b.id));
+
+            for (const [threshold, badgeDef] of Object.entries(badgeMap)) {
+                if (currentCount >= parseInt(threshold)) {
+                    if (!earnedBadgeIds.has(badgeDef.id)) {
+                        currentBadges.push({
+                            id: badgeDef.id, name: badgeDef.name, icon: badgeDef.icon,
+                            desc: badgeDef.desc, dateEarned: new Date().toISOString()
+                        });
+                        earnedBadgeIds.add(badgeDef.id);
+                        badgesChanged = true;
+                        showBadgeNotification(badgeDef);
+                    }
+                } else {
+                    if (earnedBadgeIds.has(badgeDef.id)) {
+                        currentBadges = currentBadges.filter(b => b.id !== badgeDef.id);
+                        earnedBadgeIds.delete(badgeDef.id);
+                        badgesChanged = true;
+                    }
+                }
+            }
+            if (badgesChanged) await updateDoc(userRef, { badges: currentBadges });
+        }
+
+        async function trackGamificationAction(actionType, changeAmount = 1) {
+            if (!currentUser) return;
+            try {
+                const statsRef = doc(db, "users", currentUser.uid, "gamification", "stats");
+                await setDoc(statsRef, {
+                    [actionType]: increment(changeAmount),
+                    lastUpdated: serverTimestamp()
+                }, { merge: true });
+
+                const statsSnap = await getDoc(statsRef);
+                const currentCount = statsSnap.data()[actionType] || 0;
+                await syncBadges(actionType, currentCount);
+            } catch (e) {
+                console.error("Gamification Error:", e);
+            }
+        }
+
+        // --- MY LIST LOGIC ---
+        let currentUser = null;
+        let currentPrivateBooks = [];
+        let currentCreatedBooks = [];
+        let activeGenreFilter = 'all'; 
+        let privateUnsubscribe = null; 
+
+        function renderMyListSkeleton(count = 4) {
+            return `
+                <div class="editorial-grid skeleton-category" aria-hidden="true">
+                    ${Array.from({ length: count }).map(() => `
+                        <div class="editorial-book-card skeleton-card">
+                            <div class="skeleton-cover"></div>
+                            <div class="card-typography"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function safeEscape(str) {
+            if(typeof str !== 'string') return '';
+            return str.replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+        }
+
+        async function refreshPublicBooks() {
+            try {
+                const publicRef = collection(db, 'artifacts', appId, 'public', 'data', 'books');
+                const qPublic = query(publicRef, where('userId', '==', currentUser.uid));
+                const publicSnap = await getDocs(qPublic);
+                
+                currentCreatedBooks = [];
+                publicSnap.forEach((doc) => {
+                    currentCreatedBooks.push({ ...doc.data(), firestoreId: doc.id, _source: 'public' });
+                });
+            } catch (e) { console.error("Error loading created books", e); }
+        }
+
+        function applyGenreFilter(genre) {
+            activeGenreFilter = genre;
+            const cards = document.querySelectorAll('.editorial-book-card.book-item');
+            cards.forEach(card => {
+                const cardGenre = card.dataset.genre;
+                if (genre === 'all' || cardGenre === genre) {
+                    card.style.display = 'flex'; 
+                    // Quick fade effect on filter
+                    card.style.opacity = '0';
+                    setTimeout(() => card.style.opacity = '1', 50);
+                } else {
+                    card.style.display = 'none'; 
+                }
+            });
+        }
+
+        function renderBookGrid(books, isPrivateSection) {
+            if (!books || books.length === 0) return '<p style="padding:0 2rem; color:var(--text-muted);">No books found in this collection.</p>';
+
+            let html = '<div class="editorial-grid">';
+            const sortedBooks = [...books].sort((a, b) => {
+                const ta = a.createdAt ? a.createdAt.seconds : 0;
+                const tb = b.createdAt ? b.createdAt.seconds : 0;
+                return tb - ta; 
+            });
+
+            sortedBooks.forEach((book, index) => {
+                const isPublic = !!book.publicId;
+                const isMyWork = !book.originalUserId || (book.originalUserId === currentUser.uid);
+                const delayClass = `stagger-delay-${(index % 3) + 1}`;
+
+                let ribbonClass = ''; let ribbonTitle = '';
+                if (!isMyWork) { ribbonClass = 'is-golden'; ribbonTitle = 'Saved Community Book (Read Only)'; } 
+                else if (!isPrivateSection || isPublic) { ribbonClass = 'is-public'; ribbonTitle = 'Published (Click to Unpublish)'; } 
+                else { ribbonClass = 'is-private'; ribbonTitle = 'Private (Click to Publish)'; }
+
+                const safeGenre = book.genre ? safeEscape(book.genre) : 'Uncategorized';
+                const displayAuthor = book.authorName ? safeEscape(book.authorName) : 'Me';
+                const safeBookStr = JSON.stringify(book).replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+                
+                html += `
+                    <div class="editorial-book-card book-item fade-up ${delayClass}" data-firestore-id="${book.firestoreId}" data-source="${book._source}" data-genre="${safeGenre}">
+                        <div class="card-image-container clickable" style="cursor:pointer;" data-book='${safeBookStr}'>
+                            <img src="${book.coverUrl}" alt="${safeEscape(book.title)}" onerror="this.src='https://placehold.co/400x600/111/FFF?text=No+Image'">
+                            
+                            ${isPrivateSection ? `
+                            <div class="bookmark-ribbon ${ribbonClass}" title="${ribbonTitle}" data-firestore-id="${book.firestoreId}" data-public-id="${book.publicId || ''}" data-is-mine="${isMyWork}"></div>` : ''}
+
+                            <button class="list-delete-btn" title="Delete Volume" data-firestore-id="${book.firestoreId}" data-source="${book._source}">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                        <div class="card-typography clickable" data-book='${safeBookStr}' style="cursor:pointer;">
+                            <h3 class="card-book-title">${safeEscape(book.title)}</h3>
+                            <p class="card-book-author">
+                                <span>${isMyWork ? 'By Me' : displayAuthor}</span>
+                                <span style="text-transform:none; color:var(--accent-gold); font-size:0.75rem; border:1px solid var(--accent-gold); padding:2px 8px; border-radius:100px;">${safeGenre}</span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function renderDualShelves(container, privateBooks, createdBooks) {
+            if (privateBooks.length === 0 && createdBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state fade-up">
+                        <h3>Your Library is Empty</h3>
+                        <p>Begin your literary journey by crafting a new world or saving an existing one.</p>
+                        <a href="aibook.html" class="btn-editorial magnetic">Author a Book <i data-feather="edit-2"></i></a>
+                    </div>`;
+                if (typeof feather !== 'undefined') feather.replace();
+                initMagneticElements();
+                observeScrollElements();
+                return;
+            }
+
+            let html = '';
+            if (privateBooks.length > 0) {
+                html += `
+                    <div class="section-header fade-up">
+                        <h2>Private Archives</h2>
+                        <div class="category-line"></div>
+                    </div>`;
+                html += renderBookGrid(privateBooks, true); 
+            }
+            if (createdBooks.length > 0) {
+                html += `
+                    <div class="section-header fade-up" style="margin-top:2rem;">
+                        <h2>Public Editions</h2>
+                        <div class="category-line"></div>
+                    </div>`;
+                html += renderBookGrid(createdBooks, false); 
+            }
+
+            container.innerHTML = html;
+            if (typeof feather !== 'undefined') feather.replace(); 
+            initMagneticElements();
+            observeScrollElements();
+        }
+
+        function updateLibraryUI() {
+            const container = document.getElementById('book-shelves-container');
+            
+            const linkedPublicIds = new Set();
+            currentPrivateBooks.forEach(b => { if (b.publicId) linkedPublicIds.add(b.publicId); });
+            const uniquePublicBooks = currentCreatedBooks.filter(b => !linkedPublicIds.has(b.firestoreId));
+            const uniqueBooksForStats = [...currentPrivateBooks, ...uniquePublicBooks];
+            
+            const totalCount = uniqueBooksForStats.length;
+            const genres = new Set();
+            uniqueBooksForStats.forEach(b => { if(b.genre) genres.add(b.genre); });
+
+            const filterContainer = document.getElementById('genre-filters');
+            if (filterContainer) {
+                let filterHtml = `<button class="filter-btn active magnetic" data-filter="all">All Genres</button>`;
+                Array.from(genres).sort().forEach(g => {
+                    filterHtml += `<button class="filter-btn magnetic" data-filter="${g}">${safeEscape(g)}</button>`;
+                });
+                filterContainer.innerHTML = filterHtml;
+            }
+
+            const statsContainer = document.getElementById('library-stats');
+            if (statsContainer) {
+                statsContainer.innerHTML = `<span class="stat-item fade-up">Volumes: <b>${totalCount}</b></span><span class="stat-item fade-up stagger-delay-1">Categories: <b>${genres.size}</b></span>`;
+            }
+
+            renderDualShelves(container, currentPrivateBooks, currentCreatedBooks);
+            
+            if (activeGenreFilter !== 'all') {
+                applyGenreFilter(activeGenreFilter);
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    if (btn.dataset.filter === activeGenreFilter) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+            }
+        }
+
+        function setupRealtimeListeners() {
+            const container = document.getElementById('book-shelves-container');
+            if (!currentUser) return;
+            container.innerHTML = renderMyListSkeleton(8);
+
+            const privateRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books');
+            if (privateUnsubscribe) privateUnsubscribe(); 
+
+            privateUnsubscribe = onSnapshot(privateRef, async (snapshot) => {
+                const validPrivateBooks = [];
+                for (const docSnap of snapshot.docs) {
+                    const data = docSnap.data();
+                    validPrivateBooks.push({ ...data, firestoreId: docSnap.id, _source: 'private' });
+                }
+                currentPrivateBooks = validPrivateBooks;
+                await refreshPublicBooks(); 
+                updateLibraryUI();
+            }, (error) => {
+                console.error("Error fetching private books:", error);
+                container.innerHTML = `<div class="empty-state"><h3>Library Offline</h3><p>${error.message}</p></div>`;
+            });
+        }
+
+        async function handleContainerClick(e) {
+            if (!currentUser) return;
+
+            const deleteButton = e.target.closest('.list-delete-btn');
+            const ribbonButton = e.target.closest('.bookmark-ribbon');
+            const readTrigger = e.target.closest('.card-image-container, .card-typography');
+
+            if (deleteButton) {
+                e.stopPropagation(); e.preventDefault();
+                const docId = deleteButton.dataset.firestoreId;
+                const source = deleteButton.dataset.source; 
+                const cardElement = deleteButton.closest('.editorial-book-card');
+
+                try {
+                    cardElement.style.opacity = '0.5';
+                    if (source === 'private') {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId));
+                        showSiteNotice("Volume securely deleted.");
+                    } else if (source === 'public') {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'books', docId));
+                        await refreshPublicBooks();
+                        updateLibraryUI();
+                        showSiteNotice("Public edition removed.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showSiteNotice("Delete failed: " + err.message, "error");
+                    cardElement.style.opacity = '1';
+                }
+            } 
+            else if (ribbonButton) {
+                e.stopPropagation(); e.preventDefault();
+                if (ribbonButton.classList.contains('is-golden')) { showSiteNotice("This is a saved community book.", "info"); return; }
+                if (ribbonButton.dataset.processing === "true") return;
+                
+                ribbonButton.dataset.processing = "true";
+                ribbonButton.style.opacity = '0.5';
+
+                const docId = ribbonButton.dataset.firestoreId;
+                const publicId = ribbonButton.dataset.publicId;
+                const bookData = currentPrivateBooks.find(b => b.firestoreId === docId);
+                
+                if (!bookData) { ribbonButton.dataset.processing = "false"; return; }
+                if (!publicId && bookData.originalUserId && bookData.originalUserId !== currentUser.uid) {
+                    showSiteNotice("Cannot publish books by other authors.", "error");
+                    ribbonButton.style.opacity = '1'; ribbonButton.dataset.processing = "false"; return;
+                }
+
+                try {
+                    if (publicId) {
+                        const pubRef = doc(db, 'artifacts', appId, 'public', 'data', 'books', publicId);
+                        try {
+                            const publicSnap = await getDoc(pubRef);
+                            let ratingsToSave = {};
+                            if (publicSnap.exists()) ratingsToSave = publicSnap.data().ratings || {};
+                            await deleteDoc(pubRef);
+                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { publicId: null, ratings: ratingsToSave });
+                            await trackGamificationAction('books_published', -1);
+                            await refreshPublicBooks();
+                            showSiteNotice("Volume unpublished from Editions.");
+                        } catch(innerErr) {
+                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { publicId: null });
+                        }
+                    } else {
+                        const pubData = { 
+                            ...bookData, userId: currentUser.uid, authorName: currentUser.displayName || 'Anonymous',
+                            createdAt: serverTimestamp(), ratings: bookData.ratings || {}, originalUserId: currentUser.uid 
+                        };
+                        delete pubData.firestoreId; delete pubData._source; delete pubData.publicId;
+
+                        const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'books'), pubData);
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'books', docId), { publicId: ref.id });
+                        await trackGamificationAction('books_published', 1);
+                        await refreshPublicBooks();
+                        showSiteNotice("Volume published to Editions!");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showSiteNotice("Action failed: " + err.message, "error");
+                    ribbonButton.style.opacity = '1'; ribbonButton.dataset.processing = "false";
+                }
+            }
+            else if (readTrigger) {
+                try {
+                    const data = JSON.parse(readTrigger.getAttribute('data-book'));
+                    data.isLibraryView = true;
+                    localStorage.setItem('generatedBook', JSON.stringify(data));
+                    window.location.href = 'reader.html';
+                } catch(e) { console.error("Error opening book", e); }
+            }
+        }
+
+        // --- INIT & BOOTSTRAP ---
+        let isPageLoaded = false;
+        const initializeMyList = () => {
+            const container = document.getElementById('book-shelves-container');
+            if (!container) return;
+
+            container.addEventListener('click', handleContainerClick);
+            const filterContainer = document.getElementById('genre-filters');
+            if(filterContainer) {
+                filterContainer.addEventListener('click', (e) => {
+                    if(e.target.classList.contains('filter-btn')) {
+                        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        applyGenreFilter(e.target.dataset.filter);
+                    }
+                });
+            }
+
+            initElasticFooter();
+            observeScrollElements();
+        };
+
+        const initAuthAndLoad = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                }
+            } catch (error) { console.warn("Auth initialization failed.", error); }
+
+            onAuthStateChanged(auth, (user) => { 
+                updateNavUser(user); 
+                currentUser = user && !user.isAnonymous ? user : null;
+                
+                if (!currentUser) {
+                    if(privateUnsubscribe) privateUnsubscribe();
+                    const container = document.getElementById('book-shelves-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="empty-state fade-up">
+                                <h3>Authentication Required</h3>
+                                <p>Please sign in to access your curated library.</p>
+                                <a href="login.html" class="btn-editorial magnetic">Sign In</a>
+                            </div>`;
+                        initMagneticElements();
+                        observeScrollElements();
+                    }
+                    return;
+                }
+
+                if (!isPageLoaded) {
+                    isPageLoaded = true;
+                    setupRealtimeListeners();
+                }
+            });
+        };
+
+        onDOMReady(() => {
+            if (document.body.dataset.page === 'mylist') {
+                initializeMyList();
+                initAuthAndLoad();
+            } else {
+                onAuthStateChanged(auth, (user) => { updateNavUser(user); });
+            }
+        });
+    </script>
 </body>
 </html>

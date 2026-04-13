@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -131,6 +131,10 @@
         .nav-link.active::after {
             content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--accent-gold);
         }
+        .nav-mylist-item { transition: opacity 0.28s ease, visibility 0.28s ease; }
+        .nav-auth-placeholder { visibility: hidden; opacity: 0; pointer-events: none; }
+        body.user-signed-in .nav-auth-placeholder { visibility: visible; opacity: 1; pointer-events: auto; }
+        body.nav-auth-resolved:not(.user-signed-in) .nav-mylist-item { display: none !important; }
         .nav-link-anim { display: inline-flex; align-items: center; } 
         .nav-link-anim .ai-part, .nav-link-anim .i-part { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-link-anim .book-part {
@@ -371,7 +375,7 @@
                 <li><a href="aibook.html" class="nav-link nav-link-anim magnetic" id="aibook-link"><span class="ai-part">A</span><span class="book-part">BOOK</span><span class="i-part">I</span></a></li>
                 <li><a href="library.html" class="nav-link active magnetic">Archive</a></li>
                 <li><a href="new-releases.html" class="nav-link magnetic">Editions</a></li>
-                <li style="display: none;"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
+                <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="nav-link magnetic">My List</a></li>
             </ul>
             <div class="nav-profile desktop-profile">
                 <a href="login.html" style="display:flex;"><i data-feather="user" style="color:var(--text-main); width:18px;"></i></a>
@@ -393,7 +397,7 @@
             <li><a href="aibook.html" class="mobile-nav-link" data-num="02">Create Book</a></li>
             <li><a href="library.html" class="mobile-nav-link active" style="color:var(--accent-gold);" data-num="03">Archive</a></li>
             <li><a href="new-releases.html" class="mobile-nav-link" data-num="04">Editions</a></li>
-            <li style="display: none;"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
+            <li class="nav-mylist-item nav-auth-placeholder"><a href="mylist.html" class="mobile-nav-link" data-num="05">My List</a></li>
         </ul>
         <div class="mobile-profile-container nav-profile">
             <!-- Auth injected here for mobile -->
@@ -541,9 +545,10 @@
             const profileContainers = document.querySelectorAll('.nav-profile');
             const isSignedIn = Boolean(user && !user.isAnonymous);
             document.body.classList.toggle('user-signed-in', isSignedIn);
+            document.body.classList.add('nav-auth-resolved');
             document.querySelectorAll('a[href="mylist.html"]').forEach((link) => {
                 const navItem = link.closest('li') || link;
-                navItem.style.display = isSignedIn ? '' : 'none';
+                navItem.classList.add('nav-mylist-item', 'nav-auth-placeholder');
             });
             profileContainers.forEach(async (container) => {
                 if (isSignedIn) {
@@ -1068,6 +1073,7 @@
     </script>
 </body>
 </html>
+
 
 
 

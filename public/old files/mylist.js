@@ -26,6 +26,20 @@ let currentCreatedBooks = [];
 let activeGenreFilter = 'all'; 
 let privateUnsubscribe = null; 
 
+function renderMyListSkeleton(count = 6) {
+    return `
+        <div class="mylist-skeleton-grid" aria-hidden="true">
+            ${Array.from({ length: count }).map(() => `
+                <div class="mylist-skeleton-card skeleton-card">
+                    <div class="skeleton-cover"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
 // --- GAMIFICATION CONFIG ---
 const BADGES = {
     books_published: {
@@ -74,7 +88,7 @@ function setupRealtimeListeners() {
     const container = document.getElementById('book-shelves-container');
     if (!currentUser) return;
 
-    container.innerHTML = '<p class="loading-text">Loading your library...</p>';
+    container.innerHTML = renderMyListSkeleton();
 
     const privateRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'books');
     

@@ -121,6 +121,21 @@
     margin: -20px;
 }
 
+.mylist-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+    padding: 20px 20px 40px;
+}
+
+.mylist-skeleton-card {
+    min-height: 330px;
+}
+
+.mylist-skeleton-card .skeleton-cover {
+    margin-bottom: 1rem;
+}
+
 .bookmark-ribbon {
     position: absolute;
     top: -5px;
