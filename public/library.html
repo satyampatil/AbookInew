@@ -14,27 +14,9 @@
     <style>
         /* ---
         // ===============================================
-        //   00. AWWWARDS LEVEL LOADER & OVERLAYS
+        //   00. OVERLAYS
         // ===============================================
         // --- */
-        #loader-overlay {
-            position: fixed;
-            inset: 0;
-            background: #050506; 
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 3rem 4rem;
-            transition: clip-path 1.4s cubic-bezier(0.85, 0, 0.15, 1);
-            clip-path: inset(0 0 0 0);
-        }
-
-        #loader-overlay.hide-loader {
-            clip-path: inset(0 0 100% 0);
-            pointer-events: none;
-        }
-
         .site-noise {
             position: fixed;
             inset: 0;
@@ -46,36 +28,6 @@
                 repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px);
             mix-blend-mode: overlay;
         }
-
-        .loader-top { display: flex; justify-content: space-between; align-items: flex-start; overflow: hidden; }
-        .loader-title {
-            font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500;
-            letter-spacing: 0.1em; text-transform: uppercase; color: #a19d93;
-            transform: translateY(100%); animation: revealText 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.2s;
-        }
-        .loader-center { flex-grow: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .loader-brand {
-            font-family: 'Playfair Display', serif; font-size: clamp(3rem, 12vw, 9rem);
-            font-weight: 700; color: #f0ece1; letter-spacing: -0.02em; position: relative;
-            transform: translateY(100%); animation: revealText 1s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.4s;
-        }
-        .loader-brand::after {
-            content: "*"; position: absolute; right: -0.3em; top: -0.1em; font-family: 'Inter', sans-serif; font-size: 0.3em; color: #c9a05b;
-            animation: spin 6s linear infinite;
-        }
-        .loader-bottom { display: flex; justify-content: flex-end; align-items: flex-end; overflow: hidden; }
-        .loader-counter-wrap {
-            font-family: 'Playfair Display', serif; font-size: clamp(3rem, 6vw, 5rem);
-            font-weight: 400; color: #f0ece1; display: flex; align-items: baseline;
-            transform: translateY(100%); animation: revealText 0.8s cubic-bezier(0.85, 0, 0.15, 1) forwards 0.6s;
-        }
-        .loader-counter { font-variant-numeric: tabular-nums; }
-        .loader-percent { font-family: 'Inter', sans-serif; font-size: 0.3em; color: #c9a05b; margin-left: 0.3rem; font-weight: 400; }
-        .loader-progress-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: #c9a05b; width: 0%; transition: width 0.1s linear; }
-
-        @keyframes revealText { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @media (max-width: 768px) { #loader-overlay { padding: 2rem 1.5rem; } }
 
         /* Toast Notifications */
         .site-toast {
@@ -395,26 +347,6 @@
     <!-- Cinematic Noise Overlay -->
     <div class="site-noise"></div>
 
-    <!-- AWWWARDS LEVEL LOADER -->
-    <div id="loader-overlay">
-        <div class="loader-top">
-            <div class="loader-title">The Curated</div>
-            <div class="loader-title" style="animation-delay: 0.3s">Digital Archive</div>
-        </div>
-        
-        <div class="loader-center">
-            <div class="loader-brand">ABOOKI</div>
-        </div>
-        
-        <div class="loader-bottom">
-            <div class="loader-counter-wrap">
-                <span class="loader-counter" id="loader-counter">0</span>
-                <span class="loader-percent">%</span>
-            </div>
-        </div>
-        <div class="loader-progress-bar" id="loader-progress"></div>
-    </div>
-
     <!-- 1. DESKTOP FLOATING HEADER -->
     <div class="desktop-header-wrapper">
         <nav class="main-nav">
@@ -457,7 +389,7 @@
         <div class="library-background"></div>
         
         <!-- Overlay -->
-        <div class="library-overlay fade-up">
+        <div class="library-overlay">
             <h1>The Central Archive</h1>
             <p>Active readers worldwide</p>
         </div>
@@ -561,35 +493,6 @@
                 if(e.target.tagName === 'A' || e.target.closest('a')) closeMobileMenu();
             });
         }
-
-        // --- AWWWARDS LOADER LOGIC ---
-        onDOMReady(() => {
-            const counterEl = document.getElementById('loader-counter');
-            const progressEl = document.getElementById('loader-progress');
-            const overlay = document.getElementById('loader-overlay');
-            let count = 0;
-            
-            const updateCounter = () => {
-                const increment = Math.floor(Math.random() * 8) + 1;
-                count += increment;
-                if (count > 100) count = 100;
-                counterEl.textContent = count;
-                progressEl.style.width = `${count}%`;
-                
-                if (count < 100) {
-                    const delay = Math.random() * 80 + 30;
-                    setTimeout(updateCounter, delay);
-                } else {
-                    setTimeout(() => {
-                        overlay.classList.add('hide-loader');
-                        // Trigger fade up for specific elements
-                        document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
-                        setTimeout(() => { overlay.remove(); }, 1400); 
-                    }, 400); 
-                }
-            };
-            setTimeout(updateCounter, 800);
-        });
 
         // --- FIREBASE & LIBRARY LOGIC ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";

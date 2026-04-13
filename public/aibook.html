@@ -387,11 +387,17 @@
         // ===============================================
         // --- */
         .premium-footer {
-            background: #050506; padding: 6rem 4rem 2rem; position: relative; overflow: hidden; flex-shrink: 0; z-index: 10;
+            background: #050506; padding: 6rem 4rem 2rem; position: relative; overflow: hidden; flex-shrink: 0; z-index: 10; will-change: padding-bottom;
         }
         .premium-footer::before {
             content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 80%; height: 1px; background: radial-gradient(circle, rgba(201, 160, 91, 0.3) 0%, transparent 80%);
+            width: 80%; height: 2px; background: radial-gradient(circle, rgba(201, 160, 91, 0.8) 0%, transparent 80%);
+            animation: pulseGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { opacity: 0.4; box-shadow: 0 0 10px rgba(201, 160, 91, 0.1); }
+            100% { opacity: 1; box-shadow: 0 0 25px rgba(201, 160, 91, 0.6), 0 0 50px rgba(201, 160, 91, 0.2); }
         }
         .footer-content { max-width: 1400px; margin: 0 auto; }
         .footer-top {
@@ -656,8 +662,72 @@
                 scrollObserver.observe(el);
             });
         }
+
+        // --- PREMIUM INTERACTION: Elastic Footer Rubber Band ---
+        const initElasticFooter = () => {
+            const footerEl = document.querySelector('.premium-footer');
+            if (!footerEl) return;
+            
+            let stretchValue = 0;
+            let isTouching = false;
+            let touchStartY = 0;
+            let wheelTimeout;
+
+            const applyStretch = (val) => {
+                // Smooth non-linear dampening for rubber effect. Caps safely at 120px stretch.
+                const stretch = Math.min(val / 2.5, 120); 
+                footerEl.style.paddingBottom = `calc(2rem + ${stretch}px)`;
+            };
+
+            const resetStretch = () => {
+                stretchValue = 0;
+                footerEl.style.transition = 'padding-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                footerEl.style.paddingBottom = '2rem';
+            };
+
+            window.addEventListener('wheel', (e) => {
+                const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+                if (isAtBottom && e.deltaY > 0) {
+                    footerEl.style.transition = 'none';
+                    stretchValue += e.deltaY;
+                    if (stretchValue > 300) stretchValue = 300;
+                    applyStretch(stretchValue);
+                    
+                    clearTimeout(wheelTimeout);
+                    wheelTimeout = setTimeout(resetStretch, 150);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchstart', (e) => {
+                const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+                if (isAtBottom) {
+                    isTouching = true;
+                    touchStartY = e.touches[0].clientY;
+                    footerEl.style.transition = 'none';
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isTouching) return;
+                const touchY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchY;
+                
+                if (deltaY > 0) { 
+                    stretchValue = deltaY * 1.5;
+                    applyStretch(stretchValue);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                if (isTouching) {
+                    isTouching = false;
+                    resetStretch();
+                }
+            });
+        };
         
         onDOMReady(observeScrollElements);
+        onDOMReady(initElasticFooter);
 
         // --- MOBILE MENU LOGIC ---
         const mobileHeader = document.querySelector('.mobile-header-wrapper');
