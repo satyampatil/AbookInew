@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { generateGhostAvatar } from "./avatar-generator.js";
@@ -21,18 +21,18 @@ const db = getFirestore(app);
 // --- GAMIFICATION CONFIG ---
 const ALL_BADGES = [
     // Reading
-    { id: 'reader_1', category: 'reading', name: 'First Chapter', icon: '📖', desc: 'Finish your first book', threshold: 1, stat: 'books_read' },
-    { id: 'reader_5', category: 'reading', name: 'Bookworm', icon: '🐛', desc: 'Finish 5 books', threshold: 5, stat: 'books_read' },
-    { id: 'reader_10', category: 'reading', name: 'Bibliophile', icon: '📚', desc: 'Finish 10 books', threshold: 10, stat: 'books_read' },
+    { id: 'reader_1', category: 'reading', name: 'First Chapter', icon: 'I', desc: 'Finish your first book', threshold: 1, stat: 'books_read' },
+    { id: 'reader_5', category: 'reading', name: 'Bookworm', icon: 'V', desc: 'Finish 5 books', threshold: 5, stat: 'books_read' },
+    { id: 'reader_10', category: 'reading', name: 'Bibliophile', icon: 'X', desc: 'Finish 10 books', threshold: 10, stat: 'books_read' },
     
     // Publishing
-    { id: 'author_1', category: 'writing', name: 'Debut Author', icon: '✍️', desc: 'Publish your first book', threshold: 1, stat: 'books_published' },
-    { id: 'author_5', category: 'writing', name: 'Storyteller', icon: '🌟', desc: 'Publish 5 books', threshold: 5, stat: 'books_published' },
-    { id: 'author_20', category: 'writing', name: 'Bestseller', icon: '🏆', desc: 'Publish 20 books', threshold: 20, stat: 'books_published' },
+    { id: 'author_1', category: 'writing', name: 'Debut Author', icon: 'A1', desc: 'Publish your first book', threshold: 1, stat: 'books_published' },
+    { id: 'author_5', category: 'writing', name: 'Storyteller', icon: 'A5', desc: 'Publish 5 books', threshold: 5, stat: 'books_published' },
+    { id: 'author_20', category: 'writing', name: 'Bestseller', icon: 'A20', desc: 'Publish 20 books', threshold: 20, stat: 'books_published' },
 
     // Streaks & Loyalty
-    { id: 'streak_3', category: 'social', name: 'On Fire', icon: '🔥', desc: '3-day login streak', threshold: 3, stat: 'login_streak' },
-    { id: 'veteran_30', category: 'social', name: 'Resident', icon: '🏠', desc: 'Log in on 30 different days', threshold: 30, stat: 'total_days_logged_in' }
+    { id: 'streak_3', category: 'social', name: 'On Fire', icon: 'S3', desc: '3-day login streak', threshold: 3, stat: 'login_streak' },
+    { id: 'veteran_30', category: 'social', name: 'Resident', icon: 'R30', desc: 'Log in on 30 different days', threshold: 30, stat: 'total_days_logged_in' }
 ];
 
 // UI Elements
@@ -379,3 +379,4 @@ let lastScrollY = window.scrollY;
         
         lastScrollY = currentScrollY;
     });
+
